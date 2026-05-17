@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" id="trh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intersect · Coordinator Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--gold:#f59e0b;--grad:linear-gradient(135deg,#06b6d4,#7c3aed);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;}
+[lang=ar]{font-family:'Cairo',sans-serif!important;direction:rtl;}
+#login-sc{position:fixed;inset:0;background:var(--void);display:flex;align-items:center;justify-content:center;padding:20px;}
+#main{display:none;}
+.lcard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:32px 28px;width:380px;max-width:100%;text-align:center;}
+.ltit{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;}
+.lsub{font-size:13px;color:var(--ink3);margin-bottom:22px;}
+.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--ink);font-family:inherit;font-size:14px;margin-bottom:12px;}
+.fi:focus{outline:none;border-color:var(--teal);}
+.lbtn{width:100%;background:var(--grad);border:none;border-radius:9px;padding:12px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;}
+.lbtn:hover{opacity:.9;}
+.lerr{color:var(--red);font-size:12px;display:none;margin-top:4px;}
+.header{background:linear-gradient(180deg,rgba(6,182,212,.06),transparent);border-bottom:1px solid var(--border);padding:20px 22px;display:flex;align-items:center;justify-content:space-between;}
+.htit{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+.hsub{font-size:12px;color:var(--ink3);margin-top:2px;}
+.ct{padding:18px 22px;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:14px;}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);}
+.pt{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
+.pb{padding:16px;}
+.fg{margin-bottom:12px;}
+.fl{font-size:11px;color:var(--ink2);font-weight:600;margin-bottom:4px;display:block;}
+.fs,.fta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font-family:inherit;font-size:13px;}
+.fs:focus,.fta:focus{outline:none;border-color:var(--teal);}
+.fs option{background:var(--card2);}
+.fta{resize:vertical;min-height:80px;line-height:1.6;}
+.fi2{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font-family:inherit;font-size:13px;}
+.fi2:focus{outline:none;border-color:var(--teal);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 16px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+.bbg{background:var(--grad);color:#fff;}.bbg:hover{opacity:.9;}
+.bw{width:100%;}
+.meet-card{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:9px;}
+.meet-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.meet-meta{font-size:11px;color:var(--ink3);margin-bottom:8px;}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 15px;font-size:13px;font-weight:600;z-index:9999;transition:all .3s;opacity:0;transform:translateY(7px);pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.ts{border-color:rgba(34,197,94,.3);color:#22c55e;}.te{border-color:rgba(239,68,68,.3);color:#ef4444;}
+.lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.lang-bar{position:fixed;top:10px;right:10px;display:flex;gap:4px;z-index:999;flex-wrap:wrap;max-width:175px;justify-content:flex-end;}
+@media(max-width:480px){.ct{padding:12px 14px;}.lcard{padding:24px 18px;}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="lang-bar">
+  <button class="lb" onclick="setL('en')">EN</button>
+  <button class="lb" onclick="setL('ar')">AR</button>
+  <button class="lb" onclick="setL('es')">ES</button>
+  <button class="lb" onclick="setL('fr')">FR</button>
+  <button class="lb" onclick="setL('ja')">JA</button>
+  <button class="lb" onclick="setL('zh')">ZH</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login-sc">
+  <div class="lcard">
+    <div style="font-size:32px;margin-bottom:10px;">📋</div>
+    <div class="ltit">Meeting Coordinator</div>
+    <div class="lsub">Intersect PartnerOS · Log meetings & transcripts</div>
+    <input type="password" class="fi" id="coord-pass-input" placeholder="Enter coordinator password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="lbtn" onclick="doLogin()">ACCESS COORDINATOR PORTAL</button>
+    <div class="lerr" id="lerr">Wrong password</div>
+    <div style="margin-top:14px;font-size:11px;color:var(--ink3);">Default password: <code style="color:var(--teal);">coordinator2026</code></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="header">
+    <div>
+      <div class="htit">📋 Meeting Coordinator</div>
+      <div class="hsub" id="coord-name-display">Coordinator · Intersect PartnerOS</div>
+    </div>
+    <button class="btn" onclick="doLogout()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);font-size:12px;padding:7px 12px;">→ Logout</button>
+  </div>
+  <div class="ct">
+
+    <!-- ADD MEETING -->
+    <div class="panel">
+      <div class="ph"><div class="pt">➕ Log New Meeting</div></div>
+      <div class="pb">
+        <div class="fg"><label class="fl">Meeting Title *</label><input class="fi2" id="mt-title" placeholder="e.g. Initial Partnership Discussion"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="fg"><label class="fl">Organization *</label><input class="fi2" id="mt-org" placeholder="Company name"></div>
+          <div class="fg"><label class="fl">Date *</label><input class="fi2" type="date" id="mt-date"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="fg"><label class="fl">Meeting Type</label>
+            <select class="fs" id="mt-type">
+              <option value="Initial">Initial Meeting</option>
+              <option value="Follow-up">Follow-up</option>
+              <option value="Negotiation">Negotiation</option>
+              <option value="Technical">Technical</option>
+              <option value="Closing">Closing</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Follow-up Deadline</label><input class="fi2" type="date" id="mt-fup"></div>
+        </div>
+        <div class="fg"><label class="fl">Attendees</label><input class="fi2" id="mt-att" placeholder="Names separated by comma"></div>
+        <div class="fg"><label class="fl">Agenda</label><textarea class="fta" id="mt-agenda" placeholder="Meeting agenda..."></textarea></div>
+        <div class="fg"><label class="fl">Summary</label><textarea class="fta" id="mt-sum" placeholder="What was discussed..."></textarea></div>
+        <div class="fg"><label class="fl">Action Items</label><textarea class="fta" id="mt-acts" placeholder="Action items from this meeting..."></textarea></div>
+        <div class="fg">
+          <label class="fl" style="display:flex;align-items:center;gap:6px;">
+            🔒 Transcript
+            <span style="font-size:9px;background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2);padding:1px 6px;border-radius:8px;font-weight:700;">FOUNDERS ONLY</span>
+          </label>
+          <textarea class="fta" id="mt-tr" style="min-height:100px;font-family:monospace;font-size:11px;" placeholder="Paste full meeting transcript here..."></textarea>
+        </div>
+        <button class="btn bbg bw" onclick="saveMeeting()">💾 Save Meeting</button>
+      </div>
+    </div>
+
+    <!-- MEETINGS LIST -->
+    <div class="panel">
+      <div class="ph"><div class="pt">📅 Logged Meetings</div><span id="meet-count" style="font-size:12px;color:var(--teal);font-weight:700;">0 meetings</span></div>
+      <div class="pb" id="meets-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings logged yet</div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<script>
+var SB_URL='https://rppwppxyhmuicgemmecu.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwcHdwcHh5aG11aWNnZW1tZWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NjgxMzksImV4cCI6MjA5NDQ0NDEzOX0.QCbXlBlZ3C4uXEfM1xA0O8zBxoIz24sXrg4Sj9vx8t8';
+var meetings=[];
+
+var sb=null;
+try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
+
+function setL(l){var h=document.getElementById('trh');h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');try{localStorage.setItem('ix_lang',l);}catch(e){}}
+function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
+var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
+
+function doLogin(){
+  var pass=document.getElementById('coord-pass-input').value;
+  var stored=localStorage.getItem('ix_coord_pass')||'coordinator2026';
+  if(pass===stored){
+    document.getElementById('login-sc').style.display='none';
+    document.getElementById('main').style.display='block';
+    var name=localStorage.getItem('ix_coord_name')||'Meeting Coordinator';
+    document.getElementById('coord-name-display').textContent=name+' · Intersect PartnerOS';
+    document.getElementById('mt-date').value=new Date().toISOString().split('T')[0];
+    loadMeetings();
+  } else {
+    document.getElementById('lerr').style.display='block';
+    setTimeout(function(){document.getElementById('lerr').style.display='none';},2000);
+  }
+}
+function doLogout(){
+  document.getElementById('main').style.display='none';
+  document.getElementById('login-sc').style.display='flex';
+  document.getElementById('coord-pass-input').value='';
+}
+
+async function loadMeetings(){
+  try{
+    if(!sb){sb=window.supabase.createClient(SB_URL,SB_KEY);}
+    var r=await sb.from('ix_meetings').select('*').order('date',{ascending:false}).limit(30);
+    meetings=r.data||[];
+    renderMeetings();
+  }catch(e){meetings=[];renderMeetings();}
+}
+
+function renderMeetings(){
+  var el=document.getElementById('meets-list');
+  document.getElementById('meet-count').textContent=meetings.length+' meetings';
+  if(!meetings.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings logged yet</div>';return;}
+  el.innerHTML=meetings.map(function(m){
+    return '<div class="meet-card">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5px;">'
+        +'<div class="meet-title">'+m.title+'</div>'
+        +(m.transcript?'<span style="font-size:10px;background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2);padding:2px 6px;border-radius:8px;font-weight:700;flex-shrink:0;margin-left:8px;">🔒 Transcript</span>':'')
+      +'</div>'
+      +'<div class="meet-meta">'+( m.organization||'—')+' · '+(m.date||'—')+(m.meeting_type?' · '+m.meeting_type:'')+'</div>'
+      +(m.attendees?'<div style="font-size:11px;color:var(--ink3);margin-bottom:5px;">👥 '+m.attendees+'</div>':'')
+      +(m.summary?'<div style="font-size:12px;color:var(--ink2);margin-bottom:7px;line-height:1.5;">'+m.summary.slice(0,150)+(m.summary.length>150?'...':'')+'</div>':'')
+      +(m.action_items?'<div style="font-size:11px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:7px;padding:8px;margin-bottom:7px;color:var(--gold);">→ '+m.action_items.slice(0,100)+'</div>':'')
+      +'<div style="display:flex;gap:6px;">'
+        +(m.transcript?'<button onclick="viewTranscript(\''+m.id+'\')" style="font-size:11px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:inherit;">🔒 View Transcript</button>':'')
+        +'<button onclick="deleteMeeting(\''+m.id+'\')" style="font-size:11px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:inherit;margin-left:auto;">✕ Delete</button>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function saveMeeting(){
+  var title=document.getElementById('mt-title').value.trim();
+  var org=document.getElementById('mt-org').value.trim();
+  var date=document.getElementById('mt-date').value;
+  if(!title||!org||!date){toast('Fill in title, organization and date','te');return;}
+  var body={
+    title:title,
+    organization:org,
+    date:date,
+    meeting_type:document.getElementById('mt-type').value,
+    followup_deadline:document.getElementById('mt-fup').value||null,
+    attendees:document.getElementById('mt-att').value.trim()||null,
+    agenda:document.getElementById('mt-agenda').value.trim()||null,
+    summary:document.getElementById('mt-sum').value.trim()||null,
+    action_items:document.getElementById('mt-acts').value.trim()||null,
+    transcript:document.getElementById('mt-tr').value.trim()||null
+  };
+  try{
+    var r=await sb.from('ix_meetings').insert(body).select();
+    if(r.data&&r.data[0]){meetings.unshift(r.data[0]);}
+    ['mt-title','mt-org','mt-fup','mt-att','mt-agenda','mt-sum','mt-acts','mt-tr'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('mt-date').value=new Date().toISOString().split('T')[0];
+    renderMeetings();
+    toast('✅ Meeting saved!','ts');
+  }catch(e){toast('Error saving meeting','te');}
+}
+
+function viewTranscript(id){
+  var m=meetings.find(function(x){return x.id===id;});
+  if(!m||!m.transcript)return;
+  var w=window.open('','_blank');
+  w.document.write('<html><head><title>Transcript - '+m.title+'</title><style>body{font-family:monospace;background:#030407;color:#e8ecf8;padding:30px;line-height:1.7;white-space:pre-wrap;font-size:13px;}h1{font-family:sans-serif;font-size:16px;margin-bottom:5px;}p{color:#4a5270;font-family:sans-serif;font-size:12px;margin-bottom:20px;}</style></head><body>');
+  w.document.write('<h1>'+m.title+'</h1><p>'+m.organization+' · '+m.date+' · 🔒 CONFIDENTIAL - FOUNDERS ONLY</p>');
+  w.document.write(m.transcript);
+  w.document.write('</body></html>');
+  w.document.close();
+}
+
+async function deleteMeeting(id){
+  if(!confirm('Delete this meeting?'))return;
+  try{
+    await sb.from('ix_meetings').delete().eq('id',id);
+    meetings=meetings.filter(function(m){return m.id!==id;});
+    renderMeetings();
+    toast('Deleted','ts');
+  }catch(e){toast('Error','te');}
+}
+
+window.addEventListener('DOMContentLoaded',function(){initLang();});
+</script>
+</body>
+</html>

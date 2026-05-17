@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" id="ch">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intersect · Client Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<style>
+:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;}
+[lang=ar]{font-family:'Cairo',sans-serif!important;direction:rtl;}
+#loading{position:fixed;inset:0;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999;}
+#error-sc{display:none;position:fixed;inset:0;background:var(--void);flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;}
+#main{display:none;}
+.spin{width:36px;height:36px;border:3px solid #1a1f38;border-top-color:var(--teal);border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hero{background:linear-gradient(180deg,rgba(6,182,212,.06),transparent);border-bottom:1px solid var(--border);padding:22px 20px 16px;}
+.hero-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.brand{font-size:10px;letter-spacing:3px;color:var(--ink3);text-transform:uppercase;font-family:'Syne',sans-serif;}
+.logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
+.c-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:3px;}
+.c-sub{font-size:12px;color:var(--ink3);}
+.stage-badge{display:inline-flex;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px;}
+.ct{padding:14px 20px;}
+.kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:13px;text-align:center;}
+.kv{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--teal);margin-bottom:3px;}
+.kl{font-size:10px;color:var(--ink3);font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+.tabs{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab{flex-shrink:0;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.tab.on{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.1);color:var(--teal);}
+.tp{display:none;}.tp.on{display:block;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:12px;}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--border);}
+.pt{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
+.pb{padding:14px;}
+.pill{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.pg{background:rgba(34,197,94,.1);color:#22c55e;}.ptl{background:rgba(6,182,212,.1);color:var(--teal);}.pp{background:rgba(124,58,237,.1);color:#a78bfa;}.pgo{background:rgba(245,158,11,.1);color:var(--gold);}.pgr{background:rgba(74,82,112,.15);color:var(--ink3);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 16px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+.bbg{background:var(--grad);color:#fff;}.bbg:hover{opacity:.9;}
+.bbo{background:transparent;border:1px solid var(--border);color:var(--ink2);}
+.fi,.fs,.fta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font-family:inherit;font-size:13px;}
+.fi:focus,.fs:focus,.fta:focus{outline:none;border-color:var(--teal);}
+.fs option{background:var(--card2);}
+.fta{resize:vertical;min-height:75px;line-height:1.6;}
+.fg{margin-bottom:11px;}
+.fl{font-size:11px;color:var(--ink2);font-weight:600;margin-bottom:4px;display:block;}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center;padding:14px;}
+.modal{background:var(--card);border:1px solid #232a45;border-radius:14px;padding:20px;width:480px;max-width:100%;max-height:90vh;overflow-y:auto;}
+.mti{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;}
+.mft{display:flex;gap:7px;justify-content:flex-end;margin-top:13px;padding-top:12px;border-top:1px solid var(--border);}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 15px;font-size:13px;font-weight:600;z-index:9999;transition:all .3s;opacity:0;transform:translateY(7px);pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.ts{border-color:rgba(34,197,94,.3);color:#22c55e;}.te{border-color:rgba(239,68,68,.3);color:var(--red);}
+.ec{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:10px;}
+.rg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0;}
+.rb{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px;text-align:center;}
+.rv{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--gold);margin-bottom:2px;}
+.rl{font-size:10px;color:var(--ink3);}
+.lang-bar{position:fixed;top:10px;right:10px;display:flex;gap:4px;z-index:999;flex-wrap:wrap;max-width:175px;justify-content:flex-end;}
+.lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.ftr{text-align:center;padding:20px;color:var(--ink3);font-size:11px;border-top:1px solid var(--border);margin-top:10px;}
+@media(max-width:480px){.ct{padding:12px 13px;}.kgrid{grid-template-columns:1fr 1fr;}.rg{grid-template-columns:1fr;}.modal{width:100%;padding:16px 13px;border-radius:12px;}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="lang-bar">
+  <button class="lb" onclick="setL('en')">EN</button>
+  <button class="lb" onclick="setL('ar')">AR</button>
+  <button class="lb" onclick="setL('es')">ES</button>
+  <button class="lb" onclick="setL('fr')">FR</button>
+  <button class="lb" onclick="setL('ja')">JA</button>
+  <button class="lb" onclick="setL('zh')">ZH</button>
+</div>
+<div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);">Loading...</div></div>
+<div id="error-sc" style="display:none;flex-direction:column;">
+  <div style="font-size:48px;">🚫</div>
+  <div style="font-family:Syne;font-size:18px;font-weight:700;color:var(--red);margin-bottom:8px;">Access Denied</div>
+  <div style="font-size:13px;color:var(--ink3);">Please <a href="portal.html" style="color:var(--teal);">login</a> first.</div>
+</div>
+
+<div id="main">
+  <div class="hero">
+    <div class="hero-top">
+      <div class="brand">INTERSECT PartnerOS · Client Portal</div>
+      <button class="logout-btn" onclick="doLogout()">→ Logout</button>
+    </div>
+    <div class="c-name" id="c-name">—</div>
+    <div class="c-sub" id="c-sub">Client Portal · Confidential</div>
+    <div class="stage-badge" id="c-stage">—</div>
+  </div>
+
+  <div class="ct">
+    <div class="kgrid">
+      <div class="kpi"><div class="kv" id="k-wf">0</div><div class="kl">Updates</div></div>
+      <div class="kpi"><div class="kv" id="k-mt">0</div><div class="kl">Meetings</div></div>
+      <div class="kpi"><div class="kv" id="k-ex">0</div><div class="kl">Experts</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" onclick="showTab('overview',this)">📊 Overview</button>
+      <button class="tab" onclick="showTab('updates',this)">🔄 Updates</button>
+      <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
+      <button class="tab" onclick="showTab('experts',this)">🌟 Experts</button>
+      <button class="tab" onclick="showTab('requests',this)">📋 My Requests</button>
+    </div>
+
+    <div class="tp on" id="tp-overview">
+      <div class="panel">
+        <div class="ph"><div class="pt">📋 Project Overview</div><span id="ov-svc" class="pill ptl"></span></div>
+        <div class="pb">
+          <div style="margin-bottom:10px;"><span style="font-size:11px;color:var(--ink3);">Stage</span><br><strong id="ov-stage" style="font-size:14px;"></strong></div>
+          <div style="margin-bottom:10px;"><span style="font-size:11px;color:var(--ink3);">Account Manager</span><br><strong id="ov-am" style="font-size:13px;color:#a78bfa;"></strong></div>
+          <div id="ov-notes" style="display:none;font-size:13px;color:var(--ink2);line-height:1.6;background:var(--card2);border-radius:8px;padding:12px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tp" id="tp-updates">
+      <div class="panel"><div class="ph"><div class="pt">🔄 Project Updates</div></div>
+      <div class="pb" id="wf-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No updates yet</div></div></div>
+    </div>
+
+    <div class="tp" id="tp-meetings">
+      <div class="panel"><div class="ph"><div class="pt">📅 Meetings</div></div>
+      <div class="pb" id="mt-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings yet</div></div></div>
+    </div>
+
+    <div class="tp" id="tp-experts">
+      <div style="margin-bottom:10px;"><input class="fi" id="exp-search" placeholder="🔍 Filter by specialization..." oninput="filterExperts(this.value)"></div>
+      <div id="exp-list"></div>
+    </div>
+
+    <div class="tp" id="tp-requests">
+      <div class="panel"><div class="ph"><div class="pt">📋 My Expert Requests</div></div>
+      <div class="pb" id="req-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div></div></div>
+    </div>
+  </div>
+  <div class="ftr"><strong style="color:var(--teal);">INTERSECT</strong> PartnerOS · Confidential Client Portal</div>
+</div>
+
+<!-- REQUEST EXPERT MODAL -->
+<div class="mo" id="m-req">
+  <div class="modal">
+    <div class="mti">🌟 Request Expert</div>
+    <div id="req-exp-name" style="font-size:14px;font-weight:700;color:var(--teal);margin-bottom:14px;"></div>
+    <input type="hidden" id="req-eid"><input type="hidden" id="req-ename">
+    <div class="fg"><label class="fl">Service Type</label>
+      <select class="fs" id="req-svc" onchange="updateRate()">
+        <option value="hourly">Per Hour</option>
+        <option value="monthly">Per Month</option>
+        <option value="yearly">Per Year</option>
+      </select>
+    </div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:12px;text-align:center;">
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">Rate</div>
+      <div id="req-rate" style="font-family:Syne;font-size:22px;font-weight:800;color:var(--gold);">—</div>
+    </div>
+    <div class="fg"><label class="fl">Preferred Date</label><input class="fi" type="date" id="req-date"></div>
+    <div class="fg"><label class="fl">Message / Requirements *</label><textarea class="fta" id="req-msg" placeholder="Describe what you need..."></textarea></div>
+    <div class="mft">
+      <button class="btn bbo" onclick="closeModal('m-req')" style="padding:8px 14px;">Cancel</button>
+      <button class="btn bbg" onclick="submitReq()" style="padding:8px 20px;">📤 Submit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var SB_URL='https://rppwppxyhmuicgemmecu.supabase.co';
+var SB_KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+var sb=null, clientData=null, allExperts=[], myReqs=[], currentRates={};
+
+try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
+
+function setL(l){var h=document.getElementById('ch');h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');try{localStorage.setItem('ix_lang',l);}catch(e){}}
+function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
+function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
+var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
+function openModal(id){document.getElementById(id).style.display='flex';}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function doLogout(){try{localStorage.removeItem('ix_portal_data');localStorage.removeItem('ix_portal_type');}catch(e){}window.location.href='portal.html';}
+
+window.addEventListener('DOMContentLoaded',function(){
+  initLang();
+  var stored=null;
+  try{stored=localStorage.getItem('ix_portal_data');}catch(e){}
+  if(!stored){return showError();}
+  try{
+    clientData=JSON.parse(stored);
+    if(!clientData||!clientData.name)return showError();
+    renderMain(clientData);
+    // Load extra data in background
+    loadExtraData(clientData);
+  }catch(e){showError();}
+});
+
+function renderMain(c){
+  var stgC={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':'#8b5cf6','MOU':'#06b6d4','LEGAL':'#f59e0b','PLANNING':'#f97316','EXECUTION':'#22c55e','FINALIZATION':'#10b981','COMPLETED':'#22c55e','ON HOLD':'#6b7280'};
+  var stage=c.stage||'Active';
+  var sc=stgC[stage]||'#06b6d4';
+  document.getElementById('c-name').textContent=c.name;
+  document.getElementById('c-sub').textContent=(c.industry||c.service_type||'Strategic Partner')+' · Client Portal';
+  var stgEl=document.getElementById('c-stage');
+  stgEl.textContent=stage;
+  stgEl.style.cssText='display:inline-flex;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px;background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'44;';
+  document.getElementById('ov-svc').textContent=c.service_type||c.service||'Partnership';
+  document.getElementById('ov-stage').textContent=stage;
+  document.getElementById('ov-am').textContent=c.main_am_name||c.assigned_to||'Your Account Manager';
+  var notes=c.notes_client||c.notes||'';
+  if(notes.trim()){document.getElementById('ov-notes').textContent=notes;document.getElementById('ov-notes').style.display='block';}
+  document.getElementById('loading').style.display='none';
+  document.getElementById('main').style.display='block';
+}
+
+async function loadExtraData(c){
+  if(!sb)return;
+  var wf=[],meet=[],experts=[],reqs=[];
+  try{var r=await sb.from('ix_workflow').select('*').eq('client_id',c.id).eq('show_to_client',true).order('created_at',{ascending:false});if(r.data)wf=r.data;}catch(e){}
+  try{var r=await sb.from('ix_meetings').select('*').eq('organization',c.name).order('date',{ascending:false}).limit(10);if(r.data)meet=r.data;}catch(e){}
+  try{var r=await sb.from('ix_people').select('*').eq('show_in_marketplace',true);if(r.data)experts=r.data;}catch(e){}
+  try{var r=await sb.from('ix_expert_requests').select('*').eq('client_id',c.id).order('created_at',{ascending:false});if(r.data)reqs=r.data;}catch(e){}
+  allExperts=experts;myReqs=reqs;
+  document.getElementById('k-wf').textContent=wf.length;
+  document.getElementById('k-mt').textContent=meet.length;
+  document.getElementById('k-ex').textContent=experts.length;
+  renderWF(wf);renderMeetings(meet);renderExperts(experts);renderReqs(reqs);
+}
+
+function renderWF(wf){
+  var el=document.getElementById('wf-list');
+  if(!wf.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No updates yet</div>';return;}
+  var dc={Completed:'#22c55e',Blocked:'#ef4444','In Progress':'#06b6d4'};
+  el.innerHTML=wf.map(function(w){return '<div style="display:flex;gap:10px;padding:11px 0;border-bottom:1px solid rgba(26,31,56,.4);"><div style="width:9px;height:9px;border-radius:50%;background:'+(dc[w.status]||'#06b6d4')+';flex-shrink:0;margin-top:4px;"></div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">'+w.title+'</div>'+(w.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:3px;">'+w.description+'</div>':'')+'<div style="font-size:11px;color:var(--ink3);">'+new Date(w.created_at).toLocaleDateString()+'</div></div></div>';}).join('');
+}
+
+function renderMeetings(meet){
+  var el=document.getElementById('mt-list');
+  if(!meet.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings yet</div>';return;}
+  el.innerHTML=meet.map(function(m){return '<div style="background:var(--card2);border-radius:9px;padding:12px;margin-bottom:8px;"><div style="font-size:13px;font-weight:600;margin-bottom:3px;">'+m.title+'</div>'+(m.date?'<div style="font-size:11px;color:var(--ink3);">📅 '+m.date+(m.followup_deadline?' · Follow-up: '+m.followup_deadline:'')+'</div>':'')+(m.summary?'<div style="font-size:12px;color:var(--ink2);margin-top:4px;line-height:1.5;">'+m.summary.slice(0,120)+'</div>':'')+'</div>';}).join('');
+}
+
+function renderExperts(experts){
+  var el=document.getElementById('exp-list');
+  if(!experts.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No experts available</div>';return;}
+  el.innerHTML=experts.map(function(e){
+    var init=(e.name||'EX').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var specs=e.specializations?e.specializations.split(',').slice(0,4):[];
+    var rh=e.rate_hourly_price,rm=e.rate_monthly_price,ry=e.rate_yearly_price;
+    return '<div class="ec"><div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;"><div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;overflow:hidden;flex-shrink:0;">'+init+'</div><div style="flex:1;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">'+e.name+'</div><div style="font-size:11px;color:var(--ink3);">'+(e.nationality||'')+(e.languages?' · '+e.languages:'')+'</div>'+(e.bio?'<div style="font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.4;">'+e.bio.slice(0,80)+'...</div>':'')+'</div></div>'
+      +(specs.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">'+specs.map(function(s){return '<span style="font-size:10px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);padding:2px 8px;border-radius:5px;color:var(--teal);">'+s.trim()+'</span>';}).join('')+'</div>':'')
+      +'<div class="rg"><div class="rb"><div class="rv">'+(rh?rh+' SAR':'—')+'</div><div class="rl">Per Hour</div></div><div class="rb"><div class="rv">'+(rm?rm+' SAR':'—')+'</div><div class="rl">Per Month</div></div><div class="rb"><div class="rv">'+(ry?ry+' SAR':'—')+'</div><div class="rl">Per Year</div></div></div>'
+      +'<button onclick="openReqModal(\''+e.id+'\',\''+e.name+'\',\''+( rh||'')+'\',\''+( rm||'')+'\',\''+( ry||'\')")'
+      +' style="width:100%;background:var(--grad);border:none;border-radius:8px;padding:10px;color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;">📤 Request This Expert</button></div>';
+  }).join('');
+}
+
+function filterExperts(q){
+  if(!q){renderExperts(allExperts);return;}
+  q=q.toLowerCase();
+  renderExperts(allExperts.filter(function(e){return e.specializations&&e.specializations.toLowerCase().includes(q);}));
+}
+
+function renderReqs(reqs){
+  var el=document.getElementById('req-list');
+  if(!reqs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div>';return;}
+  var sc={Pending:'pgo',Responded:'pp',Accepted:'pg',Rejected:'pgr'};
+  el.innerHTML=reqs.map(function(r){return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><div><div style="font-size:13px;font-weight:600;">'+r.expert_name+'</div><div style="font-size:11px;color:var(--ink3);">'+(r.service_type||'')+(r.requested_date?' · '+r.requested_date:'')+'</div></div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'+(r.message?'<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">'+r.message.slice(0,100)+'</div>':'')+(r.our_rate&&r.status==='Responded'?'<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:9px;font-size:12px;color:var(--gold);font-weight:600;">💰 Rate: '+r.our_rate+'</div>':'')+'</div>';}).join('');
+}
+
+function openReqModal(id,name,rh,rm,ry){
+  currentRates={hourly:rh,monthly:rm,yearly:ry};
+  document.getElementById('req-eid').value=id;
+  document.getElementById('req-ename').value=name;
+  document.getElementById('req-exp-name').textContent=name;
+  document.getElementById('req-date').value=new Date().toISOString().split('T')[0];
+  updateRate();openModal('m-req');
+}
+function updateRate(){
+  var svc=document.getElementById('req-svc').value;
+  var rate=svc==='hourly'?currentRates.hourly:svc==='monthly'?currentRates.monthly:currentRates.yearly;
+  document.getElementById('req-rate').textContent=rate?(rate+' SAR'):'On Request';
+}
+async function submitReq(){
+  var msg=document.getElementById('req-msg').value.trim();
+  if(!msg){toast('Please describe your requirements','te');return;}
+  var body={expert_id:document.getElementById('req-eid').value,expert_name:document.getElementById('req-ename').value,client_id:clientData?clientData.id:null,client_name:clientData?clientData.name:null,service_type:document.getElementById('req-svc').value,requested_date:document.getElementById('req-date').value,message:msg,status:'Pending'};
+  if(sb){
+    try{
+      await sb.from('ix_expert_requests').insert(body);
+      closeModal('m-req');document.getElementById('req-msg').value='';
+      toast('✅ Request submitted!','ts');
+      loadExtraData(clientData);
+      showTab('requests',document.querySelectorAll('.tab')[4]);
+    }catch(e){toast('Error submitting','te');}
+  }
+}
+
+function showTab(n,el){
+  document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('tp-'+n).classList.add('on');
+  if(el)el.classList.add('on');
+}
+</script>
+</body>
+</html>

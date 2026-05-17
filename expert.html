@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" id="eh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intersect · Expert Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--border2:#232a45;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#06b6d4,#7c3aed);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;}
+[lang=ar]{font-family:'Cairo',sans-serif!important;direction:rtl;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--void);}::-webkit-scrollbar-thumb{background:#232a45;border-radius:2px;}
+#loading{position:fixed;inset:0;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999;}
+#error-sc{display:none;position:fixed;inset:0;background:var(--void);flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;}
+#main{display:none;}
+#main{display:none;}
+.spinner{width:36px;height:36px;border:3px solid #1a1f38;border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero{background:linear-gradient(180deg,rgba(6,182,212,.06),transparent);border-bottom:1px solid #1a1f38;padding:26px 20px 18px;}
+.brand{font-size:10px;letter-spacing:3px;color:#4a5270;text-transform:uppercase;margin-bottom:12px;font-family:'Syne',sans-serif;}
+.avatar{width:52px;height:52px;border-radius:13px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;margin-bottom:10px;overflow:hidden;}
+.e-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:3px;}
+.e-role{font-size:13px;color:#4a5270;}
+.avail-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px;border:1px solid;}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.content{padding:16px 20px;}
+.kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;}
+.kpi{background:#0f1220;border:1px solid #1a1f38;border-radius:11px;padding:13px;text-align:center;}
+.kval{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--teal);margin-bottom:3px;}
+.klbl{font-size:10px;color:#4a5270;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+.tabs{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab{flex-shrink:0;padding:7px 14px;border-radius:8px;border:1px solid #1a1f38;background:#141728;color:#8892b0;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.tab.on{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.1);color:var(--teal);}
+.tp{display:none;}.tp.on{display:block;}
+.panel{background:#0f1220;border:1px solid #1a1f38;border-radius:13px;overflow:hidden;margin-bottom:12px;}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid #1a1f38;}
+.ptit{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
+.pb{padding:14px;}
+.pill{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.pg{background:rgba(34,197,94,.1);color:#22c55e;}.pt{background:rgba(6,182,212,.1);color:var(--teal);}.pp{background:rgba(124,58,237,.1);color:#a78bfa;}.pgo{background:rgba(245,158,11,.1);color:var(--gold);}.pgr{background:rgba(74,82,112,.15);color:#4a5270;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 16px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+.bg{background:var(--grad);color:#fff;}.bg:hover{opacity:.9;}
+.fi,.fs,.fta{width:100%;background:#141728;border:1px solid #232a45;border-radius:8px;padding:9px 12px;color:#e8ecf8;font-family:inherit;font-size:13px;}
+.fi:focus,.fs:focus,.fta:focus{outline:none;border-color:var(--teal);}
+.fs option{background:#141728;}
+.fta{resize:vertical;min-height:70px;line-height:1.6;}
+.fg{margin-bottom:11px;}
+.fl{font-size:11px;color:#8892b0;font-weight:600;margin-bottom:4px;display:block;}
+.info-row{display:flex;gap:8px;padding:10px 0;border-bottom:1px solid rgba(26,31,56,.4);}
+.info-row:last-child{border-bottom:none;}
+.info-lbl{font-size:11px;color:#4a5270;font-weight:600;width:100px;flex-shrink:0;}
+.info-val{font-size:12px;}
+.toast{position:fixed;bottom:18px;right:18px;background:#141728;border:1px solid #232a45;border-radius:9px;padding:10px 15px;font-size:13px;font-weight:600;z-index:9999;transition:all .3s;opacity:0;transform:translateY(7px);pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}.toast.success{border-color:rgba(34,197,94,.3);color:#22c55e;}.toast.error{border-color:rgba(239,68,68,.3);color:#ef4444;}
+.lang-bar{position:fixed;top:10px;right:10px;display:flex;gap:4px;z-index:999;flex-wrap:wrap;max-width:175px;justify-content:flex-end;}
+.lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.footer{text-align:center;padding:20px;color:#4a5270;font-size:11px;border-top:1px solid #1a1f38;}
+@media(max-width:480px){.kgrid{grid-template-columns:1fr 1fr;}.content{padding:12px 13px;}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="lang-bar">
+  <button class="lb" onclick="setL('en')">EN</button><button class="lb" onclick="setL('ar')">AR</button>
+  <button class="lb" onclick="setL('es')">ES</button><button class="lb" onclick="setL('fr')">FR</button>
+  <button class="lb" onclick="setL('ja')">JA</button><button class="lb" onclick="setL('zh')">ZH</button>
+</div>
+<div id="loading"><div class="spinner"></div><div style="font-size:13px;color:#4a5270;margin-top:4px;">Loading your portal...</div></div>
+<div id="error-sc" style="display:none;flex-direction:column;"><div style="font-size:48px;">🚫</div><div style="font-family:Syne;font-size:18px;font-weight:700;color:#ef4444;margin-bottom:8px;">Access Denied</div><div style="font-size:13px;color:#4a5270;">Contact Intersect for your portal link.</div></div>
+<div id="main">
+  <div class="hero">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="brand">INTERSECT PartnerOS · Expert Portal</div><button onclick="doLogoutP()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;">→ Logout</button></div>
+    <div class="avatar" id="e-avatar">EX</div>
+    <div class="e-name" id="e-name">—</div>
+    <div class="e-role" id="e-role">Expert</div>
+    <div class="avail-badge" id="e-avail">Available</div>
+  </div>
+  <div class="content">
+    <div class="kgrid">
+      <div class="kpi"><div class="kval" id="k-total">0</div><div class="klbl">Requests</div></div>
+      <div class="kpi"><div class="kval" id="k-pending">0</div><div class="klbl">Pending</div></div>
+      <div class="kpi"><div class="kval" id="k-done">0</div><div class="klbl">Responded</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" onclick="showTab('requests',this)">📋 Requests</button>
+      <button class="tab" onclick="showTab('profile',this)">👤 My Profile</button>
+      <button class="tab" onclick="showTab('availability',this)">📅 Availability</button>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="tp on" id="tp-requests">
+      <div class="panel">
+        <div class="ph"><div class="ptit">📋 Incoming Requests</div></div>
+        <div class="pb" id="reqs-list"></div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="tp" id="tp-profile">
+      <div class="panel">
+        <div class="ph"><div class="ptit">👤 My Profile</div><span style="font-size:11px;color:#4a5270;">(as seen by clients)</span></div>
+        <div class="pb" id="profile-body"></div>
+      </div>
+    </div>
+
+    <!-- AVAILABILITY -->
+    <div class="tp" id="tp-availability">
+      <div class="panel">
+        <div class="ph"><div class="ptit">📅 Update Availability</div></div>
+        <div class="pb">
+          <div class="fg"><label class="fl">Current Status</label>
+            <select class="fs" id="avail-sel">
+              <option value="Available">🟢 Available</option>
+              <option value="Busy">🟡 Busy</option>
+              <option value="Unavailable">🔴 Unavailable</option>
+            </select>
+          </div>
+          <button class="btn bg" style="width:100%;" onclick="updateAvail()">💾 Update Availability</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="ptit">📊 My Stats</div></div>
+        <div class="pb" id="stats-body"></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><strong style="color:var(--teal);">INTERSECT</strong> PartnerOS · Expert Portal · Confidential</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<script>
+var SB_URL='https://rppwppxyhmuicgemmecu.supabase.co';
+var SB_KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+var expertData=null, myReqs=[], sb=null;
+try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error('SB',e);}
+
+function setL(l){var h=document.getElementById('eh');h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');try{localStorage.setItem('ix_lang',l);}catch(e){}}
+function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
+function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
+var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'success');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
+
+window.addEventListener('DOMContentLoaded',function(){
+  initLang();
+  var stored=null;
+  try{stored=localStorage.getItem('ix_portal_data');}catch(e){}
+  if(stored){
+    try{
+      var data=JSON.parse(stored);
+      if(data&&data.name){
+        expertData=data;
+        renderFromStored(data);
+        return;
+      }
+    }catch(e){}
+  }
+  var code=new URLSearchParams(window.location.search).get('id');
+  if(!code)return showError();
+  loadAll(code);
+});
+
+function renderFromStored(e){
+  var init=(e.name||'EX').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  document.getElementById('e-avatar').textContent=init;
+  document.getElementById('e-name').textContent=e.name;
+  document.getElementById('e-role').textContent=(e.role||e.person_type||'Expert')+(e.freelancer_type?' · '+e.freelancer_type:'');
+  document.getElementById('avail-sel').value=e.availability||'Available';
+  var avC={Available:'#22c55e',Busy:'#f59e0b',Unavailable:'#ef4444'};
+  var avBadge=document.getElementById('e-avail');
+  var ac=avC[e.availability]||'#06b6d4';
+  avBadge.innerHTML='<span style="width:6px;height:6px;border-radius:50%;background:'+ac+';display:inline-block;margin-inline-end:6px;"></span>'+e.availability;
+  avBadge.style.color=ac;avBadge.style.borderColor=ac+'44';avBadge.style.background=ac+'11';
+  document.getElementById('k-total').textContent=0;
+  document.getElementById('k-pending').textContent=0;
+  document.getElementById('k-done').textContent=0;
+  renderProfile();renderStats();
+  // Load requests in background
+  if(window.supabase){
+    try{if(!sb)sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(err){}
+    if(sb){
+      sb.from('ix_expert_requests').select('*').eq('expert_id',e.id).order('created_at',{ascending:false}).then(function(r){
+        if(r.data){myReqs=r.data;renderReqs();
+          document.getElementById('k-total').textContent=r.data.length;
+          document.getElementById('k-pending').textContent=r.data.filter(function(x){return x.status==='Pending';}).length;
+          document.getElementById('k-done').textContent=r.data.filter(function(x){return x.status==='Responded'||x.status==='Accepted';}).length;
+        }
+      }).catch(function(){});
+    }
+  }
+  document.getElementById('loading').style.display='none';
+  document.getElementById('main').style.display='block';
+}
+
+async function loadAll(code){
+  try{
+    if(!sb){sb=window.supabase.createClient(SB_URL,SB_KEY);}
+    var r=await sb.from('ix_people').select('*').eq('access_code',code).limit(1);
+    if(!r.data||r.data.length===0)return showError();
+    expertData=r.data[0];
+    var rr=await sb.from('ix_expert_requests').select('*').eq('expert_id',expertData.id).order('created_at',{ascending:false});
+    myReqs=rr.data||[];
+
+    var init=(expertData.name||'EX').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var avEl=document.getElementById('e-avatar');
+    if(expertData.photo_url&&expertData.show_photo){avEl.innerHTML='<img src="'+expertData.photo_url+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.textContent=''+init+''">';}
+    else{avEl.textContent=init;}
+    document.getElementById('e-name').textContent=expertData.name;
+    document.getElementById('e-role').textContent=(expertData.role||expertData.person_type||'Expert')+(expertData.freelancer_type?' · '+expertData.freelancer_type:'');
+    document.getElementById('avail-sel').value=expertData.availability||'Available';
+
+    var avC={Available:'#22c55e',Busy:'#f59e0b',Unavailable:'#ef4444'};
+    var avBadge=document.getElementById('e-avail');
+    var ac=avC[expertData.availability]||'#06b6d4';
+    avBadge.innerHTML='<span style="width:6px;height:6px;border-radius:50%;background:'+ac+';display:inline-block;margin-inline-end:6px;"></span>'+expertData.availability;
+    avBadge.style.color=ac;avBadge.style.borderColor=ac+'44';avBadge.style.background=ac+'11';
+
+    var pend=myReqs.filter(function(r){return r.status==='Pending';}).length;
+    var done=myReqs.filter(function(r){return r.status==='Responded'||r.status==='Accepted';}).length;
+    document.getElementById('k-total').textContent=myReqs.length;
+    document.getElementById('k-pending').textContent=pend;
+    document.getElementById('k-done').textContent=done;
+
+    renderReqs();renderProfile();renderStats();
+    document.getElementById('loading').style.display='none';
+    document.getElementById('main').style.display='block';
+  }catch(e){console.error(e);showError();}
+}
+
+function renderReqs(){
+  var el=document.getElementById('reqs-list');
+  if(!myReqs.length){el.innerHTML='<div style="text-align:center;color:#4a5270;font-size:13px;padding:18px;">No requests yet</div>';return;}
+  var sc={Pending:'pgo',Accepted:'pg',Responded:'pp',Rejected:'pr'};
+  el.innerHTML=myReqs.map(function(r){
+    return '<div style="background:#141728;border:1px solid #1a1f38;border-radius:11px;padding:14px;margin-bottom:9px;">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">'
+        +'<div><div style="font-size:13px;font-weight:700;">From: '+(r.client_name||'Client')+'</div>'
+        +'<div style="font-size:11px;color:#4a5270;">'+(r.service_type||'')+(r.requested_date?' · '+r.requested_date:'')+'</div></div>'
+        +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+      +'</div>'
+      +(r.message?'<div style="font-size:12px;color:#8892b0;margin-bottom:10px;line-height:1.5;">'+r.message.slice(0,150)+'</div>':'')
+      +(r.our_rate?'<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:9px;font-size:12px;color:#f59e0b;font-weight:600;margin-bottom:10px;">💰 Rate: '+r.our_rate+'</div>':'')
+      +(r.status==='Pending'?'<button class="btn bg" style="width:100%;font-size:12px;" data-id="'+r.id+'" onclick="ackReq(this.dataset.id)">✅ Acknowledge</button>':'')
+      +'<div style="font-size:10px;color:#4a5270;margin-top:8px;">'+new Date(r.created_at).toLocaleString()+'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function ackReq(id){
+  try{
+    await sb.from('ix_expert_requests').update({status:'Responded',expert_confirmed:true}).eq('id',id);
+    var req=myReqs.find(function(x){return x.id===id;});
+    if(req)req.status='Responded';
+    renderReqs();
+    document.getElementById('k-pending').textContent=myReqs.filter(function(r){return r.status==='Pending';}).length;
+    document.getElementById('k-done').textContent=myReqs.filter(function(r){return r.status==='Responded'||r.status==='Accepted';}).length;
+    toast('✅ Acknowledged','success');
+  }catch(e){toast('Error','error');}
+}
+
+function renderProfile(){
+  var e=expertData;
+  var specs=e.specializations?e.specializations.split(',').slice(0,6):[];
+  var init=(e.name||'EX').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var el=document.getElementById('profile-body');
+  el.innerHTML='<div style="display:flex;gap:12px;margin-bottom:14px;">'
+    +'<div style="width:52px;height:52px;border-radius:13px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;overflow:hidden;flex-shrink:0;">'
+      +(e.photo_url&&e.show_photo?'<img src="'+e.photo_url+'" style="width:100%;height:100%;object-fit:cover;">':'')+init
+    +'</div>'
+    +'<div><div style="font-size:16px;font-weight:700;margin-bottom:3px;">'+e.name+'</div>'
+    +'<div style="font-size:12px;color:#4a5270;">'+(e.role||e.person_type||'Expert')+'</div></div>'
+    +'</div>'
+    +(specs.length?'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">'+specs.map(function(s){return '<span style="font-size:11px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);padding:3px 9px;border-radius:5px;color:#06b6d4;">'+s.trim()+'</span>';}).join('')+'</div>':'')
+    +(e.bio?'<div style="font-size:13px;color:#8892b0;line-height:1.6;background:#141728;border-radius:9px;padding:12px;margin-bottom:12px;">'+e.bio+'</div>':'')
+    +(e.nationality?'<div style="font-size:12px;margin-bottom:5px;">🌍 '+e.nationality+(e.languages?' · 🗣 '+e.languages:'')+'</div>':'')
+    +(e.residence?'<div style="font-size:12px;color:#4a5270;">📍 '+e.residence+'</div>':'');
+}
+
+function renderStats(){
+  var el=document.getElementById('stats-body');
+  el.innerHTML='<div style="padding:9px 0;border-bottom:1px solid rgba(26,31,56,.4);display:flex;gap:8px;"><span style="font-size:11px;color:#4a5270;width:100px;">Total Requests</span><span style="font-size:12px;font-weight:700;">'+myReqs.length+'</span></div>'
+    +'<div style="padding:9px 0;border-bottom:1px solid rgba(26,31,56,.4);display:flex;gap:8px;"><span style="font-size:11px;color:#4a5270;width:100px;">Pending</span><span style="font-size:12px;font-weight:600;color:#f59e0b;">'+myReqs.filter(function(r){return r.status==='Pending';}).length+'</span></div>'
+    +'<div style="padding:9px 0;display:flex;gap:8px;"><span style="font-size:11px;color:#4a5270;width:100px;">Status</span><span style="font-size:12px;">'+( expertData.availability||'Available')+'</span></div>';
+}
+
+async function updateAvail(){
+  var avail=document.getElementById('avail-sel').value;
+  try{
+    await sb.from('ix_people').update({availability:avail}).eq('id',expertData.id);
+    expertData.availability=avail;
+    var avC={Available:'#22c55e',Busy:'#f59e0b',Unavailable:'#ef4444'};
+    var ac=avC[avail]||'#06b6d4';
+    var avBadge=document.getElementById('e-avail');
+    avBadge.innerHTML='<span style="width:6px;height:6px;border-radius:50%;background:'+ac+';display:inline-block;margin-inline-end:6px;"></span>'+avail;
+    avBadge.style.color=ac;avBadge.style.borderColor=ac+'44';avBadge.style.background=ac+'11';
+    toast('✅ Updated','success');
+  }catch(e){toast('Error','error');}
+}
+
+function doLogoutP(){try{localStorage.removeItem("ix_portal_data");localStorage.removeItem("ix_portal_type");}catch(e){}window.location.href="portal.html";}
+function showTab(n,el){
+  document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('tp-'+n).classList.add('on');
+  if(el)el.classList.add('on');
+}
+</script>
+</body>
+</html>

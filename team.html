@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" id="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intersect · Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<style>
+:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;}
+[lang=ar]{font-family:'Cairo',sans-serif!important;direction:rtl;}
+#loading{position:fixed;inset:0;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999;}
+#error-sc{display:none;position:fixed;inset:0;background:var(--void);flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;}
+#main{display:none;}
+.spin{width:36px;height:36px;border:3px solid #1a1f38;border-top-color:var(--teal);border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hero{border-bottom:1px solid var(--border);padding:22px 20px 16px;}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.brand{font-size:10px;letter-spacing:3px;color:var(--ink3);text-transform:uppercase;font-family:'Syne',sans-serif;}
+.logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
+.avatar{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;margin-bottom:10px;}
+.m-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:3px;}
+.m-role{font-size:12px;color:var(--ink3);}
+.type-badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-top:6px;}
+.ct{padding:14px 20px;}
+.kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:13px;text-align:center;}
+.kv{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:3px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.kl{font-size:10px;color:var(--ink3);font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+.tabs{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab{flex-shrink:0;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.tab.on{border-color:rgba(124,58,237,.3);background:rgba(124,58,237,.1);color:#a78bfa;}
+.tp{display:none;}.tp.on{display:block;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:12px;}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--border);}
+.pt{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
+.pb{padding:14px;}
+.pill{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.pg{background:rgba(34,197,94,.1);color:#22c55e;}.ptl{background:rgba(6,182,212,.1);color:var(--teal);}.pp{background:rgba(124,58,237,.1);color:#a78bfa;}.pgo{background:rgba(245,158,11,.1);color:var(--gold);}.pgr{background:rgba(74,82,112,.15);color:var(--ink3);}.pr{background:rgba(239,68,68,.1);color:var(--red);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 16px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+.bbg{background:var(--grad);color:#fff;}.bbo{background:transparent;border:1px solid var(--border);color:var(--ink2);}
+.bw{width:100%;}
+.fi,.fs,.fta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font-family:inherit;font-size:13px;}
+.fi:focus,.fs:focus,.fta:focus{outline:none;border-color:var(--purple);}
+.fs option{background:var(--card2);}
+.fta{resize:vertical;min-height:70px;line-height:1.6;}
+.fg{margin-bottom:11px;}
+.fl{font-size:11px;color:var(--ink2);font-weight:600;margin-bottom:4px;display:block;}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center;padding:14px;}
+.modal{background:var(--card);border:1px solid #232a45;border-radius:14px;padding:20px;width:480px;max-width:100%;max-height:90vh;overflow-y:auto;}
+.mti{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;}
+.mft{display:flex;gap:7px;justify-content:flex-end;margin-top:13px;padding-top:12px;border-top:1px solid var(--border);}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 15px;font-size:13px;font-weight:600;z-index:9999;transition:all .3s;opacity:0;transform:translateY(7px);pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.ts{border-color:rgba(34,197,94,.3);color:#22c55e;}.te{border-color:rgba(239,68,68,.3);color:var(--red);}
+.lang-bar{position:fixed;top:10px;right:10px;display:flex;gap:4px;z-index:999;flex-wrap:wrap;max-width:175px;justify-content:flex-end;}
+.lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.ftr{text-align:center;padding:20px;color:var(--ink3);font-size:11px;border-top:1px solid var(--border);margin-top:10px;}
+@media(max-width:480px){.ct{padding:12px 13px;}.kgrid{grid-template-columns:1fr 1fr;}.modal{width:100%;padding:16px 13px;border-radius:12px;}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="lang-bar">
+  <button class="lb" onclick="setL('en')">EN</button>
+  <button class="lb" onclick="setL('ar')">AR</button>
+  <button class="lb" onclick="setL('es')">ES</button>
+  <button class="lb" onclick="setL('fr')">FR</button>
+  <button class="lb" onclick="setL('ja')">JA</button>
+  <button class="lb" onclick="setL('zh')">ZH</button>
+</div>
+
+<div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);">Loading...</div></div>
+<div id="error-sc" style="display:none;flex-direction:column;">
+  <div style="font-size:48px;">🚫</div>
+  <div style="font-family:Syne;font-size:18px;font-weight:700;color:var(--red);margin-bottom:8px;">Access Denied</div>
+  <div style="font-size:13px;color:var(--ink3);">Please <a href="portal.html" style="color:var(--teal);">login</a> first.</div>
+</div>
+
+<div id="main">
+  <div class="hero">
+    <div class="hero-top">
+      <div class="brand">INTERSECT PartnerOS</div>
+      <button class="logout-btn" onclick="doLogout()">→ Logout</button>
+    </div>
+    <div class="avatar" id="m-av">TM</div>
+    <div class="m-name" id="m-name">—</div>
+    <div class="m-role" id="m-role">Team Member</div>
+    <div class="type-badge" id="m-type-badge">Employee</div>
+  </div>
+
+  <div class="ct">
+    <div class="kgrid">
+      <div class="kpi"><div class="kv" id="k1">0</div><div class="kl" id="k1l">Clients</div></div>
+      <div class="kpi"><div class="kv" id="k2">0</div><div class="kl" id="k2l">Tasks</div></div>
+      <div class="kpi"><div class="kv" id="k3">0</div><div class="kl" id="k3l">Requests</div></div>
+    </div>
+
+    <!-- TABS FOR EMPLOYEE/CONSULTANT/FREELANCER -->
+    <div id="team-tabs">
+      <div class="tabs">
+        <button class="tab on" onclick="showTab('clients',this)">🏢 My Clients</button>
+        <button class="tab" onclick="showTab('tasks',this)">📌 My Tasks</button>
+        <button class="tab" onclick="showTab('requests',this)">📋 Requests</button>
+        <button class="tab" onclick="showTab('workflow',this)">🔄 Add Update</button>
+        <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
+      </div>
+      <div class="tp on" id="tp-clients">
+        <div class="panel"><div class="ph"><div class="pt">🏢 Assigned Clients</div></div>
+        <div class="pb" id="cl-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No clients assigned</div></div></div>
+      </div>
+      <div class="tp" id="tp-tasks">
+        <div class="panel"><div class="ph"><div class="pt">📌 Action Items</div><span id="tk-badge" class="pill pgo">0</span></div>
+        <div class="pb" id="tk-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No tasks</div></div></div>
+      </div>
+      <div class="tp" id="tp-requests">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+          <button class="btn bbg" onclick="openModal('m-req')">+ New Request</button>
+        </div>
+        <div class="panel"><div class="ph"><div class="pt">📋 Requests</div></div>
+        <div class="pb" id="rq-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests</div></div></div>
+      </div>
+      <div class="tp" id="tp-workflow">
+        <div class="panel"><div class="ph"><div class="pt">🔄 Add Workflow Update</div></div>
+        <div class="pb">
+          <div class="fg"><label class="fl">Client *</label><select class="fs" id="wf-client"><option value="">— Select —</option></select></div>
+          <div class="fg"><label class="fl">Update Title *</label><input class="fi" id="wf-title" placeholder="e.g. Contract sent for review"></div>
+          <div class="fg"><label class="fl">Description</label><textarea class="fta" id="wf-desc"></textarea></div>
+          <div class="fg"><label class="fl">Status</label>
+            <select class="fs" id="wf-status">
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Blocked">Blocked</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px;">
+            <input type="checkbox" id="wf-show" checked style="width:16px;height:16px;">
+            <label for="wf-show" style="font-size:12px;color:var(--ink2);">Visible to client</label>
+          </div>
+          <button class="btn bbg bw" onclick="saveWorkflow()">💾 Save Update</button>
+        </div></div>
+      </div>
+      <div class="tp" id="tp-meetings">
+        <div class="panel"><div class="ph"><div class="pt">📅 Meetings</div></div>
+        <div class="pb" id="mt-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings</div></div></div>
+      </div>
+    </div>
+
+    <!-- TABS FOR EXPERT -->
+    <div id="expert-tabs" style="display:none;">
+      <div class="tabs">
+        <button class="tab on" onclick="showTabE('requests',this)">📋 Requests</button>
+        <button class="tab" onclick="showTabE('profile',this)">👤 My Profile</button>
+        <button class="tab" onclick="showTabE('availability',this)">📅 Availability</button>
+      </div>
+      <div class="tp on" id="tpe-requests">
+        <div class="panel"><div class="ph"><div class="pt">📋 Incoming Requests</div></div>
+        <div class="pb" id="exp-reqs-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:18px;">No requests yet</div></div></div>
+      </div>
+      <div class="tp" id="tpe-profile">
+        <div class="panel"><div class="ph"><div class="pt">👤 My Profile</div></div>
+        <div class="pb" id="exp-profile-body"></div></div>
+      </div>
+      <div class="tp" id="tpe-availability">
+        <div class="panel"><div class="ph"><div class="pt">📅 Update Availability</div></div>
+        <div class="pb">
+          <div class="fg"><label class="fl">Status</label>
+            <select class="fs" id="avail-sel">
+              <option value="Available">🟢 Available</option>
+              <option value="Busy">🟡 Busy</option>
+              <option value="Unavailable">🔴 Unavailable</option>
+            </select>
+          </div>
+          <button class="btn bbg bw" onclick="updateAvail()">💾 Update</button>
+        </div></div>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><strong style="color:var(--purple-light,#a78bfa);">INTERSECT</strong> PartnerOS · Confidential</div>
+</div>
+
+<!-- REQUEST MODAL -->
+<div class="mo" id="m-req">
+  <div class="modal">
+    <div class="mti">📋 New Request</div>
+    <div class="fg"><label class="fl">Title *</label><input class="fi" id="rq-title"></div>
+    <div class="fg"><label class="fl">Client</label><select class="fs" id="rq-client"><option value="">— None —</option></select></div>
+    <div class="fg"><label class="fl">Description</label><textarea class="fta" id="rq-desc"></textarea></div>
+    <div class="fg"><label class="fl">Priority</label>
+      <select class="fs" id="rq-pri">
+        <option value="high">🔴 High</option>
+        <option value="medium" selected>🟡 Medium</option>
+        <option value="low">🟢 Low</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Attachment (Drive link)</label><input class="fi" id="rq-file" type="url" dir="ltr"></div>
+    <div class="mft">
+      <button class="btn bbo" onclick="closeModal('m-req')" style="padding:8px 14px;">Cancel</button>
+      <button class="btn bbg" onclick="saveRequest()" style="padding:8px 20px;">📤 Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var SB_URL='https://rppwppxyhmuicgemmecu.supabase.co';
+var SB_KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+var sb=null, memberData=null, myClients=[], myReqs=[];
+
+try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
+
+function setL(l){var h=document.getElementById('th');h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');try{localStorage.setItem('ix_lang',l);}catch(e){}}
+function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
+function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
+var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
+function openModal(id){document.getElementById(id).style.display='flex';}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function doLogout(){try{localStorage.removeItem('ix_portal_data');localStorage.removeItem('ix_portal_type');}catch(e){}window.location.href='portal.html';}
+
+window.addEventListener('DOMContentLoaded',function(){
+  initLang();
+  var stored=null;
+  try{stored=localStorage.getItem('ix_portal_data');}catch(e){}
+  if(!stored){return showError();}
+  try{
+    memberData=JSON.parse(stored);
+    if(!memberData||!memberData.name)return showError();
+    render();
+  }catch(e){showError();}
+});
+
+function render(){
+  var m=memberData;
+  var isExpert=m.person_type==='expert';
+  var typeColors={employee:'rgba(6,182,212,.1)',freelancer:'rgba(124,58,237,.1)',consultant:'rgba(245,158,11,.1)',expert:'rgba(34,197,94,.1)'};
+  var typeTextColors={employee:'var(--teal)',freelancer:'#a78bfa',consultant:'var(--gold)',expert:'var(--green)'};
+  var typeLabels={employee:'Employee',freelancer:'Freelancer',consultant:'Consultant',expert:'Expert'};
+
+  var init=(m.name||'TM').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var avEl=document.getElementById('m-av');
+  avEl.textContent=init;
+  avEl.style.background=isExpert?'linear-gradient(135deg,#06b6d4,#7c3aed)':'linear-gradient(135deg,#7c3aed,#3b82f6)';
+
+  document.getElementById('m-name').textContent=m.name;
+  document.getElementById('m-role').textContent=(m.role||m.person_type||'Team Member')+(m.freelancer_type?' · '+m.freelancer_type:'');
+
+  var badge=document.getElementById('m-type-badge');
+  badge.textContent=typeLabels[m.person_type]||m.person_type||'Team';
+  badge.style.background=typeColors[m.person_type]||'rgba(74,82,112,.15)';
+  badge.style.color=typeTextColors[m.person_type]||'var(--ink3)';
+
+  if(isExpert){
+    document.getElementById('team-tabs').style.display='none';
+    document.getElementById('expert-tabs').style.display='block';
+    document.getElementById('k1l').textContent='Requests';
+    document.getElementById('k2l').textContent='Pending';
+    document.getElementById('k3l').textContent='Responded';
+    document.getElementById('avail-sel').value=m.availability||'Available';
+    renderExpertProfile();
+    loadExpertData();
+  } else {
+    document.getElementById('team-tabs').style.display='block';
+    document.getElementById('expert-tabs').style.display='none';
+    document.getElementById('k1l').textContent='Clients';
+    document.getElementById('k2l').textContent='Tasks';
+    document.getElementById('k3l').textContent='Requests';
+    loadTeamData();
+  }
+
+  document.getElementById('loading').style.display='none';
+  document.getElementById('main').style.display='block';
+}
+
+// ── TEAM DATA ──
+async function loadTeamData(){
+  if(!sb)return;
+  var m=memberData;
+  var clients=[],tasks=[],reqs=[],meetings=[];
+  try{var r=await sb.from('ix_clients_v2').select('*').eq('main_am_name',m.name);if(r.data)clients=r.data;}catch(e){}
+  try{var r=await sb.from('ix_actions').select('*').eq('assignee',m.name).eq('done',false).order('created_at',{ascending:false});if(r.data)tasks=r.data;}catch(e){}
+  try{var r=await sb.from('ix_requests').select('*').eq('assignee_name',m.name).order('created_at',{ascending:false});if(r.data)reqs=r.data;}catch(e){}
+  try{var r=await sb.from('ix_meetings').select('*').order('date',{ascending:false}).limit(8);if(r.data)meetings=r.data;}catch(e){}
+  myClients=clients;
+  document.getElementById('k1').textContent=clients.length;
+  document.getElementById('k2').textContent=tasks.length;
+  document.getElementById('k3').textContent=reqs.filter(function(r){return r.status==='Pending';}).length;
+  document.getElementById('tk-badge').textContent=tasks.length;
+  var clOpts='<option value="">— None —</option>'+clients.map(function(c){return '<option value="'+c.id+'|'+c.name+'">'+c.name+'</option>';}).join('');
+  document.getElementById('wf-client').innerHTML='<option value="">— Select Client —</option>'+clients.map(function(c){return '<option value="'+c.id+'|'+c.name+'">'+c.name+'</option>';}).join('');
+  document.getElementById('rq-client').innerHTML=clOpts;
+  renderClients(clients);renderTasks(tasks);renderTeamReqs(reqs);renderMeetings(meetings);
+}
+
+function renderClients(clients){
+  var el=document.getElementById('cl-list');
+  if(!clients.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No clients assigned</div>';return;}
+  var stgC={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':'#8b5cf6','MOU':'#06b6d4','LEGAL':'#f59e0b','PLANNING':'#f97316','EXECUTION':'#22c55e','FINALIZATION':'#10b981','COMPLETED':'#22c55e','ON HOLD':'#6b7280'};
+  el.innerHTML=clients.map(function(c){
+    var sc=stgC[c.stage]||'#6b7280';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(26,31,56,.4);">'
+      +'<div style="font-size:20px;">🏢</div>'
+      +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;">'+c.name+'</div>'
+      +'<div style="font-size:11px;color:var(--ink3);">'+(c.service_type||c.industry||'—')+'</div></div>'
+      +'<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+sc+'22;color:'+sc+';">'+c.stage+'</span>'
+      +'</div>';
+  }).join('');
+}
+
+function renderTasks(tasks){
+  var el=document.getElementById('tk-list');
+  if(!tasks.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No tasks</div>';return;}
+  var PIC={high:'🔴',medium:'🟡',low:'🟢'};
+  el.innerHTML=tasks.map(function(a){
+    return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;display:flex;gap:9px;">'
+      +'<div style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;" data-id="'+a.id+'" onclick="markDone(this.dataset.id,this)"></div>'
+      +'<div><div style="font-size:12px;font-weight:600;margin-bottom:3px;">'+(PIC[a.priority]||'🟡')+' '+a.title+'</div>'
+      +(a.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+a.client_name+'</div>':'')
+      +(a.deadline?'<div style="font-size:11px;color:var(--ink3);">📅 '+a.deadline+'</div>':'')
+      +'</div></div>';
+  }).join('');
+}
+
+async function markDone(id,el){
+  el.style.background='var(--green)';el.style.borderColor='var(--green)';el.textContent='✓';el.style.color='#fff';
+  if(sb)try{await sb.from('ix_actions').update({done:true}).eq('id',id);}catch(e){}
+  toast('✅ Done!','ts');
+}
+
+function renderTeamReqs(reqs){
+  var el=document.getElementById('rq-list');
+  if(!reqs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests</div>';return;}
+  var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',Completed:'pgr',Rejected:'pr'};
+  el.innerHTML=reqs.map(function(r){
+    return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;">'
+        +'<div style="font-size:13px;font-weight:600;">'+r.title+'</div>'
+        +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+      +'</div>'
+      +(r.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+r.client_name+'</div>':'')
+      +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-top:4px;">'+r.description.slice(0,100)+'</div>':'')
+    +'</div>';
+  }).join('');
+}
+
+function renderMeetings(meetings){
+  var el=document.getElementById('mt-list');
+  if(!meetings.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings</div>';return;}
+  el.innerHTML=meetings.map(function(m){
+    return '<div style="padding:10px 0;border-bottom:1px solid rgba(26,31,56,.4);">'
+      +'<div style="font-size:13px;font-weight:600;margin-bottom:2px;">'+m.title+'</div>'
+      +'<div style="font-size:11px;color:var(--ink3);">'+(m.organization||'')+(m.date?' · '+m.date:'')+'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function saveWorkflow(){
+  var sel=document.getElementById('wf-client').value;
+  var title=document.getElementById('wf-title').value.trim();
+  if(!sel||!title){toast('Select client and enter title','te');return;}
+  var parts=sel.split('|');
+  var body={client_id:parts[0],client_name:parts[1],title:title,description:document.getElementById('wf-desc').value.trim(),status:document.getElementById('wf-status').value,show_to_client:document.getElementById('wf-show').checked,created_by:memberData.name};
+  if(sb)try{await sb.from('ix_workflow').insert(body);toast('✅ Update saved!','ts');document.getElementById('wf-title').value='';document.getElementById('wf-desc').value='';}catch(e){toast('Error','te');}
+}
+
+async function saveRequest(){
+  var title=document.getElementById('rq-title').value.trim();
+  if(!title){toast('Enter title','te');return;}
+  var sel=document.getElementById('rq-client').value;
+  var parts=sel?sel.split('|'):['',''];
+  var body={title:title,client_id:parts[0]||null,client_name:parts[1]||null,description:document.getElementById('rq-desc').value.trim(),priority:document.getElementById('rq-pri').value,file_url:document.getElementById('rq-file').value.trim()||null,requested_by:memberData.name,status:'Pending'};
+  if(sb)try{await sb.from('ix_requests').insert(body);closeModal('m-req');document.getElementById('rq-title').value='';document.getElementById('rq-desc').value='';toast('✅ Request sent!','ts');}catch(e){toast('Error','te');}
+}
+
+// ── EXPERT DATA ──
+async function loadExpertData(){
+  if(!sb||!memberData)return;
+  try{
+    var r=await sb.from('ix_expert_requests').select('*').eq('expert_id',memberData.id).order('created_at',{ascending:false});
+    var reqs=r.data||[];
+    document.getElementById('k1').textContent=reqs.length;
+    document.getElementById('k2').textContent=reqs.filter(function(x){return x.status==='Pending';}).length;
+    document.getElementById('k3').textContent=reqs.filter(function(x){return x.status==='Responded'||x.status==='Accepted';}).length;
+    renderExpertReqs(reqs);
+  }catch(e){}
+}
+
+function renderExpertReqs(reqs){
+  var el=document.getElementById('exp-reqs-list');
+  if(!reqs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:18px;">No requests yet — your profile is visible in the marketplace</div>';return;}
+  var sc={Pending:'pgo',Accepted:'pg',Responded:'pp',Rejected:'pr'};
+  el.innerHTML=reqs.map(function(r){
+    return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:9px;">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+        +'<div><div style="font-size:13px;font-weight:700;">From: '+(r.client_name||'Client')+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">'+(r.service_type||'')+(r.requested_date?' · '+r.requested_date:'')+'</div></div>'
+        +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+      +'</div>'
+      +(r.message?'<div style="font-size:12px;color:var(--ink2);margin-bottom:10px;line-height:1.5;">'+r.message.slice(0,150)+'</div>':'')
+      +(r.our_rate?'<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:9px;font-size:12px;color:var(--gold);font-weight:600;margin-bottom:10px;">💰 Rate: '+r.our_rate+'</div>':'')
+      +(r.status==='Pending'?'<button class="btn bbg bw" style="font-size:12px;" data-id="'+r.id+'" onclick="ackReq(this.dataset.id)">✅ Acknowledge</button>':'')
+      +'<div style="font-size:10px;color:var(--ink3);margin-top:8px;">'+new Date(r.created_at).toLocaleString()+'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function ackReq(id){
+  if(!sb)return;
+  try{
+    await sb.from('ix_expert_requests').update({status:'Responded',expert_confirmed:true}).eq('id',id);
+    toast('✅ Acknowledged','ts');
+    loadExpertData();
+  }catch(e){toast('Error','te');}
+}
+
+function renderExpertProfile(){
+  var e=memberData;
+  var specs=e.specializations?e.specializations.split(',').slice(0,6):[];
+  var init=(e.name||'EX').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var el=document.getElementById('exp-profile-body');
+  if(!el)return;
+  el.innerHTML=
+    '<div style="display:flex;gap:12px;margin-bottom:14px;">'
+      +'<div style="width:52px;height:52px;border-radius:13px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;flex-shrink:0;">'+init+'</div>'
+      +'<div><div style="font-size:16px;font-weight:700;margin-bottom:3px;">'+e.name+'</div>'
+      +'<div style="font-size:12px;color:var(--ink3);">'+(e.role||'Expert')+'</div></div>'
+    +'</div>'
+    +(specs.length?'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">'+specs.map(function(s){return '<span style="font-size:11px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);padding:3px 9px;border-radius:5px;color:var(--teal);">'+s.trim()+'</span>';}).join('')+'</div>':'')
+    +(e.bio?'<div style="font-size:13px;color:var(--ink2);line-height:1.6;background:var(--card2);border-radius:9px;padding:12px;margin-bottom:12px;">'+e.bio+'</div>':'')
+    +(e.nationality?'<div style="font-size:12px;margin-bottom:5px;">🌍 '+e.nationality+(e.languages?' · 🗣 '+e.languages:'')+'</div>':'')
+    +'<div style="margin-top:10px;font-size:11px;color:var(--ink3);background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.1);border-radius:8px;padding:10px;">ℹ️ Your contact details and rates are kept private from clients.</div>';
+}
+
+async function updateAvail(){
+  if(!sb||!memberData)return;
+  var avail=document.getElementById('avail-sel').value;
+  try{
+    await sb.from('ix_people').update({availability:avail}).eq('id',memberData.id);
+    memberData.availability=avail;
+    try{localStorage.setItem('ix_portal_data',JSON.stringify(memberData));}catch(e){}
+    toast('✅ Availability updated','ts');
+  }catch(e){toast('Error','te');}
+}
+
+function showTab(n,el){
+  document.querySelectorAll('#team-tabs .tp').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('#team-tabs .tab').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('tp-'+n).classList.add('on');
+  if(el)el.classList.add('on');
+}
+function showTabE(n,el){
+  document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('#expert-tabs .tab').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('tpe-'+n).classList.add('on');
+  if(el)el.classList.add('on');
+}
+</script>
+</body>
+</html>
