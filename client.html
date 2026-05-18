@@ -109,6 +109,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('experts',this)">🌟 Experts</button>
       <button class="tab" onclick="showTab('requests',this)">📋 My Requests</button>
       <button class="tab" onclick="showTab('help',this)">🆘 Request Help</button>
+      <button class="tab" onclick="showTab('news',this)">📰 News</button>
     </div>
 
     <div class="tp on" id="tp-overview">
@@ -169,8 +170,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         </div>
       </div>
       <div class="panel">
-        <div class="ph"><div class="pt">📋 My Help Requests</div></div>
+        <div class="ph"><div class="pt" id="my-help-reqs-title">📋 My Help Requests</div></div>
         <div class="pb" id="help-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div></div>
+      </div>
+    </div>
+
+    <!-- NEWS TAB -->
+    <div class="tp" id="tp-news">
+      <div class="panel">
+        <div class="ph"><div class="pt">📰 News & Announcements</div></div>
+        <div class="pb" id="news-feed-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news yet</div></div>
       </div>
     </div>
   </div>
@@ -297,17 +306,43 @@ function renderMain(c){
 }
 
 async function loadExtraData(c){
-  if(!sb)return;
-  var wf=[],meet=[],experts=[],reqs=[];
-  try{var r=await sb.from('ix_workflow').select('*').eq('client_id',c.id).eq('show_to_client',true).order('created_at',{ascending:false});if(r.data)wf=r.data;}catch(e){}
-  try{var r=await sb.from('ix_meetings').select('*').eq('organization',c.name).order('date',{ascending:false}).limit(10);if(r.data)meet=r.data;}catch(e){}
-  try{var r=await sb.from('ix_people').select('*').eq('show_in_marketplace',true);if(r.data)experts=r.data;}catch(e){}
-  try{var r=await sb.from('ix_expert_requests').select('*').eq('client_id',c.id).order('created_at',{ascending:false});if(r.data)reqs=r.data;}catch(e){}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  function fetchSB(table,params){
+    return fetch(SB+'/rest/v1/'+table+'?'+params,{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    }).then(function(r){return r.json();}).catch(function(){return [];});
+  }
+  var wf=[],meet=[],experts=[],reqs=[],news=[];
+  try{var r=await fetchSB('ix_workflow','client_id=eq.'+c.id+'&show_to_client=eq.true&order=created_at.desc');if(Array.isArray(r))wf=r;}catch(e){}
+  try{var r=await fetchSB('ix_meetings','organization=eq.'+encodeURIComponent(c.name)+'&order=date.desc&limit=10');if(Array.isArray(r))meet=r;}catch(e){}
+  try{var r=await fetchSB('ix_people','show_in_marketplace=eq.true');if(Array.isArray(r))experts=r;}catch(e){}
+  try{var r=await fetchSB('ix_expert_requests','client_id=eq.'+c.id+'&order=created_at.desc');if(Array.isArray(r))reqs=r;}catch(e){}
+  try{var r=await fetchSB('ix_news','order=created_at.desc&limit=20');if(Array.isArray(r))news=r.filter(function(n){try{var a=JSON.parse(n.audience||'[]');return a.includes('all')||a.includes('clients');}catch(e){return true;}});}catch(e){}
   allExperts=experts;myReqs=reqs;
   document.getElementById('k-wf').textContent=wf.length;
   document.getElementById('k-mt').textContent=meet.length;
   document.getElementById('k-ex').textContent=experts.length;
-  renderWF(wf);renderMeetings(meet);renderExperts(experts);renderReqs(reqs);
+  renderWF(wf);renderMeetings(meet);renderExperts(experts);renderReqs(reqs);renderNewsFeed(news);
+}
+
+function renderNewsFeed(news){
+  var el=document.getElementById('news-feed-list');if(!el)return;
+  if(!news.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news yet</div>';return;}
+  var typeColors={announcement:'var(--teal)',alert:'var(--red)',update:'#a78bfa',opportunity:'var(--gold)',event:'#22c55e'};
+  var typeIcons={announcement:'📢',alert:'⚠️',update:'🔄',opportunity:'🎯',event:'📅'};
+  el.innerHTML=news.map(function(n){
+    var tc=typeColors[n.type]||'var(--teal)';
+    return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+tc+';border-radius:9px;padding:13px;margin-bottom:9px;">'
+      +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:6px;">'
+        +'<span style="font-size:16px;">'+(typeIcons[n.type]||'📢')+'</span>'
+        +'<div style="font-size:13px;font-weight:700;">'+n.title+'</div>'
+      +'</div>'
+      +'<div style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:6px;">'+n.content+'</div>'
+      +(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')
+      +'<div style="font-size:10px;color:var(--ink3);margin-top:6px;">'+new Date(n.created_at).toLocaleDateString()+'</div>'
+    +'</div>';
+  }).join('');
 }
 
 function renderWF(wf){
@@ -431,6 +466,7 @@ function showTab(n,el){
   document.getElementById('tp-'+n).classList.add('on');
   if(el)el.classList.add('on');
   if(n==='help')loadHelpRequests();
+  if(n==='news')loadExtraData(clientData);
 }
 </script>
 </body>

@@ -398,15 +398,21 @@ async function saveRequest(){
 
 // ── EXPERT DATA ──
 async function loadExpertData(){
-  if(!sb||!memberData)return;
+  // Use fetch directly for reliability
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  if(!memberData)return;
   try{
-    var r=await sb.from('ix_expert_requests').select('*').eq('expert_id',memberData.id).order('created_at',{ascending:false});
-    var reqs=r.data||[];
+    var resp=await fetch(SB+'/rest/v1/ix_expert_requests?expert_id=eq.'+memberData.id+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var r=await resp.json();
+    var reqs=Array.isArray(r)?r:[];
     document.getElementById('k1').textContent=reqs.length;
     document.getElementById('k2').textContent=reqs.filter(function(x){return x.status==='Pending';}).length;
     document.getElementById('k3').textContent=reqs.filter(function(x){return x.status==='Responded'||x.status==='Accepted';}).length;
     renderExpertReqs(reqs);
-  }catch(e){}
+  }catch(e){console.error('Expert data error:',e);}
 }
 
 function renderExpertReqs(reqs){
