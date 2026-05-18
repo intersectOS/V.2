@@ -181,6 +181,97 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         </div></div>
       </div>
     </div>
+      <!-- MY PROJECTS TAB -->
+      <div class="tp" id="tp-my-projects">
+        <div class="panel">
+          <div class="ph"><div class="pt">📁 My Projects</div></div>
+          <div class="pb" id="my-projs-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">📌 My Project Tasks</div></div>
+          <div class="pb" id="my-proj-tasks-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Select a project</div></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">🆘 Request Help on Project</div></div>
+          <div class="pb">
+            <div class="fg"><label class="fl">Project *</label>
+              <select class="fs" id="help-proj-sel">
+                <option value="">— Select Project —</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">What do you need? *</label><textarea class="fta" id="help-proj-desc" placeholder="Describe the help you need..."></textarea></div>
+            <div class="fg"><label class="fl">Assign to (Internal)</label>
+              <select class="fs" id="help-proj-assignee">
+                <option value="">— Select Team Member —</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Priority</label>
+              <select class="fs" id="help-proj-pri">
+                <option value="high">🔴 High</option>
+                <option value="medium" selected>🟡 Medium</option>
+                <option value="low">🟢 Low</option>
+              </select>
+            </div>
+            <button class="btn bbg bw" onclick="sendProjectHelp()">📤 Send Request</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INBOX TAB -->
+      <div class="tp" id="tp-inbox">
+        <div class="panel">
+          <div class="ph">
+            <div class="pt">🔔 Incoming Requests</div>
+            <span id="inbox-badge" class="pill pr" style="display:none;">0 new</span>
+          </div>
+          <div class="pb" id="inbox-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No incoming requests</div></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">📤 Sent Requests</div></div>
+          <div class="pb" id="sent-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No sent requests</div></div>
+        </div>
+      </div>
+
+      <!-- ADD CLIENT TAB -->
+      <div class="tp" id="tp-add-client">
+        <div class="panel">
+          <div class="ph"><div class="pt">➕ Add New Client</div></div>
+          <div class="pb">
+            <div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.15);border-radius:9px;padding:11px;margin-bottom:14px;font-size:12px;color:#22c55e;">
+              ℹ️ Clients you add here will appear in the main dashboard and be assigned to you automatically.
+            </div>
+            <div class="fg"><label class="fl">Company Name *</label><input class="fi" id="nc-name" placeholder="e.g. Aramco"></div>
+            <div class="fg"><label class="fl">Industry</label><input class="fi" id="nc-industry" placeholder="e.g. Energy"></div>
+            <div class="fg"><label class="fl">Country</label><input class="fi" id="nc-country" placeholder="e.g. Saudi Arabia"></div>
+            <div class="fg"><label class="fl">Service Type</label>
+              <select class="fs" id="nc-svc">
+                <option value="Soft Landing">Soft Landing</option>
+                <option value="Strategic Partnership">Strategic Partnership</option>
+                <option value="Market Entry">Market Entry</option>
+                <option value="Investment">Investment</option>
+                <option value="Joint Venture">Joint Venture</option>
+                <option value="Consulting">Consulting</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="nc-notes" placeholder="Any initial notes..."></textarea></div>
+            <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
+              <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:9px;">🔐 Client Portal Login</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+                <div class="fg"><label class="fl">Username</label><input class="fi" id="nc-username" placeholder="e.g. aramco" dir="ltr"></div>
+                <div class="fg"><label class="fl">Password</label><input class="fi" id="nc-pass" placeholder="e.g. Aramco@2026" dir="ltr"></div>
+              </div>
+            </div>
+            <button class="btn bbg bw" onclick="addClientFromPortal()">➕ Add Client</button>
+            <div id="nc-success" style="display:none;margin-top:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;font-size:13px;color:#22c55e;text-align:center;"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">🏢 Clients I Added</div></div>
+          <div class="pb" id="my-added-clients"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div>
+        </div>
+      </div>
+
       <div class="tp" id="tp-team-news">
         <div class="panel"><div class="ph"><div class="pt">📰 News & Announcements</div></div>
         <div class="pb" id="team-news-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div></div>
@@ -479,6 +570,267 @@ async function updateAvail(){
   }catch(e){toast('Error','te');}
 }
 
+async function addClientFromPortal(){
+  var name=document.getElementById('nc-name').value.trim();
+  if(!name){toast('Enter company name','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var code='CL-'+Date.now().toString(36).toUpperCase();
+  var body={
+    name:name,
+    industry:document.getElementById('nc-industry').value.trim()||null,
+    country:document.getElementById('nc-country').value.trim()||null,
+    service_type:document.getElementById('nc-svc').value,
+    stage:'INITIATION',
+    code:code,
+    main_am_name:memberData?memberData.name:null,
+    notes_internal:document.getElementById('nc-notes').value.trim()||null,
+    username:document.getElementById('nc-username').value.trim()||null,
+    portal_password:document.getElementById('nc-pass').value.trim()||null,
+    added_by:memberData?memberData.name:null,
+    health_score:100
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_clients_v2',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    var data=await r.json();
+    if(r.ok){
+      var successEl=document.getElementById('nc-success');
+      var msg='✅ '+name+' added successfully!';
+      if(body.username&&body.portal_password)msg+=' Portal: '+body.username+' / '+body.portal_password;
+      successEl.textContent=msg;
+      successEl.style.display='block';
+      ['nc-name','nc-industry','nc-country','nc-notes','nc-username','nc-pass'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+      setTimeout(function(){document.getElementById('nc-success').style.display='none';},5000);
+      loadMyAddedClients();
+    } else {
+      toast('Error: '+(data.message||'Failed'),'te');
+    }
+  }catch(e){toast('Connection error','te');}
+}
+
+async function loadMyAddedClients(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var el=document.getElementById('my-added-clients');if(!el)return;
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_clients_v2?added_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var clients=await r.json();
+    if(!Array.isArray(clients)||!clients.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No clients added yet</div>';return;}
+    var stgC={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':'#8b5cf6','MOU':'#06b6d4','LEGAL':'#f59e0b','PLANNING':'#f97316','EXECUTION':'#22c55e','COMPLETED':'#22c55e','ON HOLD':'#6b7280'};
+    el.innerHTML=clients.map(function(c){
+      var sc=stgC[c.stage]||'#6b7280';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(26,31,56,.4);">'
+        +'<div style="font-size:20px;">🏢</div>'
+        +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;">'+c.name+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">'+(c.service_type||'—')+(c.industry?' · '+c.industry:'')+'</div></div>'
+        +'<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+sc+'22;color:'+sc+';">'+c.stage+'</span>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error loading</div>';}
+}
+
+async function loadMyProjects(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Load projects where member is in members list or AM
+    var r=await fetch(SB+'/rest/v1/ix_projects?order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var projs=await r.json();
+    if(Array.isArray(projs)){
+      projs=projs.filter(function(p){
+        try{var m=JSON.parse(p.members||'[]');return m.includes(memberData.name)||p.client_name===memberData.name;}catch(e){return false;}
+      });
+      renderMyProjects(projs);
+    }
+    // Load people for assignee dropdown
+    var rp=await fetch(SB+'/rest/v1/ix_people?select=id,name,role,person_type',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var people=await rp.json();
+    if(Array.isArray(people)){
+      var asel=document.getElementById('help-proj-assignee');
+      if(asel)asel.innerHTML='<option value="">— Select Team Member —</option>'+people.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+    }
+  }catch(e){}
+}
+
+var _myProjects=[];
+function renderMyProjects(projs){
+  _myProjects=projs;
+  var el=document.getElementById('my-projs-list');
+  var psel=document.getElementById('help-proj-sel');
+  if(!projs.length){
+    if(el)el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No projects assigned to you yet</div>';
+    return;
+  }
+  var sc={Active:'#22c55e',Planning:'#06b6d4',Done:'#6b7280',Cancelled:'#ef4444',Hold:'#f59e0b'};
+  var html='';
+  projs.forEach(function(p,i){
+    var members=[];try{members=JSON.parse(p.members||'[]');}catch(e){}
+    var tc=sc[p.status]||'#6b7280';
+    html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;" data-idx="'+i+'" onclick="showProjByIdx(this)">';
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;">';
+    html+='<div style="font-size:13px;font-weight:700;">'+p.name+'</div>';
+    html+='<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:'+tc+'22;color:'+tc+';">'+p.status+'</span>';
+    html+='</div>';
+    if(p.client_name)html+='<div style="font-size:11px;color:var(--gold);margin-bottom:4px;">📁 '+p.client_name+'</div>';
+    if(p.description)html+='<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">'+p.description.slice(0,80)+'</div>';
+    if(members.length)html+='<div style="font-size:11px;color:var(--ink3);">👥 '+members.join(', ')+'</div>';
+    html+='</div>';
+  });
+  if(el)el.innerHTML=html;
+  if(psel)psel.innerHTML='<option value="">— Select Project —</option>'+projs.map(function(p){return '<option value="'+p.name+'">'+p.name+'</option>';}).join('');
+}
+
+function showProjByIdx(el){
+  var i=parseInt(el.dataset.idx);
+  if(_myProjects[i])showProjTasks(_myProjects[i].name);
+}
+
+
+async function showProjTasks(projName){
+  var el=document.getElementById('my-proj-tasks-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_tasks?project_name=eq.'+encodeURIComponent(projName)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var tasks=await r.json();
+    if(!Array.isArray(tasks)||!tasks.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:12px;">No tasks for '+projName+'</div>';return;}
+    var sc={Done:'pg','In Progress':'ptl','To Do':'pgr'};
+    var PIC={high:'🔴',medium:'🟡',low:'🟢'};
+    el.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px;">'+projName+'</div>'+tasks.map(function(t){
+      return '<div style="display:flex;gap:8px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(26,31,56,.3);">'
+        +'<div>'+(PIC[t.priority]||'🟡')+'</div>'
+        +'<div style="flex:1;">'
+          +'<div style="font-size:12px;font-weight:600;">'+t.title+'</div>'
+          +(t.assignee?'<div style="font-size:11px;color:var(--ink3);">👤 '+t.assignee+'</div>':'')
+          +(t.deadline?'<div style="font-size:11px;color:var(--ink3);">📅 '+t.deadline+'</div>':'')
+        +'</div>'
+        +'<span class="pill '+(sc[t.status]||'pgr')+'" style="font-size:10px;">'+t.status+'</span>'
+      +'</div>';
+    }).join('');
+  }catch(e){}
+}
+
+async function sendProjectHelp(){
+  var proj=document.getElementById('help-proj-sel').value;
+  var desc=document.getElementById('help-proj-desc').value.trim();
+  if(!proj||!desc){toast('Select project and describe what you need','te');return;}
+  var aselVal=document.getElementById('help-proj-assignee').value;
+  var parts=aselVal?aselVal.split('|'):['',''];
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:'[Project Help] '+proj+' — '+(memberData?memberData.name:'Team'),
+    description:desc,
+    requested_by:memberData?memberData.name:null,
+    assignee_id:parts[0]||null,
+    assignee_name:parts[1]||null,
+    priority:document.getElementById('help-proj-pri').value,
+    status:'Pending',
+    show_to_client:false
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      toast('✅ Request sent!','ts');
+      document.getElementById('help-proj-desc').value='';
+      // Also create notification for assignee
+      if(parts[1]){
+        await fetch(SB+'/rest/v1/ix_notifications',{
+          method:'POST',
+          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+          body:JSON.stringify({title:'New request from '+( memberData?memberData.name:'Team'),body:desc.slice(0,100),type:'request',is_read:false})
+        });
+      }
+      loadInbox();
+    }else{toast('Error sending','te');}
+  }catch(e){toast('Error','te');}
+}
+
+async function loadInbox(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var inboxEl=document.getElementById('inbox-list');
+  var sentEl=document.getElementById('sent-list');
+  try{
+    // Incoming - assigned to me
+    var ri=await fetch(SB+'/rest/v1/ix_requests?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var incoming=await ri.json();
+    incoming=Array.isArray(incoming)?incoming:[];
+    var pending=incoming.filter(function(r){return r.status==='Pending';});
+    var badge=document.getElementById('inbox-badge');
+    if(badge&&pending.length){badge.textContent=pending.length+' new';badge.style.display='inline-flex';}
+    if(inboxEl){
+      if(!incoming.length){inboxEl.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No incoming requests</div>';}
+      else{
+        var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
+        inboxEl.innerHTML=incoming.map(function(r){
+          return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+            +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+              +'<div style="font-size:13px;font-weight:700;">'+r.title+'</div>'
+              +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+            +'</div>'
+            +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:10px;line-height:1.5;">'+r.description.slice(0,120)+'</div>':'')
+            +'<div style="font-size:11px;color:var(--ink3);margin-bottom:8px;">From: '+(r.requested_by||'Team')+(r.client_name?' · Client: '+r.client_name:'')+'</div>'
+            +(r.status==='Pending'?
+              '<div style="display:flex;gap:7px;">'
+                +'<button class="btn bbg" style="flex:1;font-size:12px;" data-id="'+r.id+'" data-st="Accepted" onclick="respondReq(this.dataset.id,this.dataset.st)">✅ Accept</button>'
+                +'<button class="btn" style="flex:1;font-size:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+r.id+'" data-st="Rejected" onclick="respondReq(this.dataset.id,this.dataset.st)">✕ Decline</button>'
+              +'</div>':''
+            )
+          +'</div>';
+        }).join('');
+      }
+    }
+    // Sent - by me
+    var rs=await fetch(SB+'/rest/v1/ix_requests?requested_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var sent=await rs.json();
+    sent=Array.isArray(sent)?sent:[];
+    if(sentEl){
+      if(!sent.length){sentEl.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No sent requests</div>';}
+      else{
+        var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
+        sentEl.innerHTML=sent.map(function(r){
+          return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
+            +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+              +'<div style="font-size:13px;font-weight:600;">'+r.title+'</div>'
+              +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+            +'</div>'
+            +(r.assignee_name?'<div style="font-size:11px;color:var(--ink3);">To: '+r.assignee_name+'</div>':'')
+            +'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+          +'</div>';
+        }).join('');
+      }
+    }
+  }catch(e){}
+}
+
+async function respondReq(id,status){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_requests?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({status:status,accepted_at:status==='Accepted'?new Date().toISOString():null})
+    });
+    toast(status==='Accepted'?'✅ Accepted!':'Declined','ts');
+    loadInbox();
+  }catch(e){toast('Error','te');}
+}
+
 async function loadTeamNews(){
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
@@ -509,6 +861,9 @@ function showTab(n,el){
   document.getElementById('tp-'+n).classList.add('on');
   if(el)el.classList.add('on');
   if(n==='team-news')loadTeamNews();
+  if(n==='add-client')loadMyAddedClients();
+  if(n==='my-projects')loadMyProjects();
+  if(n==='inbox')loadInbox();
 }
 function showTabE(n,el){
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
