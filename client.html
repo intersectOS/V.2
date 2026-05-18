@@ -68,12 +68,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 <body>
 <div class="toast" id="toast"></div>
 <div class="lang-bar">
-  <button class="lb" onclick="setL('en')">EN</button>
-  <button class="lb" onclick="setL('ar')">AR</button>
-  <button class="lb" onclick="setL('es')">ES</button>
-  <button class="lb" onclick="setL('fr')">FR</button>
-  <button class="lb" onclick="setL('ja')">JA</button>
-  <button class="lb" onclick="setL('zh')">ZH</button>
+  <button class="lb" data-l="en" onclick="setL('en')">EN</button>
+  <button class="lb" data-l="ar" onclick="setL('ar')">AR</button>
+  <button class="lb" data-l="es" onclick="setL('es')">ES</button>
+  <button class="lb" data-l="fr" onclick="setL('fr')">FR</button>
+  <button class="lb" data-l="de" onclick="setL('de')">DE</button>
+  <button class="lb" data-l="it" onclick="setL('it')">IT</button>
+  <button class="lb" data-l="ja" onclick="setL('ja')">JA</button>
+  <button class="lb" data-l="ko" onclick="setL('ko')">KO</button>
+  <button class="lb" data-l="zh" onclick="setL('zh')">ZH</button>
 </div>
 <div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);">Loading...</div></div>
 <div id="error-sc" style="display:none;flex-direction:column;">
@@ -105,6 +108,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
       <button class="tab" onclick="showTab('experts',this)">🌟 Experts</button>
       <button class="tab" onclick="showTab('requests',this)">📋 My Requests</button>
+      <button class="tab" onclick="showTab('help',this)">🆘 Request Help</button>
     </div>
 
     <div class="tp on" id="tp-overview">
@@ -136,6 +140,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
     <div class="tp" id="tp-requests">
       <div class="panel"><div class="ph"><div class="pt">📋 My Expert Requests</div></div>
       <div class="pb" id="req-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div></div></div>
+    </div>
+  </div>
+    <div class="tp" id="tp-help">
+      <div class="panel">
+        <div class="ph"><div class="pt">🆘 Request Help from Intersect Team</div></div>
+        <div class="pb">
+          <div class="fg"><label class="fl">What do you need help with? *</label>
+            <select class="fs" id="help-type">
+              <option value="Legal">⚖️ Legal</option>
+              <option value="Financial">💰 Financial</option>
+              <option value="Strategic">🎯 Strategic</option>
+              <option value="Technical">💻 Technical</option>
+              <option value="Marketing">📢 Marketing</option>
+              <option value="Other">📌 Other</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Description *</label><textarea class="fta" id="help-desc" placeholder="Describe what you need..."></textarea></div>
+          <div class="fg"><label class="fl">Preferred Timeline</label>
+            <select class="fs" id="help-timeline">
+              <option value="Urgent">🔴 Urgent (ASAP)</option>
+              <option value="This week">🟡 This week</option>
+              <option value="This month">🟢 This month</option>
+            </select>
+          </div>
+          <button class="btn bbg bw" onclick="submitHelp()">📤 Submit Request</button>
+          <div id="help-sent" style="display:none;margin-top:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;font-size:13px;color:#22c55e;text-align:center;">✅ Request sent! Intersect team will contact you shortly.</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt">📋 My Help Requests</div></div>
+        <div class="pb" id="help-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div></div>
+      </div>
     </div>
   </div>
   <div class="ftr"><strong style="color:var(--teal);">INTERSECT</strong> PartnerOS · Confidential Client Portal</div>
@@ -174,7 +210,14 @@ var sb=null, clientData=null, allExperts=[], myReqs=[], currentRates={};
 
 try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
 
-function setL(l){var h=document.getElementById('ch');h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');try{localStorage.setItem('ix_lang',l);}catch(e){}}
+function setL(l){
+  var h=document.getElementById('ch');
+  h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');
+  try{localStorage.setItem('ix_lang',l);}catch(e){}
+  document.querySelectorAll('.lb').forEach(function(b){b.style.background='rgba(255,255,255,.08)';b.style.color='#e8ecf8';b.style.borderColor='rgba(255,255,255,.15)';});
+  var active=document.querySelector('.lb[data-l="'+l+'"]');
+  if(active){active.style.background='rgba(6,182,212,.2)';active.style.color='#06b6d4';active.style.borderColor='#06b6d4';}
+}
 function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
 function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
 var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
@@ -296,11 +339,59 @@ async function submitReq(){
   }
 }
 
+async function submitHelp(){
+  var type=document.getElementById('help-type').value;
+  var desc=document.getElementById('help-desc').value.trim();
+  if(!desc){toast('Please describe what you need','te');return;}
+  var timeline=document.getElementById('help-timeline').value;
+  var body={
+    title:'[Client Request] '+type+' - '+(clientData?clientData.name:''),
+    description:desc+' | Timeline: '+timeline,
+    client_id:clientData?clientData.id:null,
+    client_name:clientData?clientData.name:null,
+    requested_by:clientData?clientData.name:'Client',
+    priority:timeline==='Urgent'?'high':timeline==='This week'?'medium':'low',
+    status:'Pending',
+    assignee_type:'internal'
+  };
+  if(sb){
+    try{
+      await sb.from('ix_requests').insert(body);
+      document.getElementById('help-desc').value='';
+      document.getElementById('help-sent').style.display='block';
+      setTimeout(function(){document.getElementById('help-sent').style.display='none';},4000);
+      loadHelpRequests();
+    }catch(e){toast('Error submitting','te');}
+  }
+}
+
+async function loadHelpRequests(){
+  if(!sb||!clientData)return;
+  try{
+    var r=await sb.from('ix_requests').select('*').eq('client_id',clientData.id).order('created_at',{ascending:false});
+    var reqs=r.data||[];
+    var el=document.getElementById('help-list');
+    if(!reqs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div>';return;}
+    var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',Completed:'pgr',Rejected:'pr'};
+    el.innerHTML=reqs.map(function(r){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
+          +'<div style="font-size:13px;font-weight:600;">'+r.title.replace('[Client Request] ','')+'</div>'
+          +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+        +'</div>'
+        +(r.estimated_days&&r.status==='Accepted'?'<div style="font-size:11px;color:#22c55e;">⏱ Est: '+r.estimated_days+' days</div>':'')
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){}
+}
+
 function showTab(n,el){
   document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tp-'+n).classList.add('on');
   if(el)el.classList.add('on');
+  if(n==='help')loadHelpRequests();
 }
 </script>
 </body>

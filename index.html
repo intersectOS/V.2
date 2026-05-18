@@ -421,7 +421,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
         </div>
         <div>
           <div class="panel" style="margin-bottom:12px;">
-            <div class="ph"><div class="ptit">⚡ Recent Activity</div></div>
+            <div class="ph"><div class="ptit">⚡ Recent Activity</div><button class="btn bo bsm" style="font-size:10px;" onclick="renderFeed()">↻</button></div>
             <div class="pb" style="padding:7px 13px;max-height:110px;overflow-y:auto;" id="actfeed"></div>
           </div>
           <div class="panel">
@@ -558,14 +558,18 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 
     <!-- AI INSIGHTS -->
     <div class="page" id="page-ai">
-      <div class="sh"><div class="st" data-i="n_ai">AI Insights</div></div>
+      <div class="sh"><div class="st" data-i="n_ai">AI Insights</div><button class="btn bg bsm" onclick="generateAIInsights()">🤖 Generate Insights</button></div>
       <div class="g2">
         <div>
-          <div class="panel"><div class="ph"><div class="ptit">🧠 Recommendations</div></div><div class="pb" id="ai-recs"></div></div>
+          <div class="panel">
+            <div class="ph"><div class="ptit">🧠 AI Strategic Analysis</div><span id="ai-loading" style="font-size:11px;color:var(--teal);display:none;">Analyzing...</span></div>
+            <div class="pb" id="ai-analysis"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:24px;">Click "Generate Insights" to get AI analysis of your portfolio</div></div>
+          </div>
           <div class="panel"><div class="ph"><div class="ptit">⚠️ Strategic Alerts</div></div><div class="pb" id="ai-alerts-ov2"></div></div>
         </div>
         <div>
           <div class="panel"><div class="ph"><div class="ptit">🏆 Top Opportunities</div></div><div class="pb" id="ai-top-opps"></div></div>
+          <div class="panel"><div class="ph"><div class="ptit">📋 Recommendations</div></div><div class="pb" id="ai-recs"></div></div>
         </div>
       </div>
     </div>
@@ -612,6 +616,14 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
           <div class="fgrid"><div class="fg"><label class="fl">Coordinator Name</label><input class="fi" id="coord-name" placeholder="e.g. Mohammed - Meeting Coordinator"></div><div class="fg"><label class="fl">Coordinator Password</label><input class="fi" type="password" id="coord-pass"></div></div>
           <button class="btn bg bsm" onclick="saveCoord()">💾 Save</button>
           <div style="font-size:11px;color:var(--ink3);margin-top:8px;">Default: coordinator2026 · Portal: <a href="transcript.html" target="_blank" style="color:var(--purple-light);">transcript.html</a></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-bottom:11px;">
+        <div class="ph"><div class="ptit">🤖 Claude AI API Key</div></div>
+        <div class="pb">
+          <div class="fg"><label class="fl">Anthropic API Key</label><input class="fi" id="claude-key" type="password" dir="ltr" placeholder="sk-ant-..."></div>
+          <button class="btn bg bsm" onclick="saveClaudeKey()">💾 Save Key</button>
+          <div style="font-size:11px;color:var(--ink3);margin-top:8px;">Get your API key from <a href="https://console.anthropic.com" target="_blank" style="color:var(--teal);">console.anthropic.com</a></div>
         </div>
       </div>
       <div class="panel" style="margin-bottom:11px;">
@@ -946,7 +958,11 @@ function gp(n,el){
     actions:renderActions, experts:renderExperts, requests:renderRequests,
     meetings:renderMeetings, reports:function(){loadReportClients();},
     invoices:renderInvoices, ai:renderAI, projects:renderProjects, tasks:renderTasks,
-    notifications:renderNotifs
+    notifications:renderNotifs,
+    settings:function(){
+      var k=document.getElementById('claude-key');
+      if(k){var saved=localStorage.getItem('ix_claude_key');k.placeholder=saved?'••••••••• (saved)':'sk-ant-...';}
+    }
   };
   if(renderMap[n])renderMap[n]();
 }
@@ -1655,6 +1671,43 @@ function printInv(id){
 async function delInv(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_invoices').delete().eq('id',id);AInvoices=AInvoices.filter(function(i){return i.id!==id;});renderInvoices();toast('Deleted','success');}
 
 // ── AI INSIGHTS ──
+async function generateAIInsights(){
+  var loadEl=document.getElementById('ai-loading');
+  var analysisEl=document.getElementById('ai-analysis');
+  if(loadEl)loadEl.style.display='inline';
+  if(analysisEl)analysisEl.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:24px;"><div style="width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--teal);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px;"></div>Analyzing your portfolio...</div>';
+
+  // Build context from current data
+  var context='INTERSECT PartnerOS - Portfolio Analysis. ';
+  context+='CLIENTS: '+AC.length+' total. ';
+  AC.slice(0,10).forEach(function(c){context+=c.name+' ('+c.stage+', AM:'+(c.main_am_name||'None')+'); ';});
+  context+='OPPORTUNITIES: '+AOpps.length+' total. ';
+  AOpps.slice(0,5).forEach(function(o){context+=o.title+' ('+o.stage+', SAR '+(parseFloat(o.value)||0).toLocaleString()+'); ';});
+  context+='PENDING REQUESTS: '+ARequests.filter(function(r){return r.status==='Pending';}).length+'. ';
+  context+='OVERDUE ACTIONS: '+AActions.filter(function(a){return !a.done&&a.deadline&&new Date(a.deadline)<new Date();}).length+'. ';
+  context+='AVAILABLE PEOPLE: '+APeople.filter(function(p){return p.availability==='Available';}).length+'.'
+
+  try{
+    var response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':localStorage.getItem('ix_claude_key')||'','anthropic-version':'2023-06-01'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:'You are a strategic business advisor for Intersect Venture Builder. Analyze this portfolio: '+context+' Provide 3-5 specific actionable recommendations as bullet points. Be direct and concise.'}]
+      })
+    });
+    var data=await response.json();
+    var text=data.content&&data.content[0]?data.content[0].text:'Analysis unavailable';
+    if(analysisEl){
+      analysisEl.innerHTML='<div style="font-size:13px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;">'+text+'</div>';
+    }
+  }catch(e){
+    if(analysisEl)analysisEl.innerHTML='<div style="color:var(--red);font-size:13px;padding:12px;">⚠️ '+( localStorage.getItem('ix_claude_key')?'API error: check your key':'Please add your Claude API key in Settings first.')+'</div>';
+  }
+  if(loadEl)loadEl.style.display='none';
+}
+
 function renderAI(){
   renderAIAlerts();
   var recs=document.getElementById('ai-recs');
@@ -1761,6 +1814,14 @@ async function delTask(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('
 
 // ── SETTINGS ──
 function chgPass(){var op=document.getElementById('op').value,np=document.getElementById('np').value,s=gs(PK,'intersect2026');if(s&&op!==s)return toast('Wrong password','error');if(!np||np.length<4)return toast('Too short','error');ss(PK,np);['op','np'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});toast('✅ Updated','success');}
+function saveClaudeKey(){
+  var key=document.getElementById('claude-key').value.trim();
+  if(!key)return toast('Enter API key','error');
+  try{localStorage.setItem('ix_claude_key',key);}catch(e){}
+  document.getElementById('claude-key').value='';
+  toast('✅ Claude API key saved','success');
+}
+
 function saveCoord(){var n=document.getElementById('coord-name').value.trim();var p=document.getElementById('coord-pass').value.trim();if(n){ss('ix_coord_name',n);toast('✅ Coordinator name updated','success');}if(p&&p.length>=4){ss('ix_coord_pass',p);toast('✅ Coordinator password updated','success');}if(!n&&!p)toast('Enter name or password','error');['coord-name','coord-pass'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});}
 function saveBU(){ss(BK,document.getElementById('base-url').value.trim());toast('✅ Saved','success');}
 

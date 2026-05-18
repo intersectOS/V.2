@@ -64,12 +64,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 <body>
 <div class="toast" id="toast"></div>
 <div class="lang-bar">
-  <button class="lb" onclick="setL('en')">EN</button>
-  <button class="lb" onclick="setL('ar')">AR</button>
-  <button class="lb" onclick="setL('es')">ES</button>
-  <button class="lb" onclick="setL('fr')">FR</button>
-  <button class="lb" onclick="setL('ja')">JA</button>
-  <button class="lb" onclick="setL('zh')">ZH</button>
+  <button class="lb" data-l="en" onclick="setL('en')">EN</button>
+  <button class="lb" data-l="ar" onclick="setL('ar')">AR</button>
+  <button class="lb" data-l="es" onclick="setL('es')">ES</button>
+  <button class="lb" data-l="fr" onclick="setL('fr')">FR</button>
+  <button class="lb" data-l="de" onclick="setL('de')">DE</button>
+  <button class="lb" data-l="it" onclick="setL('it')">IT</button>
+  <button class="lb" data-l="ja" onclick="setL('ja')">JA</button>
+  <button class="lb" data-l="ko" onclick="setL('ko')">KO</button>
+  <button class="lb" data-l="zh" onclick="setL('zh')">ZH</button>
 </div>
 
 <div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);">Loading...</div></div>
@@ -210,7 +213,14 @@ var sb=null, memberData=null, myClients=[], myReqs=[];
 
 try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
 
-function setL(l){var h=document.getElementById('th');h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');try{localStorage.setItem('ix_lang',l);}catch(e){}}
+function setL(l){
+  var h=document.getElementById('th');
+  h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');
+  try{localStorage.setItem('ix_lang',l);}catch(e){}
+  document.querySelectorAll('.lb').forEach(function(b){b.style.background='rgba(255,255,255,.08)';b.style.color='#e8ecf8';b.style.borderColor='rgba(255,255,255,.15)';});
+  var active=document.querySelector('.lb[data-l="'+l+'"]');
+  if(active){active.style.background='rgba(124,58,237,.2)';active.style.color='#a78bfa';active.style.borderColor='#7c3aed';}
+}
 function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
 function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
 var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
