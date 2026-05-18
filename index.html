@@ -1144,6 +1144,7 @@ function renderClients(){
       +(c.referred_by?'<div style="font-size:10px;color:var(--ink3);margin-bottom:7px;">📎 Ref: '+c.referred_by+'</div>':'')
       +'<div style="display:flex;gap:5px;">'
         +'<button class="btn bg bsm" style="flex:1;" onclick="event.stopPropagation();copyPortalLink(\''+c.code+'\')">🔗 Portal</button>'
+        +'<button class="btn bo bsm" onclick="event.stopPropagation();editClient(\''+c.id+'\')" title="Edit">✏️</button>'
         +'<button class="btn bd bsm" onclick="event.stopPropagation();delClient(\''+c.id+'\')">✕</button>'
       +'</div>'
     +'</div>';
@@ -1192,13 +1193,46 @@ function openClientDetail(id){
   om('m-cd');
 }
 
+function editClient(id){
+  var c=AC.find(function(x){return x.id===id;});
+  if(!c)return;
+  document.getElementById('m-cl').dataset.editId=id;
+  // Fill all fields
+  document.getElementById('cl-name').value=c.name||'';
+  document.getElementById('cl-ind').value=c.industry||'';
+  document.getElementById('cl-country').value=c.country||'';
+  document.getElementById('cl-code').value=c.code||'';
+  document.getElementById('cl-svc').value=c.service_type||'Soft Landing';
+  document.getElementById('cl-stage').value=c.stage||'OPEN';
+  document.getElementById('cl-username').value=c.username||'';
+  document.getElementById('cl-pass').value=c.portal_password||'';
+  // Set AM
+  var amSel=document.getElementById('cl-am');
+  if(amSel&&c.main_am_id){
+    for(var i=0;i<amSel.options.length;i++){
+      if(amSel.options[i].value.startsWith(c.main_am_id)){amSel.selectedIndex=i;break;}
+    }
+  }
+  // Set referred by
+  var refSel=document.getElementById('cl-ref');
+  if(refSel&&c.referred_by){refSel.value=c.referred_by;}
+  // Notes
+  var ni=document.getElementById('cl-notes-i');if(ni)ni.value=c.notes_internal||'';
+  var nc=document.getElementById('cl-notes-c');if(nc)nc.value=c.notes_client||'';
+  // Health score
+  var hs=document.getElementById('cl-health');if(hs)hs.value=c.health_score||100;
+  // Change modal title
+  var mt=document.getElementById('cl-modal-title');if(mt)mt.textContent='✏️ Edit Client';
+  om('m-cl');
+}
+
 async function saveClient(){
   var n=document.getElementById('cl-name').value.trim();if(!n)return toast('Enter company name','error');
   var code=document.getElementById('cl-code').value.trim()||'CL-'+Date.now();
   var amSel=document.getElementById('cl-am');
   var amParts=amSel&&amSel.value?amSel.value.split('|'):['',''];
   var c={
-    name:n, industry:document.getElementById('cl-ind').value.trim(),
+    name:n, added_by:document.getElementById('cl-addedby')&&document.getElementById('cl-addedby').value||null, industry:document.getElementById('cl-ind').value.trim(),
     country:document.getElementById('cl-country').value.trim(),
     service_type:document.getElementById('cl-svc').value,
     stage:document.getElementById('cl-stage').value,
@@ -1213,8 +1247,9 @@ async function saveClient(){
   };
   var editId=document.getElementById('m-cl').dataset.editId||'';
   if(editId){
-    if(sb){var ru=await sb.from('ix_clients_v2').update(c).eq('id',editId).select().single();if(ru.error)return toast('Error: '+ru.error.message,'error');var idx=AC.findIndex(function(x){return x.id===editId;});if(idx>=0)AC[idx]=ru.data;}
-    cm('m-cl');renderClients();renderOV();toast('✅ Client updated','success');
+    if(sb){var ru=await sb.from('ix_clients_v2').update(c).eq('id',editId).select().single();if(ru.error)return toast('Error: '+ru.error.message,'error');var xi=AC.findIndex(function(x){return x.id===editId;});if(xi>=0)AC[xi]=ru.data;}
+    else{var xi=AC.findIndex(function(x){return x.id===editId;});if(xi>=0)Object.assign(AC[xi],c);}
+    cm('m-cl');renderClients();renderOV();renderFeed();toast('✅ Client updated','success');
   } else {
     if(sb){var r=await sb.from('ix_clients_v2').insert(c).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AC.unshift(r.data);c=r.data;}
     else{c.id='local-'+Date.now();c.created_at=new Date().toISOString();AC.unshift(c);}
