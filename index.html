@@ -816,7 +816,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
     <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span style="color:var(--ink3);">VAT</span><span id="inv-vat-amt">SAR 0.00</span></div>
     <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;border-top:1px solid var(--border);padding-top:8px;"><span>TOTAL</span><span id="inv-tot" style="color:var(--gold);">SAR 0.00</span></div>
   </div>
-  <div class="fgrid"><div class="fg"><label class="fl">Due Date</label><input class="fi" id="inv-due" type="date"></div><div class="fg"><label class="fl">Currency</label><select class="fs" id="inv-cur"><option>SAR</option><option>USD</option><option>EUR</option><option>GBP</option><option>AED</option></select></div></div>
+  <div class="fgrid"><div class="fg"><label class="fl">Due Date</label><input class="fi" id="inv-due" type="date"></div><div class="fg"><label class="fl">Currency</label><select class="fs" id="inv-cur"><option>USD</option><option>SAR</option><option>EUR</option><option>GBP</option><option>AED</option></select></div></div>
   <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="inv-notes"></textarea></div>
   <div style="border:1px solid var(--border2);border-radius:8px;padding:12px;margin-bottom:12px;">
     <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:9px;">🏢 Company Info (invoice header)</div>
@@ -1393,13 +1393,13 @@ function renderPipeline(){
   var board=document.getElementById('pipe-board');
   var tb=document.getElementById('opps-tb');
   var total=AOpps.reduce(function(s,o){return s+(parseFloat(o.value)||0);},0);
-  var pt=document.getElementById('ptotal2');if(pt)pt.textContent='SAR '+total.toLocaleString();
+  var pt=document.getElementById('ptotal2');if(pt)pt.textContent='USD '+total.toLocaleString();
   if(board){
     board.innerHTML=OPP_STAGES.map(function(s){
       var cards=AOpps.filter(function(o){return o.stage===s;});
       var col='<div style="width:170px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;flex-shrink:0;">';
       col+='<div style="display:flex;justify-content:space-between;margin-bottom:7px;"><div style="font-size:10px;font-weight:700;color:'+(OPP_COLORS[s]||'#fff')+';">'+s+'</div><div style="font-size:9px;background:var(--border);padding:1px 5px;border-radius:5px;">'+cards.length+'</div></div>';
-      col+=cards.map(function(o){return '<div style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px;margin-bottom:5px;"><div style="font-size:11px;font-weight:600;margin-bottom:2px;">'+o.title+'</div><div style="font-size:10px;color:var(--ink3);">'+(o.company||'')+'</div><div style="display:flex;justify-content:space-between;margin-top:4px;"><span style="font-size:10px;color:var(--gold);">SAR '+(parseFloat(o.value)||0).toLocaleString()+'</span><span style="font-size:10px;color:var(--ink3);">'+(o.probability||0)+'%</span></div></div>';}).join('');
+      col+=cards.map(function(o){return '<div style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px;margin-bottom:5px;"><div style="font-size:11px;font-weight:600;margin-bottom:2px;">'+o.title+'</div><div style="font-size:10px;color:var(--ink3);">'+(o.company||'')+'</div><div style="display:flex;justify-content:space-between;margin-top:4px;"><span style="font-size:10px;color:var(--gold);">USD '+(parseFloat(o.value)||0).toLocaleString()+'</span><span style="font-size:10px;color:var(--ink3);">'+(o.probability||0)+'%</span></div></div>';}).join('');
       if(!cards.length)col+='<div style="text-align:center;padding:10px;color:var(--ink3);font-size:10px;">Empty</div>';
       return col+'</div>';
     }).join('');
@@ -1408,7 +1408,7 @@ function renderPipeline(){
   if(!AOpps.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:18px;">No opportunities yet</td></tr>';return;}
   var sc={'New Lead':'pgr','Contacted':'pt','Meeting Scheduled':'pgo','Proposal Sent':'pp','Negotiation':'po','Strategic Review':'pgo','Closed Won':'pg','Closed Lost':'pr'};
   tb.innerHTML=AOpps.map(function(o){
-    return '<tr><td><strong>'+o.title+'</strong></td><td>'+(o.company||'—')+'</td><td style="color:var(--gold);font-weight:600;">SAR '+(parseFloat(o.value)||0).toLocaleString()+'</td><td><span class="pill '+(sc[o.stage]||'pgr')+'">'+o.stage+'</span></td><td>'+(o.probability||0)+'%</td><td>'+(o.expected_close||'—')+'</td><td><button class="btn bd bsm" data-id="'+o.id+'" onclick="delOpp(this.dataset.id)">✕</button></td></tr>';
+    return '<tr><td><strong>'+o.title+'</strong></td><td>'+(o.company||'—')+'</td><td style="color:var(--gold);font-weight:600;">USD '+(parseFloat(o.value)||0).toLocaleString()+'</td><td><span class="pill '+(sc[o.stage]||'pgr')+'">'+o.stage+'</span></td><td>'+(o.probability||0)+'%</td><td>'+(o.expected_close||'—')+'</td><td><button class="btn bd bsm" data-id="'+o.id+'" onclick="delOpp(this.dataset.id)">✕</button></td></tr>';
   }).join('');
 }
 
@@ -1607,7 +1607,7 @@ function renderInvoices(){
   var sf=document.getElementById('inv-sf')&&document.getElementById('inv-sf').value;
   var f=sf?AInvoices.filter(function(i){return i.status===sf;}):AInvoices;
   var total=f.reduce(function(s,i){return s+(parseFloat(i.total)||0);},0);
-  var tt=document.getElementById('inv-total');if(tt)tt.textContent='Total: SAR '+total.toFixed(2);
+  var tt=document.getElementById('inv-total');if(tt)tt.textContent='Total: USD '+total.toFixed(2);
   if(!f.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--ink3);padding:18px;">No invoices yet</td></tr>';return;}
   var sc={Draft:'pgr',Sent:'pt',Paid:'pg',Cancelled:'pr'};
   tb.innerHTML=f.map(function(inv){
@@ -1809,7 +1809,7 @@ async function generateAIInsights(){
   context+='CLIENTS: '+AC.length+' total. ';
   AC.slice(0,10).forEach(function(c){context+=c.name+' ('+c.stage+', AM:'+(c.main_am_name||'None')+'); ';});
   context+='OPPORTUNITIES: '+AOpps.length+' total. ';
-  AOpps.slice(0,5).forEach(function(o){context+=o.title+' ('+o.stage+', SAR '+(parseFloat(o.value)||0).toLocaleString()+'); ';});
+  AOpps.slice(0,5).forEach(function(o){context+=o.title+' ('+o.stage+', USD '+(parseFloat(o.value)||0).toLocaleString()+'); ';});
   context+='PENDING REQUESTS: '+ARequests.filter(function(r){return r.status==='Pending';}).length+'. ';
   context+='OVERDUE ACTIONS: '+AActions.filter(function(a){return !a.done&&a.deadline&&new Date(a.deadline)<new Date();}).length+'. ';
   context+='AVAILABLE PEOPLE: '+APeople.filter(function(p){return p.availability==='Available';}).length+'.'
@@ -1870,7 +1870,7 @@ function renderAI(){
     
     // Positive insights
     var wonOpps=AOpps.filter(function(o){return o.stage==='Closed Won';});
-    if(wonOpps.length>0)items.push({i:'🏆',t:'Closed Won',b:wonOpps.length+' opportunities successfully closed. Total: SAR '+wonOpps.reduce(function(s,o){return s+(parseFloat(o.value)||0);},0).toLocaleString(),g:'SUCCESS'});
+    if(wonOpps.length>0)items.push({i:'🏆',t:'Closed Won',b:wonOpps.length+' opportunities successfully closed. Total: USD '+wonOpps.reduce(function(s,o){return s+(parseFloat(o.value)||0);},0).toLocaleString(),g:'SUCCESS'});
     
     if(!items.length)items.push({i:'✅',t:'All Clear',b:'Portfolio looks healthy. No immediate actions required.',g:'OK'});
     
@@ -1890,7 +1890,7 @@ function renderAI(){
   if(top){
     var tl=AOpps.filter(function(o){return o.stage!=='Closed Lost';}).sort(function(a,b){return (parseFloat(b.value)||0)-(parseFloat(a.value)||0);}).slice(0,5);
     if(!tl.length){top.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:12px;">No opportunities</div>';return;}
-    top.innerHTML=tl.map(function(o,i){return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(26,31,56,.4);"><div style="font-size:14px;font-weight:800;color:var(--ink3);width:14px;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:11px;font-weight:600;">'+o.title+'</div><div style="font-size:10px;color:var(--ink3);">'+(o.company||'')+'</div></div><div style="text-align:right;"><div style="font-size:11px;color:var(--gold);font-weight:700;">SAR '+(parseFloat(o.value)||0).toLocaleString()+'</div><div style="font-size:10px;color:var(--ink3);">'+(o.probability||0)+'%</div></div></div>';}).join('');
+    top.innerHTML=tl.map(function(o,i){return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(26,31,56,.4);"><div style="font-size:14px;font-weight:800;color:var(--ink3);width:14px;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:11px;font-weight:600;">'+o.title+'</div><div style="font-size:10px;color:var(--ink3);">'+(o.company||'')+'</div></div><div style="text-align:right;"><div style="font-size:11px;color:var(--gold);font-weight:700;">USD '+(parseFloat(o.value)||0).toLocaleString()+'</div><div style="font-size:10px;color:var(--ink3);">'+(o.probability||0)+'%</div></div></div>';}).join('');
   }
 }
 

@@ -367,7 +367,7 @@ function renderExperts(experts){
     var rh=e.rate_hourly_price,rm=e.rate_monthly_price,ry=e.rate_yearly_price;
     return '<div class="ec"><div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;"><div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;overflow:hidden;flex-shrink:0;">'+init+'</div><div style="flex:1;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">'+e.name+'</div><div style="font-size:11px;color:var(--ink3);">'+(e.nationality||'')+(e.languages?' · '+e.languages:'')+'</div>'+(e.bio?'<div style="font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.4;">'+e.bio.slice(0,80)+'...</div>':'')+'</div></div>'
       +(specs.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">'+specs.map(function(s){return '<span style="font-size:10px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);padding:2px 8px;border-radius:5px;color:var(--teal);">'+s.trim()+'</span>';}).join('')+'</div>':'')
-      +'<div class="rg"><div class="rb"><div class="rv">'+(rh?rh+' SAR':'—')+'</div><div class="rl">Per Hour</div></div><div class="rb"><div class="rv">'+(rm?rm+' SAR':'—')+'</div><div class="rl">Per Month</div></div><div class="rb"><div class="rv">'+(ry?ry+' SAR':'—')+'</div><div class="rl">Per Year</div></div></div>'
+      +'<div class="rg"><div class="rb"><div class="rv">'+(rh?rh+' USD':'—')+'</div><div class="rl">Per Hour</div></div><div class="rb"><div class="rv">'+(rm?rm+' USD':'—')+'</div><div class="rl">Per Month</div></div><div class="rb"><div class="rv">'+(ry?ry+' USD':'—')+'</div><div class="rl">Per Year</div></div></div>'
       +'<button data-eid="'+e.id+'" data-ename="'+e.name+'" data-rh="'+(rh||'')+'" data-rm="'+(rm||'')+'" data-ry="'+(ry||'')+'" onclick="openReqModal(this.dataset.eid,this.dataset.ename,this.dataset.rh,this.dataset.rm,this.dataset.ry)" style="width:100%;background:var(--grad);border:none;border-radius:8px;padding:10px;color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;">📤 Request This Expert</button></div>';
   }).join('');
 }
@@ -396,7 +396,7 @@ function openReqModal(id,name,rh,rm,ry){
 function updateRate(){
   var svc=document.getElementById('req-svc').value;
   var rate=svc==='hourly'?currentRates.hourly:svc==='monthly'?currentRates.monthly:currentRates.yearly;
-  document.getElementById('req-rate').textContent=rate?(rate+' SAR'):'On Request';
+  document.getElementById('req-rate').textContent=rate?(rate+' USD'):'On Request';
 }
 async function submitReq(){
   var msg=document.getElementById('req-msg').value.trim();
