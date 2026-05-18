@@ -1197,6 +1197,10 @@ function editClient(id){
   var c=AC.find(function(x){return x.id===id;});
   if(!c)return;
   document.getElementById('m-cl').dataset.editId=id;
+  var mt=document.getElementById('cl-modal-title');if(mt)mt.textContent='✏️ Edit Client: '+c.name;
+  // Populate AM dropdown first
+  var amSel=document.getElementById('cl-am');
+  if(amSel){amSel.innerHTML='<option value="">— No AM —</option>'+APeople.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');}
   // Fill all fields
   document.getElementById('cl-name').value=c.name||'';
   document.getElementById('cl-ind').value=c.industry||'';
