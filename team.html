@@ -64,15 +64,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 <body>
 <div class="toast" id="toast"></div>
 <div class="lang-bar">
-  <button class="lb" onclick="setL('en')">EN</button>
-  <button class="lb" onclick="setL('ar')">AR</button>
-  <button class="lb" onclick="setL('es')">ES</button>
-  <button class="lb" onclick="setL('fr')">FR</button>
-  <button class="lb" onclick="setL('ja')">JA</button>
-  <button class="lb" onclick="setL('zh')">ZH</button>
+  <button class="lb" data-l="en" onclick="setL('en')">EN</button>
+  <button class="lb" data-l="ar" onclick="setL('ar')">AR</button>
+  <button class="lb" data-l="es" onclick="setL('es')">ES</button>
+  <button class="lb" data-l="fr" onclick="setL('fr')">FR</button>
+  <button class="lb" data-l="de" onclick="setL('de')">DE</button>
+  <button class="lb" data-l="it" onclick="setL('it')">IT</button>
+  <button class="lb" data-l="ja" onclick="setL('ja')">JA</button>
+  <button class="lb" data-l="ko" onclick="setL('ko')">KO</button>
+  <button class="lb" data-l="zh" onclick="setL('zh')">ZH</button>
 </div>
 
-<div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);">Loading...</div></div>
+<div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);" id="tm-loading-text">Loading...</div></div>
 <div id="error-sc" style="display:none;flex-direction:column;">
   <div style="font-size:48px;">🚫</div>
   <div style="font-family:Syne;font-size:18px;font-weight:700;color:var(--red);margin-bottom:8px;">Access Denied</div>
@@ -82,8 +85,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 <div id="main">
   <div class="hero">
     <div class="hero-top">
-      <div class="brand">INTERSECT PartnerOS</div>
-      <button class="logout-btn" onclick="doLogout()">→ Logout</button>
+      <div class="brand" id="tm-brand">INTERSECT PartnerOS</div>
+      <button class="logout-btn" id="tm-logout" onclick="doLogout()">→ Logout</button>
     </div>
     <div class="avatar" id="m-av">TM</div>
     <div class="m-name" id="m-name">—</div>
@@ -106,6 +109,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTab('requests',this)">📋 Requests</button>
         <button class="tab" onclick="showTab('workflow',this)">🔄 Add Update</button>
         <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
+      <button class="tab" onclick="showTab('team-news',this)">📰 News</button>
       </div>
       <div class="tp on" id="tp-clients">
         <div class="panel"><div class="ph"><div class="pt">🏢 Assigned Clients</div></div>
@@ -143,7 +147,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         </div></div>
       </div>
       <div class="tp" id="tp-meetings">
-        <div class="panel"><div class="ph"><div class="pt">📅 Meetings</div></div>
+        <div class="panel">
+          <div class="ph"><div class="pt">➕ Log Meeting</div></div>
+          <div class="pb">
+            <div class="fg"><label class="fl">Title *</label><input class="fi" id="mt-title-new" placeholder="e.g. Initial Discussion with Aramco"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+              <div class="fg"><label class="fl">Organization *</label><input class="fi" id="mt-org-new" placeholder="Company name"></div>
+              <div class="fg"><label class="fl">Date *</label><input class="fi" type="date" id="mt-date-new"></div>
+            </div>
+            <div class="fg"><label class="fl">Meeting Type</label>
+              <select class="fs" id="mt-type-new">
+                <option value="Initial">Initial Meeting</option>
+                <option value="Follow-up">Follow-up</option>
+                <option value="Negotiation">Negotiation</option>
+                <option value="Technical">Technical</option>
+                <option value="Closing">Closing</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Attendees</label><input class="fi" id="mt-att-new" placeholder="Names separated by comma"></div>
+            <div class="fg"><label class="fl">Summary</label><textarea class="fta" id="mt-sum-new" placeholder="What was discussed..."></textarea></div>
+            <div class="fg"><label class="fl">Action Items</label><textarea class="fta" id="mt-acts-new" placeholder="Action items from this meeting..."></textarea></div>
+            <button class="btn bbg bw" onclick="saveMeetingFromPortal()">💾 Save Meeting</button>
+            <div id="mt-saved-msg" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Meeting saved!</div>
+          </div>
+        </div>
+        <div class="panel"><div class="ph"><div class="pt">📅 Recent Meetings</div></div>
         <div class="pb" id="mt-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings</div></div></div>
       </div>
     </div>
@@ -175,6 +203,102 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
           </div>
           <button class="btn bbg bw" onclick="updateAvail()">💾 Update</button>
         </div></div>
+      </div>
+    </div>
+      <!-- MY PROJECTS TAB -->
+      <div class="tp" id="tp-my-projects">
+        <div class="panel">
+          <div class="ph"><div class="pt">📁 My Projects</div></div>
+          <div class="pb" id="my-projs-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">📌 My Project Tasks</div></div>
+          <div class="pb" id="my-proj-tasks-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Select a project</div></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">🆘 Request Help on Project</div></div>
+          <div class="pb">
+            <div class="fg"><label class="fl">Project *</label>
+              <select class="fs" id="help-proj-sel">
+                <option value="">— Select Project —</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">What do you need? *</label><textarea class="fta" id="help-proj-desc" placeholder="Describe the help you need..."></textarea></div>
+            <div class="fg"><label class="fl">Assign to (Internal)</label>
+              <select class="fs" id="help-proj-assignee">
+                <option value="">— Select Team Member —</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Priority</label>
+              <select class="fs" id="help-proj-pri">
+                <option value="high">🔴 High</option>
+                <option value="medium" selected>🟡 Medium</option>
+                <option value="low">🟢 Low</option>
+              </select>
+            </div>
+            <button class="btn bbg bw" onclick="sendProjectHelp()">📤 Send Request</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INBOX TAB -->
+      <div class="tp" id="tp-inbox">
+        <div class="panel">
+          <div class="ph">
+            <div class="pt">🔔 Incoming Requests</div>
+            <span id="inbox-badge" class="pill pr" style="display:none;">0 new</span>
+          </div>
+          <div class="pb" id="inbox-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No incoming requests</div></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">📤 Sent Requests</div></div>
+          <div class="pb" id="sent-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No sent requests</div></div>
+        </div>
+      </div>
+
+      <!-- ADD CLIENT TAB -->
+      <div class="tp" id="tp-add-client">
+        <div class="panel">
+          <div class="ph"><div class="pt">➕ Add New Client</div></div>
+          <div class="pb">
+            <div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.15);border-radius:9px;padding:11px;margin-bottom:14px;font-size:12px;color:#22c55e;">
+              ℹ️ Clients you add here will appear in the main dashboard and be assigned to you automatically.
+            </div>
+            <div class="fg"><label class="fl">Company Name *</label><input class="fi" id="nc-name" placeholder="e.g. Aramco"></div>
+            <div class="fg"><label class="fl">Industry</label><input class="fi" id="nc-industry" placeholder="e.g. Energy"></div>
+            <div class="fg"><label class="fl">Country</label><input class="fi" id="nc-country" placeholder="e.g. Saudi Arabia"></div>
+            <div class="fg"><label class="fl">Service Type</label>
+              <select class="fs" id="nc-svc">
+                <option value="Soft Landing">Soft Landing</option>
+                <option value="Strategic Partnership">Strategic Partnership</option>
+                <option value="Market Entry">Market Entry</option>
+                <option value="Investment">Investment</option>
+                <option value="Joint Venture">Joint Venture</option>
+                <option value="Consulting">Consulting</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="nc-notes" placeholder="Any initial notes..."></textarea></div>
+            <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
+              <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:9px;">🔐 Client Portal Login</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+                <div class="fg"><label class="fl">Username</label><input class="fi" id="nc-username" placeholder="e.g. aramco" dir="ltr"></div>
+                <div class="fg"><label class="fl">Password</label><input class="fi" id="nc-pass" placeholder="e.g. Aramco@2026" dir="ltr"></div>
+              </div>
+            </div>
+            <button class="btn bbg bw" onclick="addClientFromPortal()">➕ Add Client</button>
+            <div id="nc-success" style="display:none;margin-top:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;font-size:13px;color:#22c55e;text-align:center;"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">🏢 Clients I Added</div></div>
+          <div class="pb" id="my-added-clients"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div>
+        </div>
+      </div>
+
+      <div class="tp" id="tp-team-news">
+        <div class="panel"><div class="ph"><div class="pt">📰 News & Announcements</div></div>
+        <div class="pb" id="team-news-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div></div>
       </div>
     </div>
   </div>
@@ -210,7 +334,27 @@ var sb=null, memberData=null, myClients=[], myReqs=[];
 
 try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
 
-function setL(l){var h=document.getElementById('th');h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');try{localStorage.setItem('ix_lang',l);}catch(e){}}
+var T={"en": {"brand_client": "INTERSECT PartnerOS · Client Portal", "brand_team": "INTERSECT PartnerOS · Team Portal", "logout": "→ Logout", "tab_overview": "📊 Overview", "tab_updates": "🔄 Updates", "tab_meetings": "📅 Meetings", "tab_experts": "🌟 Experts", "tab_requests": "📋 My Requests", "tab_help": "🆘 Request Help", "tab_clients": "🏢 My Clients", "tab_tasks": "📌 My Tasks", "tab_reqs": "📋 Requests", "tab_workflow": "🔄 Add Update", "tab_expert_reqs": "📋 Requests", "tab_profile": "👤 My Profile", "tab_avail": "📅 Availability", "stage": "Stage", "am": "Account Manager", "no_updates": "No updates yet", "no_meetings": "No meetings yet", "no_experts": "No experts available", "no_requests": "No requests yet", "no_clients": "No clients assigned", "no_tasks": "No tasks", "updates": "Updates", "meetings": "Meetings", "experts": "Experts", "clients": "Clients", "tasks": "Tasks", "help_title": "🆘 Request Help from Intersect Team", "help_what": "What do you need help with?", "help_desc": "Description", "help_desc_ph": "Describe what you need...", "help_timeline": "Preferred Timeline", "help_submit": "📤 Submit Request", "help_sent": "✅ Request sent! Intersect team will contact you shortly.", "req_expert": "🌟 Request Expert", "req_svc": "Service Type", "req_per_hour": "Per Hour", "req_per_month": "Per Month", "req_per_year": "Per Year", "req_date": "Preferred Date", "req_msg": "Message / Requirements", "req_msg_ph": "Describe what you need...", "cancel": "Cancel", "submit": "📤 Submit", "rate": "Rate", "on_request": "On Request", "filter_spec": "🔍 Filter by specialization...", "project_overview": "📋 Project Overview", "project_updates": "🔄 Project Updates", "acknowledge": "✅ Acknowledge", "update_avail": "💾 Update", "save_update": "💾 Save Update", "send_req": "📤 Send", "new_request": "+ New Request", "select_client": "— Select Client —", "no_client": "— None —", "title": "Title", "description": "Description", "priority": "Priority", "attachment": "Attachment (Drive link)", "visible_client": "Visible to client", "update_title_ph": "e.g. Contract sent for review", "status": "Status", "in_progress": "In Progress", "completed": "Completed", "blocked": "Blocked", "urgent": "🔴 Urgent (ASAP)", "this_week": "🟡 This week", "this_month": "🟢 This month", "footer_client": "INTERSECT PartnerOS · Confidential Client Portal", "footer_team": "INTERSECT PartnerOS · Confidential", "access_denied": "Access Denied", "access_denied_msg": "Please login first.", "loading": "Loading...", "no_exp_reqs": "No requests yet — your profile is visible in the marketplace", "my_help_reqs": "📋 My Help Requests"}, "ar": {"brand_client": "إنترسيكت PartnerOS · بوابة العميل", "brand_team": "إنترسيكت PartnerOS · بوابة الفريق", "logout": "→ خروج", "tab_overview": "📊 نظرة عامة", "tab_updates": "🔄 التحديثات", "tab_meetings": "📅 الاجتماعات", "tab_experts": "🌟 الخبراء", "tab_requests": "📋 طلباتي", "tab_help": "🆘 طلب مساعدة", "tab_clients": "🏢 عملائي", "tab_tasks": "📌 مهامي", "tab_reqs": "📋 الطلبات", "tab_workflow": "🔄 إضافة تحديث", "tab_expert_reqs": "📋 الطلبات", "tab_profile": "👤 ملفي", "tab_avail": "📅 التوفر", "stage": "المرحلة", "am": "مدير الحساب", "no_updates": "لا توجد تحديثات بعد", "no_meetings": "لا توجد اجتماعات بعد", "no_experts": "لا يوجد خبراء متاحون", "no_requests": "لا توجد طلبات بعد", "no_clients": "لا يوجد عملاء معينون", "no_tasks": "لا توجد مهام", "updates": "التحديثات", "meetings": "الاجتماعات", "experts": "الخبراء", "clients": "العملاء", "tasks": "المهام", "help_title": "🆘 طلب مساعدة من فريق إنترسيكت", "help_what": "ماذا تحتاج؟", "help_desc": "الوصف", "help_desc_ph": "اشرح ما تحتاجه...", "help_timeline": "الإطار الزمني المفضل", "help_submit": "📤 إرسال الطلب", "help_sent": "✅ تم إرسال الطلب! سيتواصل معك فريق إنترسيكت قريباً.", "req_expert": "🌟 طلب خبير", "req_svc": "نوع الخدمة", "req_per_hour": "بالساعة", "req_per_month": "بالشهر", "req_per_year": "بالسنة", "req_date": "التاريخ المفضل", "req_msg": "الرسالة / المتطلبات", "req_msg_ph": "اشرح ما تحتاجه من هذا الخبير...", "cancel": "إلغاء", "submit": "📤 إرسال", "rate": "السعر", "on_request": "عند الطلب", "filter_spec": "🔍 تصفية حسب التخصص...", "project_overview": "📋 نظرة عامة على المشروع", "project_updates": "🔄 تحديثات المشروع", "acknowledge": "✅ إقرار", "update_avail": "💾 تحديث", "save_update": "💾 حفظ التحديث", "send_req": "📤 إرسال", "new_request": "+ طلب جديد", "select_client": "— اختر العميل —", "no_client": "— لا يوجد —", "title": "العنوان", "description": "الوصف", "priority": "الأولوية", "attachment": "مرفق (رابط Drive)", "visible_client": "مرئي للعميل", "update_title_ph": "مثال: تم إرسال العقد للمراجعة", "status": "الحالة", "in_progress": "قيد التنفيذ", "completed": "مكتمل", "blocked": "متوقف", "urgent": "🔴 عاجل (فوراً)", "this_week": "🟡 هذا الأسبوع", "this_month": "🟢 هذا الشهر", "footer_client": "إنترسيكت PartnerOS · بوابة العميل السرية", "footer_team": "إنترسيكت PartnerOS · سري", "access_denied": "تم رفض الوصول", "access_denied_msg": "يرجى تسجيل الدخول أولاً.", "loading": "جارٍ التحميل...", "no_exp_reqs": "لا توجد طلبات بعد — ملفك مرئي في السوق", "my_help_reqs": "📋 طلبات المساعدة"}, "es": {"brand_client": "INTERSECT PartnerOS · Portal Cliente", "brand_team": "INTERSECT PartnerOS · Portal Equipo", "logout": "→ Salir", "tab_overview": "📊 Resumen", "tab_updates": "🔄 Actualizaciones", "tab_meetings": "📅 Reuniones", "tab_experts": "🌟 Expertos", "tab_requests": "📋 Mis Solicitudes", "tab_help": "🆘 Pedir Ayuda", "tab_clients": "🏢 Mis Clientes", "tab_tasks": "📌 Mis Tareas", "tab_reqs": "📋 Solicitudes", "tab_workflow": "🔄 Añadir Actualización", "tab_expert_reqs": "📋 Solicitudes", "tab_profile": "👤 Mi Perfil", "tab_avail": "📅 Disponibilidad", "stage": "Etapa", "am": "Gestor de Cuenta", "no_updates": "Sin actualizaciones", "no_meetings": "Sin reuniones", "no_experts": "Sin expertos disponibles", "no_requests": "Sin solicitudes", "no_clients": "Sin clientes asignados", "no_tasks": "Sin tareas", "updates": "Actualizaciones", "meetings": "Reuniones", "experts": "Expertos", "clients": "Clientes", "tasks": "Tareas", "cancel": "Cancelar", "submit": "📤 Enviar", "acknowledge": "✅ Confirmar", "update_avail": "💾 Actualizar", "save_update": "💾 Guardar", "rate": "Tarifa", "on_request": "A consultar", "loading": "Cargando...", "access_denied": "Acceso Denegado", "access_denied_msg": "Por favor inicie sesión.", "footer_client": "INTERSECT PartnerOS · Portal Confidencial", "footer_team": "INTERSECT PartnerOS · Confidencial", "help_submit": "📤 Enviar Solicitud", "help_sent": "✅ ¡Solicitud enviada!", "no_exp_reqs": "Sin solicitudes aún", "my_help_reqs": "📋 Mis Solicitudes", "project_overview": "📋 Resumen del Proyecto", "project_updates": "🔄 Actualizaciones", "filter_spec": "🔍 Filtrar por especialización...", "req_expert": "🌟 Solicitar Experto", "req_svc": "Tipo de Servicio", "req_per_hour": "Por Hora", "req_per_month": "Por Mes", "req_per_year": "Por Año", "req_date": "Fecha Preferida", "req_msg": "Mensaje / Requisitos", "req_msg_ph": "Describa lo que necesita..."}, "fr": {"brand_client": "INTERSECT PartnerOS · Portail Client", "brand_team": "INTERSECT PartnerOS · Portail Équipe", "logout": "→ Déconnexion", "tab_overview": "📊 Aperçu", "tab_updates": "🔄 Mises à jour", "tab_meetings": "📅 Réunions", "tab_experts": "🌟 Experts", "tab_requests": "📋 Mes demandes", "tab_help": "🆘 Demander aide", "tab_clients": "🏢 Mes clients", "tab_tasks": "📌 Mes tâches", "tab_reqs": "📋 Demandes", "tab_workflow": "🔄 Ajouter mise à jour", "tab_expert_reqs": "📋 Demandes", "tab_profile": "👤 Mon profil", "tab_avail": "📅 Disponibilité", "stage": "Étape", "am": "Gestionnaire de compte", "no_updates": "Pas de mises à jour", "no_meetings": "Pas de réunions", "no_experts": "Pas d experts disponibles", "no_requests": "Pas de demandes", "no_clients": "Pas de clients assignés", "no_tasks": "Pas de tâches", "updates": "Mises à jour", "meetings": "Réunions", "experts": "Experts", "clients": "Clients", "tasks": "Tâches", "cancel": "Annuler", "submit": "📤 Envoyer", "acknowledge": "✅ Confirmer", "update_avail": "💾 Mettre à jour", "save_update": "💾 Sauvegarder", "rate": "Tarif", "on_request": "Sur demande", "loading": "Chargement...", "access_denied": "Accès refusé", "access_denied_msg": "Veuillez vous connecter.", "footer_client": "INTERSECT PartnerOS · Portail Confidentiel", "footer_team": "INTERSECT PartnerOS · Confidentiel", "help_submit": "📤 Soumettre", "help_sent": "✅ Demande envoyée!", "no_exp_reqs": "Pas de demandes encore", "my_help_reqs": "📋 Mes demandes", "project_overview": "📋 Vue d ensemble", "project_updates": "🔄 Mises à jour", "filter_spec": "🔍 Filtrer par spécialisation...", "req_expert": "🌟 Demander un expert", "req_svc": "Type de service", "req_per_hour": "Par heure", "req_per_month": "Par mois", "req_per_year": "Par an", "req_date": "Date préférée", "req_msg": "Message / Exigences", "req_msg_ph": "Décrivez ce dont vous avez besoin..."}, "de": {"brand_client": "INTERSECT PartnerOS · Kundenportal", "brand_team": "INTERSECT PartnerOS · Teamportal", "logout": "→ Abmelden", "tab_overview": "📊 Übersicht", "tab_updates": "🔄 Aktualisierungen", "tab_meetings": "📅 Meetings", "tab_experts": "🌟 Experten", "tab_requests": "📋 Meine Anfragen", "tab_help": "🆘 Hilfe anfordern", "tab_clients": "🏢 Meine Kunden", "tab_tasks": "📌 Meine Aufgaben", "stage": "Phase", "am": "Kundenbetreuer", "no_updates": "Keine Aktualisierungen", "no_meetings": "Keine Meetings", "cancel": "Abbrechen", "submit": "📤 Senden", "loading": "Laden...", "access_denied": "Zugang verweigert", "access_denied_msg": "Bitte melden Sie sich an.", "rate": "Preis", "on_request": "Auf Anfrage"}, "it": {"brand_client": "INTERSECT PartnerOS · Portale Cliente", "brand_team": "INTERSECT PartnerOS · Portale Team", "logout": "→ Esci", "tab_overview": "📊 Panoramica", "tab_updates": "🔄 Aggiornamenti", "tab_meetings": "📅 Riunioni", "tab_experts": "🌟 Esperti", "tab_requests": "📋 Le mie richieste", "tab_help": "🆘 Richiedi aiuto", "tab_clients": "🏢 I miei clienti", "tab_tasks": "📌 I miei compiti", "stage": "Fase", "am": "Responsabile account", "no_updates": "Nessun aggiornamento", "no_meetings": "Nessuna riunione", "cancel": "Annulla", "submit": "📤 Invia", "loading": "Caricamento...", "access_denied": "Accesso negato", "access_denied_msg": "Per favore accedi.", "rate": "Tariffa", "on_request": "Su richiesta"}, "ja": {"brand_client": "INTERSECT PartnerOS · クライアントポータル", "brand_team": "INTERSECT PartnerOS · チームポータル", "logout": "→ ログアウト", "tab_overview": "📊 概要", "tab_updates": "🔄 更新", "tab_meetings": "📅 会議", "tab_experts": "🌟 専門家", "tab_requests": "📋 リクエスト", "tab_help": "🆘 ヘルプ", "tab_clients": "🏢 クライアント", "tab_tasks": "📌 タスク", "stage": "ステージ", "am": "アカウントマネージャー", "no_updates": "更新なし", "no_meetings": "会議なし", "cancel": "キャンセル", "submit": "📤 送信", "loading": "読み込み中...", "access_denied": "アクセス拒否", "access_denied_msg": "ログインしてください。", "rate": "料金", "on_request": "お問い合わせ"}, "ko": {"brand_client": "INTERSECT PartnerOS · 고객 포털", "brand_team": "INTERSECT PartnerOS · 팀 포털", "logout": "→ 로그아웃", "tab_overview": "📊 개요", "tab_updates": "🔄 업데이트", "tab_meetings": "📅 회의", "tab_experts": "🌟 전문가", "tab_requests": "📋 내 요청", "tab_help": "🆘 도움 요청", "tab_clients": "🏢 내 고객", "tab_tasks": "📌 내 작업", "stage": "단계", "am": "계정 관리자", "no_updates": "업데이트 없음", "no_meetings": "회의 없음", "cancel": "취소", "submit": "📤 제출", "loading": "로딩 중...", "access_denied": "접근 거부", "access_denied_msg": "로그인해 주세요.", "rate": "요금", "on_request": "요청 시"}, "zh": {"brand_client": "INTERSECT PartnerOS · 客户门户", "brand_team": "INTERSECT PartnerOS · 团队门户", "logout": "→ 退出", "tab_overview": "📊 概览", "tab_updates": "🔄 更新", "tab_meetings": "📅 会议", "tab_experts": "🌟 专家", "tab_requests": "📋 我的请求", "tab_help": "🆘 请求帮助", "tab_clients": "🏢 我的客户", "tab_tasks": "📌 我的任务", "stage": "阶段", "am": "客户经理", "no_updates": "暂无更新", "no_meetings": "暂无会议", "cancel": "取消", "submit": "📤 提交", "loading": "加载中...", "access_denied": "访问被拒绝", "access_denied_msg": "请先登录。", "rate": "费率", "on_request": "按需报价"}};
+var currentLang='en';
+function t(k){return (T[currentLang]&&T[currentLang][k])?T[currentLang][k]:(T.en[k]||k);}
+function setL(l){
+  currentLang=l;
+  var h=document.getElementById('th');
+  h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');
+  try{localStorage.setItem('ix_lang',l);}catch(e){}
+  document.querySelectorAll('.lb').forEach(function(b){b.style.background='rgba(255,255,255,.08)';b.style.color='#e8ecf8';b.style.borderColor='rgba(255,255,255,.15)';});
+  var active=document.querySelector('.lb[data-l="'+l+'"]');
+  if(active){active.style.background='rgba(124,58,237,.2)';active.style.color='#a78bfa';active.style.borderColor='#7c3aed';}
+  applyTeamTranslations();
+}
+function applyTeamTranslations(){
+  var brand=document.getElementById('tm-brand');
+  if(brand)brand.textContent=t('brand_team');
+  var logoutBtn=document.getElementById('tm-logout');
+  if(logoutBtn)logoutBtn.textContent=t('logout');
+  var loadingText=document.getElementById('tm-loading-text');
+  if(loadingText)loadingText.textContent=t('loading');
+}
 function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
 function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
 var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
@@ -270,6 +414,7 @@ function render(){
 
   document.getElementById('loading').style.display='none';
   document.getElementById('main').style.display='block';
+  applyTeamTranslations();
 }
 
 // ── TEAM DATA ──
@@ -278,7 +423,8 @@ async function loadTeamData(){
   var m=memberData;
   var clients=[],tasks=[],reqs=[],meetings=[];
   try{var r=await sb.from('ix_clients_v2').select('*').eq('main_am_name',m.name);if(r.data)clients=r.data;}catch(e){}
-  try{var r=await sb.from('ix_actions').select('*').eq('assignee',m.name).eq('done',false).order('created_at',{ascending:false});if(r.data)tasks=r.data;}catch(e){}
+  try{var ra=await sb.from('ix_actions').select('*').eq('assignee',m.name).eq('done',false).order('created_at',{ascending:false});if(ra.data)tasks=ra.data;}catch(e){}
+  try{var rt=await sb.from('ix_tasks').select('*').eq('assignee',m.name).neq('status','Done').order('created_at',{ascending:false});if(rt.data)tasks=tasks.concat(rt.data);}catch(e){}
   try{var r=await sb.from('ix_requests').select('*').eq('assignee_name',m.name).order('created_at',{ascending:false});if(r.data)reqs=r.data;}catch(e){}
   try{var r=await sb.from('ix_meetings').select('*').order('date',{ascending:false}).limit(8);if(r.data)meetings=r.data;}catch(e){}
   myClients=clients;
@@ -374,15 +520,21 @@ async function saveRequest(){
 
 // ── EXPERT DATA ──
 async function loadExpertData(){
-  if(!sb||!memberData)return;
+  // Use fetch directly for reliability
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  if(!memberData)return;
   try{
-    var r=await sb.from('ix_expert_requests').select('*').eq('expert_id',memberData.id).order('created_at',{ascending:false});
-    var reqs=r.data||[];
+    var resp=await fetch(SB+'/rest/v1/ix_expert_requests?expert_id=eq.'+memberData.id+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var r=await resp.json();
+    var reqs=Array.isArray(r)?r:[];
     document.getElementById('k1').textContent=reqs.length;
     document.getElementById('k2').textContent=reqs.filter(function(x){return x.status==='Pending';}).length;
     document.getElementById('k3').textContent=reqs.filter(function(x){return x.status==='Responded'||x.status==='Accepted';}).length;
     renderExpertReqs(reqs);
-  }catch(e){}
+  }catch(e){console.error('Expert data error:',e);}
 }
 
 function renderExpertReqs(reqs){
@@ -442,11 +594,332 @@ async function updateAvail(){
   }catch(e){toast('Error','te');}
 }
 
+async function addClientFromPortal(){
+  var name=document.getElementById('nc-name').value.trim();
+  if(!name){toast('Enter company name','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var code='CL-'+Date.now().toString(36).toUpperCase();
+  var body={
+    name:name,
+    industry:document.getElementById('nc-industry').value.trim()||null,
+    country:document.getElementById('nc-country').value.trim()||null,
+    service_type:document.getElementById('nc-svc').value,
+    stage:'INITIATION',
+    code:code,
+    main_am_name:memberData?memberData.name:null,
+    notes_internal:document.getElementById('nc-notes').value.trim()||null,
+    username:document.getElementById('nc-username').value.trim()||null,
+    portal_password:document.getElementById('nc-pass').value.trim()||null,
+    added_by:memberData?memberData.name:null,
+    health_score:100
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_clients_v2',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    var data=await r.json();
+    if(r.ok){
+      var successEl=document.getElementById('nc-success');
+      var msg='✅ '+name+' added successfully!';
+      if(body.username&&body.portal_password)msg+=' Portal: '+body.username+' / '+body.portal_password;
+      successEl.textContent=msg;
+      successEl.style.display='block';
+      ['nc-name','nc-industry','nc-country','nc-notes','nc-username','nc-pass'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+      setTimeout(function(){document.getElementById('nc-success').style.display='none';},5000);
+      loadMyAddedClients();
+    } else {
+      toast('Error: '+(data.message||'Failed'),'te');
+    }
+  }catch(e){toast('Connection error','te');}
+}
+
+async function loadMyAddedClients(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var el=document.getElementById('my-added-clients');if(!el)return;
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_clients_v2?added_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var clients=await r.json();
+    if(!Array.isArray(clients)||!clients.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No clients added yet</div>';return;}
+    var stgC={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':'#8b5cf6','MOU':'#06b6d4','LEGAL':'#f59e0b','PLANNING':'#f97316','EXECUTION':'#22c55e','COMPLETED':'#22c55e','ON HOLD':'#6b7280'};
+    el.innerHTML=clients.map(function(c){
+      var sc=stgC[c.stage]||'#6b7280';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(26,31,56,.4);">'
+        +'<div style="font-size:20px;">🏢</div>'
+        +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;">'+c.name+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">'+(c.service_type||'—')+(c.industry?' · '+c.industry:'')+'</div></div>'
+        +'<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+sc+'22;color:'+sc+';">'+c.stage+'</span>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error loading</div>';}
+}
+
+async function loadMyProjects(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Load projects where member is in members list or AM
+    var r=await fetch(SB+'/rest/v1/ix_projects?order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var projs=await r.json();
+    if(Array.isArray(projs)){
+      projs=projs.filter(function(p){
+        try{var m=JSON.parse(p.members||'[]');return m.includes(memberData.name)||p.client_name===memberData.name;}catch(e){return false;}
+      });
+      renderMyProjects(projs);
+    }
+    // Load people for assignee dropdown
+    var rp=await fetch(SB+'/rest/v1/ix_people?select=id,name,role,person_type',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var people=await rp.json();
+    if(Array.isArray(people)){
+      var asel=document.getElementById('help-proj-assignee');
+      if(asel)asel.innerHTML='<option value="">— Select Team Member —</option>'+people.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+    }
+  }catch(e){}
+}
+
+var _myProjects=[];
+function renderMyProjects(projs){
+  _myProjects=projs;
+  var el=document.getElementById('my-projs-list');
+  var psel=document.getElementById('help-proj-sel');
+  if(!projs.length){
+    if(el)el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No projects assigned to you yet</div>';
+    return;
+  }
+  var sc={Active:'#22c55e',Planning:'#06b6d4',Done:'#6b7280',Cancelled:'#ef4444',Hold:'#f59e0b'};
+  var html='';
+  projs.forEach(function(p,i){
+    var members=[];try{members=JSON.parse(p.members||'[]');}catch(e){}
+    var tc=sc[p.status]||'#6b7280';
+    html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;" data-idx="'+i+'" onclick="showProjByIdx(this)">';
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;">';
+    html+='<div style="font-size:13px;font-weight:700;">'+p.name+'</div>';
+    html+='<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:'+tc+'22;color:'+tc+';">'+p.status+'</span>';
+    html+='</div>';
+    if(p.client_name)html+='<div style="font-size:11px;color:var(--gold);margin-bottom:4px;">📁 '+p.client_name+'</div>';
+    if(p.description)html+='<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">'+p.description.slice(0,80)+'</div>';
+    if(members.length)html+='<div style="font-size:11px;color:var(--ink3);">👥 '+members.join(', ')+'</div>';
+    html+='</div>';
+  });
+  if(el)el.innerHTML=html;
+  if(psel)psel.innerHTML='<option value="">— Select Project —</option>'+projs.map(function(p){return '<option value="'+p.name+'">'+p.name+'</option>';}).join('');
+}
+
+function showProjByIdx(el){
+  var i=parseInt(el.dataset.idx);
+  if(_myProjects[i])showProjTasks(_myProjects[i].name);
+}
+
+
+async function showProjTasks(projName){
+  var el=document.getElementById('my-proj-tasks-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_tasks?project_name=eq.'+encodeURIComponent(projName)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var tasks=await r.json();
+    if(!Array.isArray(tasks)||!tasks.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:12px;">No tasks for '+projName+'</div>';return;}
+    var sc={Done:'pg','In Progress':'ptl','To Do':'pgr'};
+    var PIC={high:'🔴',medium:'🟡',low:'🟢'};
+    el.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px;">'+projName+'</div>'+tasks.map(function(t){
+      return '<div style="display:flex;gap:8px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(26,31,56,.3);">'
+        +'<div>'+(PIC[t.priority]||'🟡')+'</div>'
+        +'<div style="flex:1;">'
+          +'<div style="font-size:12px;font-weight:600;">'+t.title+'</div>'
+          +(t.assignee?'<div style="font-size:11px;color:var(--ink3);">👤 '+t.assignee+'</div>':'')
+          +(t.deadline?'<div style="font-size:11px;color:var(--ink3);">📅 '+t.deadline+'</div>':'')
+        +'</div>'
+        +'<span class="pill '+(sc[t.status]||'pgr')+'" style="font-size:10px;">'+t.status+'</span>'
+      +'</div>';
+    }).join('');
+  }catch(e){}
+}
+
+async function sendProjectHelp(){
+  var proj=document.getElementById('help-proj-sel').value;
+  var desc=document.getElementById('help-proj-desc').value.trim();
+  if(!proj||!desc){toast('Select project and describe what you need','te');return;}
+  var aselVal=document.getElementById('help-proj-assignee').value;
+  var parts=aselVal?aselVal.split('|'):['',''];
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:'[Project Help] '+proj+' — '+(memberData?memberData.name:'Team'),
+    description:desc,
+    requested_by:memberData?memberData.name:null,
+    assignee_id:parts[0]||null,
+    assignee_name:parts[1]||null,
+    priority:document.getElementById('help-proj-pri').value,
+    status:'Pending',
+    show_to_client:false
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      toast('✅ Request sent!','ts');
+      document.getElementById('help-proj-desc').value='';
+      // Also create notification for assignee
+      if(parts[1]){
+        await fetch(SB+'/rest/v1/ix_notifications',{
+          method:'POST',
+          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+          body:JSON.stringify({title:'New request from '+( memberData?memberData.name:'Team'),body:desc.slice(0,100),type:'request',is_read:false})
+        });
+      }
+      loadInbox();
+    }else{toast('Error sending','te');}
+  }catch(e){toast('Error','te');}
+}
+
+async function loadInbox(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var inboxEl=document.getElementById('inbox-list');
+  var sentEl=document.getElementById('sent-list');
+  try{
+    // Incoming - assigned to me
+    var ri=await fetch(SB+'/rest/v1/ix_requests?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var incoming=await ri.json();
+    incoming=Array.isArray(incoming)?incoming:[];
+    var pending=incoming.filter(function(r){return r.status==='Pending';});
+    var badge=document.getElementById('inbox-badge');
+    if(badge&&pending.length){badge.textContent=pending.length+' new';badge.style.display='inline-flex';}
+    if(inboxEl){
+      if(!incoming.length){inboxEl.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No incoming requests</div>';}
+      else{
+        var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
+        inboxEl.innerHTML=incoming.map(function(r){
+          return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+            +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+              +'<div style="font-size:13px;font-weight:700;">'+r.title+'</div>'
+              +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+            +'</div>'
+            +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:10px;line-height:1.5;">'+r.description.slice(0,120)+'</div>':'')
+            +'<div style="font-size:11px;color:var(--ink3);margin-bottom:8px;">From: '+(r.requested_by||'Team')+(r.client_name?' · Client: '+r.client_name:'')+'</div>'
+            +(r.status==='Pending'?
+              '<div style="display:flex;gap:7px;">'
+                +'<button class="btn bbg" style="flex:1;font-size:12px;" data-id="'+r.id+'" data-st="Accepted" onclick="respondReq(this.dataset.id,this.dataset.st)">✅ Accept</button>'
+                +'<button class="btn" style="flex:1;font-size:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+r.id+'" data-st="Rejected" onclick="respondReq(this.dataset.id,this.dataset.st)">✕ Decline</button>'
+              +'</div>':''
+            )
+          +'</div>';
+        }).join('');
+      }
+    }
+    // Sent - by me
+    var rs=await fetch(SB+'/rest/v1/ix_requests?requested_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var sent=await rs.json();
+    sent=Array.isArray(sent)?sent:[];
+    if(sentEl){
+      if(!sent.length){sentEl.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No sent requests</div>';}
+      else{
+        var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
+        sentEl.innerHTML=sent.map(function(r){
+          return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
+            +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+              +'<div style="font-size:13px;font-weight:600;">'+r.title+'</div>'
+              +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+            +'</div>'
+            +(r.assignee_name?'<div style="font-size:11px;color:var(--ink3);">To: '+r.assignee_name+'</div>':'')
+            +'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+          +'</div>';
+        }).join('');
+      }
+    }
+  }catch(e){}
+}
+
+async function respondReq(id,status){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_requests?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({status:status,accepted_at:status==='Accepted'?new Date().toISOString():null})
+    });
+    toast(status==='Accepted'?'✅ Accepted!':'Declined','ts');
+    loadInbox();
+  }catch(e){toast('Error','te');}
+}
+
+async function saveMeetingFromPortal(){
+  var title=document.getElementById('mt-title-new').value.trim();
+  var org=document.getElementById('mt-org-new').value.trim();
+  var date=document.getElementById('mt-date-new').value;
+  if(!title||!org||!date){toast('Fill title, organization and date','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:title, organization:org, date:date,
+    meeting_type:document.getElementById('mt-type-new').value,
+    attendees:document.getElementById('mt-att-new').value.trim()||null,
+    summary:document.getElementById('mt-sum-new').value.trim()||null,
+    action_items:document.getElementById('mt-acts-new').value.trim()||null,
+    logged_by:memberData?memberData.name:null
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_meetings',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('mt-saved-msg').style.display='block';
+      ['mt-title-new','mt-org-new','mt-att-new','mt-sum-new','mt-acts-new'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+      setTimeout(function(){document.getElementById('mt-saved-msg').style.display='none';},3000);
+      renderMeetings([body]);
+      toast('✅ Meeting saved!','ts');
+    }else{toast('Error saving','te');}
+  }catch(e){toast('Error','te');}
+}
+
+async function loadTeamNews(){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var el=document.getElementById('team-news-list');if(!el)return;
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_news?order=created_at.desc&limit=20',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var news=await r.json();
+    if(!Array.isArray(news)||!news.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news yet</div>';return;}
+    var tC={announcement:'var(--teal)',alert:'var(--red)',update:'#a78bfa',opportunity:'var(--gold)',event:'#22c55e'};
+    var tI={announcement:'📢',alert:'⚠️',update:'🔄',opportunity:'🎯',event:'📅'};
+    var ptype=memberData?memberData.person_type:'team';
+    news=news.filter(function(n){try{var a=JSON.parse(n.audience||'[]');return a.includes('all')||a.includes('team')||a.includes('experts');}catch(e){return true;}});
+    el.innerHTML=news.map(function(n){
+      var tc=tC[n.type]||'var(--teal)';
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+tc+';border-radius:9px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:6px;"><span style="font-size:16px;">'+(tI[n.type]||'📢')+'</span><div style="font-size:13px;font-weight:700;">'+n.title+'</div></div>'
+        +'<div style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:6px;">'+n.content+'</div>'
+        +(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:6px;">'+new Date(n.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news</div>';}
+}
+
 function showTab(n,el){
   document.querySelectorAll('#team-tabs .tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#team-tabs .tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tp-'+n).classList.add('on');
   if(el)el.classList.add('on');
+  if(n==='team-news')loadTeamNews();
+  if(n==='add-client')loadMyAddedClients();
+  if(n==='my-projects')loadMyProjects();
+  if(n==='inbox')loadInbox();
+  if(n==='meetings'){var d=document.getElementById('mt-date-new');if(d&&!d.value)d.value=new Date().toISOString().split('T')[0];}
 }
 function showTabE(n,el){
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
