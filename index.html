@@ -340,6 +340,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
       <div class="nsec" data-i="g_cmd">Command</div>
       <div class="ni on" onclick="gp('overview',this)"><span class="nico">📊</span><span data-i="n_dash">Dashboard</span></div>
       <div class="ni" onclick="gp('notifications',this)"><span class="nico">🔔</span><span data-i="n_notif">Notifications</span></div>
+      <div class="ni" onclick="gp('news',this)"><span class="nico">📰</span><span>News</span></div>
       <div class="ni" onclick="gp('ai',this)"><span class="nico">🤖</span><span data-i="n_ai">AI Insights</span></div>
       <div class="nsec" data-i="g_ops">Operations</div>
       <div class="ni" onclick="gp('clients',this)"><span class="nico">🏢</span><span data-i="n_clients">Clients</span></div>
@@ -553,6 +554,29 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
       <div class="panel">
         <div class="ph"><div class="ptit">🧾 Invoice List</div><span id="inv-total" style="font-size:11px;color:var(--gold);font-weight:700;">Total: SAR 0</span></div>
         <div class="tw"><table class="tbl"><thead><tr><th>#</th><th>Client</th><th>Expert</th><th>Service</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody id="inv-tb"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- NEWS & ANNOUNCEMENTS -->
+    <div class="page" id="page-news">
+      <div class="sh">
+        <div class="st">📰 News & Announcements</div>
+        <button class="btn bg" onclick="om('m-news')">+ Add News</button>
+      </div>
+      <div class="panel">
+        <div class="ph">
+          <div class="ptit">📰 News Feed</div>
+          <div style="display:flex;gap:6px;">
+            <select id="news-audience-filter" class="fs" style="width:130px;font-size:11px;" onchange="renderNews()">
+              <option value="">All Audience</option>
+              <option value="all">Everyone</option>
+              <option value="clients">Clients</option>
+              <option value="team">Team</option>
+              <option value="experts">Experts</option>
+            </select>
+          </div>
+        </div>
+        <div class="pb" id="news-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:18px;">No news yet — add your first announcement</div></div>
       </div>
     </div>
 
@@ -802,6 +826,32 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
   <div class="mfoot"><button class="btn bo" onclick="cm('m-inv')">Cancel</button><button class="btn bg" onclick="saveInv()">🧾 Generate Invoice PDF</button></div>
 </div></div>
 
+<!-- NEWS MODAL -->
+<div class="mo" id="m-news"><div class="modal">
+  <div class="mtit">📰 Add News / Announcement</div>
+  <div class="fg"><label class="fl">Title *</label><input class="fi" id="news-title" placeholder="e.g. New partnership opportunity"></div>
+  <div class="fg"><label class="fl">Content *</label><textarea class="fta" id="news-content" style="min-height:100px;" placeholder="Announcement details..."></textarea></div>
+  <div class="fg"><label class="fl">Type</label>
+    <select class="fs" id="news-type">
+      <option value="announcement">📢 Announcement</option>
+      <option value="alert">⚠️ Alert</option>
+      <option value="update">🔄 Update</option>
+      <option value="opportunity">🎯 Opportunity</option>
+      <option value="event">📅 Event</option>
+    </select>
+  </div>
+  <div class="fg"><label class="fl">Show to *</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" id="news-all" onchange="toggleNewsAll(this)"> Everyone</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" id="news-clients" checked> Clients</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" id="news-team" checked> Team</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" id="news-experts" checked> Experts</label>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Link (optional)</label><input class="fi" id="news-link" type="url" dir="ltr" placeholder="https://..."></div>
+  <div class="mfoot"><button class="btn bo" onclick="cm('m-news')">Cancel</button><button class="btn bg" onclick="saveNews()">📰 Publish</button></div>
+</div></div>
+
 <!-- PORTAL LINK MODAL -->
 <div class="mo" id="m-portal-link"><div class="modal" style="max-width:460px;text-align:center;">
   <div style="font-size:32px;margin-bottom:10px;">🔗</div>
@@ -958,7 +1008,7 @@ function gp(n,el){
     actions:renderActions, experts:renderExperts, requests:renderRequests,
     meetings:renderMeetings, reports:function(){loadReportClients();},
     invoices:renderInvoices, ai:renderAI, projects:renderProjects, tasks:renderTasks,
-    notifications:renderNotifs,
+    notifications:renderNotifs, news:lNews,
     settings:function(){
       var k=document.getElementById('claude-key');
       if(k){var saved=localStorage.getItem('ix_claude_key');k.placeholder=saved?'••••••••• (saved)':'sk-ant-...';}
@@ -1670,6 +1720,83 @@ function printInv(id){
 }
 async function delInv(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_invoices').delete().eq('id',id);AInvoices=AInvoices.filter(function(i){return i.id!==id;});renderInvoices();toast('Deleted','success');}
 
+// ── NEWS & ANNOUNCEMENTS ──
+var ANews = [];
+async function lNews(){
+  if(sb){try{var r=await sb.from('ix_news').select('*').order('created_at',{ascending:false});ANews=r.data||[];}catch(e){ANews=[];}}
+  renderNews();
+}
+
+function toggleNewsAll(cb){
+  ['news-clients','news-team','news-experts'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.checked=cb.checked;
+  });
+}
+
+async function saveNews(){
+  var title=document.getElementById('news-title').value.trim();
+  var content=document.getElementById('news-content').value.trim();
+  if(!title||!content)return toast('Enter title and content','error');
+  var audience=[];
+  if(document.getElementById('news-all')&&document.getElementById('news-all').checked)audience=['all'];
+  else{
+    if(document.getElementById('news-clients')&&document.getElementById('news-clients').checked)audience.push('clients');
+    if(document.getElementById('news-team')&&document.getElementById('news-team').checked)audience.push('team');
+    if(document.getElementById('news-experts')&&document.getElementById('news-experts').checked)audience.push('experts');
+  }
+  if(!audience.length)return toast('Select at least one audience','error');
+  var n={
+    title:title,content:content,
+    type:document.getElementById('news-type').value,
+    audience:JSON.stringify(audience),
+    link:document.getElementById('news-link').value.trim()||null,
+    published_by:'Intersect Team'
+  };
+  if(sb){var r=await sb.from('ix_news').insert(n).select().single();if(r.error)return toast('Error: '+r.error.message,'error');ANews.unshift(r.data);}
+  else{n.id='local-'+Date.now();n.created_at=new Date().toISOString();ANews.unshift(n);}
+  cm('m-news');
+  ['news-title','news-content','news-link'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  renderNews();toast('✅ Published','success');
+}
+
+function renderNews(){
+  var el=document.getElementById('news-list');if(!el)return;
+  var filter=document.getElementById('news-audience-filter')&&document.getElementById('news-audience-filter').value;
+  var filtered=filter?ANews.filter(function(n){
+    try{var a=JSON.parse(n.audience||'[]');return a.includes('all')||a.includes(filter);}catch(e){return true;}
+  }):ANews;
+  if(!filtered.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:18px;">No news yet</div>';return;}
+  var typeColors={announcement:'var(--teal)',alert:'var(--red)',update:'var(--purple-light)',opportunity:'var(--gold)',event:'var(--green)'};
+  var typeIcons={announcement:'📢',alert:'⚠️',update:'🔄',opportunity:'🎯',event:'📅'};
+  el.innerHTML=filtered.map(function(n){
+    var audience=[];try{audience=JSON.parse(n.audience||'[]');}catch(e){}
+    var tc=typeColors[n.type]||'var(--teal)';
+    return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+tc+';border-radius:9px;padding:13px;margin-bottom:9px;">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">'
+        +'<div style="display:flex;gap:7px;align-items:center;">'
+          +'<span style="font-size:16px;">'+(typeIcons[n.type]||'📢')+'</span>'
+          +'<div style="font-size:13px;font-weight:700;">'+n.title+'</div>'
+        +'</div>'
+        +'<button class="btn bd bsm" data-id="'+n.id+'" onclick="delNews(this.dataset.id)">✕</button>'
+      +'</div>'
+      +'<div style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:8px;">'+n.content+'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'
+        +'<span style="font-size:10px;color:var(--ink3);">'+new Date(n.created_at).toLocaleDateString()+'</span>'
+        +'<span style="font-size:10px;">·</span>'
+        +'<span style="font-size:10px;color:'+tc+';">'+audience.join(', ')+'</span>'
+        +(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:10px;color:var(--teal);margin-left:auto;">→ Link</a>':'')
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function delNews(id){
+  if(!confirm('Delete?'))return;
+  if(sb&&!id.startsWith('local-'))await sb.from('ix_news').delete().eq('id',id);
+  ANews=ANews.filter(function(n){return n.id!==id;});
+  renderNews();toast('Deleted','success');
+}
+
 // ── AI INSIGHTS ──
 async function generateAIInsights(){
   var loadEl=document.getElementById('ai-loading');
@@ -1710,14 +1837,55 @@ async function generateAIInsights(){
 
 function renderAI(){
   renderAIAlerts();
+  
+  // Smart AI insights without API - based on data patterns
   var recs=document.getElementById('ai-recs');
   if(recs){
     var items=[];
-    if(AOpps.filter(function(o){return o.stage==='Proposal Sent';}).length>2)items.push({i:'📋',t:'Follow up Proposals',b:'Multiple proposals sent without follow-up.',g:'ACTION'});
-    if(APeople.filter(function(p){return p.show_in_marketplace;}).length===0)items.push({i:'🌟',t:'No Marketplace Experts',b:'Add experts to the marketplace to attract clients.',g:'RECOMMENDATION'});
-    if(!items.length)items.push({i:'💡',t:'System Ready',b:'Add more data to unlock AI recommendations.',g:'READY'});
-    recs.innerHTML=items.map(function(a){return '<div style="background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.15);border-radius:9px;padding:12px;margin-bottom:8px;display:flex;gap:9px;"><span style="font-size:16px;flex-shrink:0;">'+a.i+'</span><div><div style="font-size:12px;font-weight:600;margin-bottom:2px;">'+a.t+'</div><div style="font-size:11px;color:var(--ink2);">'+a.b+'</div><span style="display:inline-block;font-size:9px;background:rgba(124,58,237,.15);color:var(--purple-light);padding:2px 6px;border-radius:7px;margin-top:4px;font-weight:700;">'+a.g+'</span></div></div>';}).join('');
+    var now=new Date();
+    
+    // Check clients without AM
+    var noAM=AC.filter(function(c){return !c.main_am_name&&c.stage!=='COMPLETED'&&c.stage!=='ON HOLD';});
+    if(noAM.length)items.push({i:'👤',t:'Unassigned Clients',b:noAM.length+' active clients have no Account Manager: '+noAM.slice(0,3).map(function(c){return c.name;}).join(', '),g:'URGENT'});
+    
+    // Overdue actions
+    var overdue=AActions.filter(function(a){return !a.done&&a.deadline&&new Date(a.deadline)<now;});
+    if(overdue.length)items.push({i:'🚨',t:'Overdue Action Items',b:overdue.length+' actions past deadline. Immediate follow-up needed.',g:'RISK'});
+    
+    // Stale proposals
+    var proposals=AOpps.filter(function(o){return o.stage==='Proposal Sent';});
+    if(proposals.length>0)items.push({i:'📋',t:'Follow Up Proposals',b:proposals.length+' proposals sent without response: '+proposals.slice(0,2).map(function(o){return o.title;}).join(', '),g:'ACTION'});
+    
+    // Pending requests
+    var pending=ARequests.filter(function(r){return r.status==='Pending';});
+    if(pending.length>2)items.push({i:'⏳',t:'High Pending Requests',b:pending.length+' requests awaiting response. Risk of client dissatisfaction.',g:'ACTION'});
+    
+    // Clients in negotiation too long
+    var negClients=AC.filter(function(c){return c.stage==='ACTIVE NEGOTIATIONS'||c.stage==='MOU';});
+    if(negClients.length>3)items.push({i:'🤝',t:'Negotiation Pipeline',b:negClients.length+' clients in active negotiation. Schedule weekly check-ins.',g:'INSIGHT'});
+    
+    // No marketplace experts
+    var experts=APeople.filter(function(p){return p.show_in_marketplace&&p.availability==='Available';});
+    if(experts.length===0)items.push({i:'🌟',t:'No Available Experts',b:'No experts currently available in marketplace. Update availability.',g:'ALERT'});
+    
+    // Positive insights
+    var wonOpps=AOpps.filter(function(o){return o.stage==='Closed Won';});
+    if(wonOpps.length>0)items.push({i:'🏆',t:'Closed Won',b:wonOpps.length+' opportunities successfully closed. Total: SAR '+wonOpps.reduce(function(s,o){return s+(parseFloat(o.value)||0);},0).toLocaleString(),g:'SUCCESS'});
+    
+    if(!items.length)items.push({i:'✅',t:'All Clear',b:'Portfolio looks healthy. No immediate actions required.',g:'OK'});
+    
+    var gc={URGENT:'rgba(239,68,68,.15)',RISK:'rgba(239,68,68,.1)',ACTION:'rgba(245,158,11,.1)',ALERT:'rgba(245,158,11,.08)',INSIGHT:'rgba(6,182,212,.08)',SUCCESS:'rgba(34,197,94,.08)',OK:'rgba(34,197,94,.06)'};
+    var tc={URGENT:'#ef4444',RISK:'#ef4444',ACTION:'var(--gold)',ALERT:'var(--gold)',INSIGHT:'var(--teal)',SUCCESS:'#22c55e',OK:'#22c55e'};
+    recs.innerHTML=items.map(function(a){
+      return '<div style="background:'+(gc[a.g]||'rgba(124,58,237,.05)')+';border:1px solid rgba(124,58,237,.1);border-radius:9px;padding:12px;margin-bottom:8px;display:flex;gap:9px;">'
+        +'<span style="font-size:16px;flex-shrink:0;">'+a.i+'</span>'
+        +'<div><div style="font-size:12px;font-weight:600;margin-bottom:2px;">'+a.t+'</div>'
+        +'<div style="font-size:11px;color:var(--ink2);line-height:1.5;">'+a.b+'</div>'
+        +'<span style="display:inline-block;font-size:9px;background:rgba(0,0,0,.2);color:'+(tc[a.g]||'var(--purple-light)')+';padding:2px 6px;border-radius:7px;margin-top:4px;font-weight:700;">'+a.g+'</span>'
+        +'</div></div>';
+    }).join('');
   }
+  
   var top=document.getElementById('ai-top-opps');
   if(top){
     var tl=AOpps.filter(function(o){return o.stage!=='Closed Lost';}).sort(function(a,b){return (parseFloat(b.value)||0)-(parseFloat(a.value)||0);}).slice(0,5);
