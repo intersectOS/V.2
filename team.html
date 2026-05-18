@@ -109,6 +109,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTab('requests',this)">📋 Requests</button>
         <button class="tab" onclick="showTab('workflow',this)">🔄 Add Update</button>
         <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
+      <button class="tab" onclick="showTab('team-news',this)">📰 News</button>
       </div>
       <div class="tp on" id="tp-clients">
         <div class="panel"><div class="ph"><div class="pt">🏢 Assigned Clients</div></div>
@@ -178,6 +179,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
           </div>
           <button class="btn bbg bw" onclick="updateAvail()">💾 Update</button>
         </div></div>
+      </div>
+    </div>
+      <div class="tp" id="tp-team-news">
+        <div class="panel"><div class="ph"><div class="pt">📰 News & Announcements</div></div>
+        <div class="pb" id="team-news-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div></div>
       </div>
     </div>
   </div>
@@ -302,7 +308,8 @@ async function loadTeamData(){
   var m=memberData;
   var clients=[],tasks=[],reqs=[],meetings=[];
   try{var r=await sb.from('ix_clients_v2').select('*').eq('main_am_name',m.name);if(r.data)clients=r.data;}catch(e){}
-  try{var r=await sb.from('ix_actions').select('*').eq('assignee',m.name).eq('done',false).order('created_at',{ascending:false});if(r.data)tasks=r.data;}catch(e){}
+  try{var ra=await sb.from('ix_actions').select('*').eq('assignee',m.name).eq('done',false).order('created_at',{ascending:false});if(ra.data)tasks=ra.data;}catch(e){}
+  try{var rt=await sb.from('ix_tasks').select('*').eq('assignee',m.name).neq('status','Done').order('created_at',{ascending:false});if(rt.data)tasks=tasks.concat(rt.data);}catch(e){}
   try{var r=await sb.from('ix_requests').select('*').eq('assignee_name',m.name).order('created_at',{ascending:false});if(r.data)reqs=r.data;}catch(e){}
   try{var r=await sb.from('ix_meetings').select('*').order('date',{ascending:false}).limit(8);if(r.data)meetings=r.data;}catch(e){}
   myClients=clients;
@@ -472,11 +479,36 @@ async function updateAvail(){
   }catch(e){toast('Error','te');}
 }
 
+async function loadTeamNews(){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var el=document.getElementById('team-news-list');if(!el)return;
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_news?order=created_at.desc&limit=20',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var news=await r.json();
+    if(!Array.isArray(news)||!news.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news yet</div>';return;}
+    var tC={announcement:'var(--teal)',alert:'var(--red)',update:'#a78bfa',opportunity:'var(--gold)',event:'#22c55e'};
+    var tI={announcement:'📢',alert:'⚠️',update:'🔄',opportunity:'🎯',event:'📅'};
+    var ptype=memberData?memberData.person_type:'team';
+    news=news.filter(function(n){try{var a=JSON.parse(n.audience||'[]');return a.includes('all')||a.includes('team')||a.includes('experts');}catch(e){return true;}});
+    el.innerHTML=news.map(function(n){
+      var tc=tC[n.type]||'var(--teal)';
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+tc+';border-radius:9px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:6px;"><span style="font-size:16px;">'+(tI[n.type]||'📢')+'</span><div style="font-size:13px;font-weight:700;">'+n.title+'</div></div>'
+        +'<div style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:6px;">'+n.content+'</div>'
+        +(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:6px;">'+new Date(n.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news</div>';}
+}
+
 function showTab(n,el){
   document.querySelectorAll('#team-tabs .tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#team-tabs .tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tp-'+n).classList.add('on');
   if(el)el.classList.add('on');
+  if(n==='team-news')loadTeamNews();
 }
 function showTabE(n,el){
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});

@@ -109,6 +109,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('experts',this)">🌟 Experts</button>
       <button class="tab" onclick="showTab('requests',this)">📋 My Requests</button>
       <button class="tab" onclick="showTab('help',this)">🆘 Request Help</button>
+      <button class="tab" onclick="showTab('invoices',this)">🧾 Invoices</button>
       <button class="tab" onclick="showTab('news',this)">📰 News</button>
     </div>
 
@@ -172,6 +173,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <div class="panel">
         <div class="ph"><div class="pt" id="my-help-reqs-title">📋 My Help Requests</div></div>
         <div class="pb" id="help-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div></div>
+      </div>
+    </div>
+
+    <!-- INVOICES TAB -->
+    <div class="tp" id="tp-invoices">
+      <div class="panel">
+        <div class="ph"><div class="pt">🧾 My Invoices</div></div>
+        <div class="pb" id="inv-portal-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No invoices yet</div></div>
       </div>
     </div>
 
@@ -318,12 +327,34 @@ async function loadExtraData(c){
   try{var r=await fetchSB('ix_meetings','organization=eq.'+encodeURIComponent(c.name)+'&order=date.desc&limit=10');if(Array.isArray(r))meet=r;}catch(e){}
   try{var r=await fetchSB('ix_people','show_in_marketplace=eq.true');if(Array.isArray(r))experts=r;}catch(e){}
   try{var r=await fetchSB('ix_expert_requests','client_id=eq.'+c.id+'&order=created_at.desc');if(Array.isArray(r))reqs=r;}catch(e){}
+  var invs=[];
+  try{var r=await fetchSB('ix_invoices','client_id=eq.'+c.id+'&order=created_at.desc');if(Array.isArray(r))invs=r;}catch(e){}
   try{var r=await fetchSB('ix_news','order=created_at.desc&limit=20');if(Array.isArray(r))news=r.filter(function(n){try{var a=JSON.parse(n.audience||'[]');return a.includes('all')||a.includes('clients');}catch(e){return true;}});}catch(e){}
   allExperts=experts;myReqs=reqs;
   document.getElementById('k-wf').textContent=wf.length;
   document.getElementById('k-mt').textContent=meet.length;
   document.getElementById('k-ex').textContent=experts.length;
-  renderWF(wf);renderMeetings(meet);renderExperts(experts);renderReqs(reqs);renderNewsFeed(news);
+  renderWF(wf);renderMeetings(meet);renderExperts(experts);renderReqs(reqs);renderInvoicesPortal(invs);renderNewsFeed(news);
+}
+
+function renderInvoicesPortal(invs){
+  var el=document.getElementById('inv-portal-list');if(!el)return;
+  if(!invs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No invoices yet</div>';return;}
+  var sc={Draft:'pgo',Sent:'ptl',Paid:'pg',Cancelled:'pgr'};
+  el.innerHTML=invs.map(function(inv){
+    return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:8px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">'
+        +'<div><div style="font-size:13px;font-weight:700;font-family:monospace;">#'+inv.invoice_number+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">'+(inv.service_description||'—')+'</div></div>'
+        +'<span class="pill '+(sc[inv.status]||'pgr')+'">'+inv.status+'</span>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+        +'<div style="font-size:18px;font-weight:800;color:var(--gold);">'+(inv.currency||'USD')+' '+(parseFloat(inv.total)||0).toFixed(2)+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">'+(inv.issue_date||'')+(inv.due_date?' · Due: '+inv.due_date:'')+'</div>'
+      +'</div>'
+      +(inv.status==='Paid'?'<div style="margin-top:6px;font-size:11px;color:#22c55e;font-weight:600;">✅ Payment received — Thank you!</div>':'')
+    +'</div>';
+  }).join('');
 }
 
 function renderNewsFeed(news){
@@ -466,7 +497,7 @@ function showTab(n,el){
   document.getElementById('tp-'+n).classList.add('on');
   if(el)el.classList.add('on');
   if(n==='help')loadHelpRequests();
-  if(n==='news')loadExtraData(clientData);
+  if(n==='news'||n==='invoices'||n==='experts')loadExtraData(clientData);
 }
 </script>
 </body>

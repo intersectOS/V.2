@@ -763,12 +763,25 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 <!-- REQUEST -->
 <div class="mo" id="m-req"><div class="modal">
   <div class="mtit">📋 New Request</div>
-  <input type="hidden" id="req-cid"><input type="hidden" id="req-cname">
+  <input type="hidden" id="req-cid">
   <div class="fg"><label class="fl">Title *</label><input class="fi" id="req-t"></div>
-  <div class="fgrid"><div class="fg"><label class="fl">Related Client</label><input class="fi" id="req-cname-show" placeholder="Client name"></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="req-pri"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select></div></div>
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Related Client</label>
+      <select class="fs" id="req-client-sel" onchange="onReqClientChange(this)">
+        <option value="">— No Client —</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Priority</label>
+      <select class="fs" id="req-pri">
+        <option value="high">🔴 High</option>
+        <option value="medium" selected>🟡 Medium</option>
+        <option value="low">🟢 Low</option>
+      </select>
+    </div>
+  </div>
   <div class="fg"><label class="fl">Description</label><textarea class="fta" id="req-desc"></textarea></div>
-  <div class="fg"><label class="fl">Assign To (People Directory)</label><select class="fs" id="req-assignee"></select></div>
-  <div class="fg"><label class="fl">Or External Person</label><input class="fi" id="req-ext-name" placeholder="External person name"></div>
+  <div class="fg"><label class="fl">Assign To</label><select class="fs" id="req-assignee"></select></div>
+  <div class="fg"><label class="fl">External Person (if not in directory)</label><input class="fi" id="req-ext-name" placeholder="External person name"></div>
   <div class="fg"><label class="fl">Attachment (Drive Link)</label><input class="fi" id="req-file" type="url" dir="ltr"></div>
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><label class="toggle"><input type="checkbox" id="req-show-c"><span class="toggle-slider"></span></label><span style="font-size:12px;">Show progress to client</span></div>
   <div class="mfoot"><button class="btn bo" onclick="cm('m-req')">Cancel</button><button class="btn bg" onclick="saveReq()">📤 Send Request</button></div>
@@ -868,7 +881,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 
 <!-- PROJECT -->
 <div class="mo" id="m-proj"><div class="modal">
-  <div class="mtit">📁 New Project</div>
+  <div class="mtit" id="prj-modal-title">📁 New Project</div>
   <div class="fgrid"><div class="fg"><label class="fl">Name *</label><input class="fi" id="prj-name"></div><div class="fg"><label class="fl">Client</label><select class="fs" id="prj-client"></select></div></div>
   <div class="fg"><label class="fl">Description</label><textarea class="fta" id="prj-desc" style="min-height:55px;"></textarea></div>
   <div class="fgrid"><div class="fg"><label class="fl">Status</label><select class="fs" id="prj-status"><option>Active</option><option>On Hold</option><option>Completed</option></select></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="prj-priority"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select></div></div>
@@ -879,7 +892,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 
 <!-- TASK -->
 <div class="mo" id="m-task"><div class="modal">
-  <div class="mtit">📌 New Task</div>
+  <div class="mtit" id="tsk-modal-title">📌 New Task</div>
   <div class="fg"><label class="fl">Title *</label><input class="fi" id="tsk-t"></div>
   <div class="fgrid"><div class="fg"><label class="fl">Project</label><select class="fs" id="tsk-proj"></select></div><div class="fg"><label class="fl">Assignee</label><select class="fs" id="tsk-ass"></select></div></div>
   <div class="fgrid"><div class="fg"><label class="fl">Status</label><select class="fs" id="tsk-status"><option>To Do</option><option>In Progress</option><option>Review</option><option>Done</option></select></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="tsk-pri"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select></div></div>
@@ -1508,7 +1521,10 @@ async function saveReq(){
   var asParts=document.getElementById('req-assignee').value.split('|');
   var extName=document.getElementById('req-ext-name').value.trim();
   var showC=document.getElementById('req-show-c');
-  var r={title:title,description:document.getElementById('req-desc').value.trim(),client_id:document.getElementById('req-cid').value||null,client_name:document.getElementById('req-cname').value||null,requested_by:'Account Manager',assignee_id:asParts[0]||null,assignee_name:asParts[1]||extName||null,assignee_type:asParts[2]||'external',file_url:document.getElementById('req-file').value.trim()||null,priority:document.getElementById('req-pri').value,show_to_client:showC?showC.checked:false,status:'Pending'};
+  var cid=document.getElementById('req-cid').value||null;
+  var cselVal=document.getElementById('req-client-sel')&&document.getElementById('req-client-sel').value;
+  var cname=cselVal?cselVal.split('|')[1]||null:null;
+  var r={title:title,description:document.getElementById('req-desc').value.trim(),client_id:cid,client_name:cname,requested_by:'Account Manager',assignee_id:asParts[0]||null,assignee_name:asParts[1]||extName||null,assignee_type:asParts[2]||'external',file_url:document.getElementById('req-file').value.trim()||null,priority:document.getElementById('req-pri').value,show_to_client:showC?showC.checked:false,status:'Pending'};
   if(sb){var res=await sb.from('ix_requests').insert(r).select().single();if(res.error)return toast('Error: '+res.error.message,'error');ARequests.unshift(res.data);}
   else{r.id='local-'+Date.now();r.created_at=new Date().toISOString();ARequests.unshift(r);}
   cm('m-req');['req-t','req-desc','req-file','req-ext-name'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
@@ -1663,6 +1679,7 @@ async function saveInv(){
   var inv={
     invoice_number:document.getElementById('inv-num').value||'INV-'+Date.now(),
     client_name:document.getElementById('inv-client').value||null,
+    client_id:(function(){var cn=document.getElementById('inv-client').value;var c=AC.find(function(x){return x.name===cn;});return c?c.id:null;})(),
     expert_name:document.getElementById('inv-expert').value||null,
     service_type:document.getElementById('inv-svc').value,
     service_description:desc,
@@ -1915,6 +1932,7 @@ function renderProjects(){
       +'<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="height:100%;background:var(--grad);border-radius:2px;width:'+pct+'%;"></div></div></div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center;">'
         +'<div style="font-size:10px;color:var(--ink3);">'+(p.end_date?'📅 '+p.end_date:'')+'</div>'
+        +'<button class="btn bo bsm" data-id="'+p.id+'" onclick="editProj(this.dataset.id)" title="Edit">✏️</button>'
         +'<button class="btn bd bsm" data-id="'+p.id+'" onclick="delProj(this.dataset.id)">✕</button>'
       +'</div>'
     +'</div>';
@@ -1923,17 +1941,46 @@ function renderProjects(){
 
 async function saveProj(){
   var n=document.getElementById('prj-name').value.trim();if(!n)return toast('Enter project name','error');
+  var editId=document.getElementById('m-proj').dataset.editId||'';
   var members=[];document.querySelectorAll('.pm-sel').forEach(function(s){if(s.value)members.push(s.value);});
   var p={name:n,description:document.getElementById('prj-desc').value.trim(),client_name:document.getElementById('prj-client').value,status:document.getElementById('prj-status').value,priority:document.getElementById('prj-priority').value,start_date:document.getElementById('prj-start').value,end_date:document.getElementById('prj-end').value,members:JSON.stringify(members)};
-  if(sb){var r=await sb.from('ix_projects').insert(p).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AProj.unshift(r.data);}
-  else{p.id='local-'+Date.now();p.created_at=new Date().toISOString();AProj.unshift(p);}
-  cm('m-proj');['prj-name','prj-desc','prj-start','prj-end'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
-  renderProjects();toast('✅ Project created','success');
+  if(editId){
+    if(sb){var ru=await sb.from('ix_projects').update(p).eq('id',editId).select().single();if(ru.error)return toast('Error: '+ru.error.message,'error');var xi=AProj.findIndex(function(x){return x.id===editId;});if(xi>=0)AProj[xi]=ru.data;}
+    else{var xi=AProj.findIndex(function(x){return x.id===editId;});if(xi>=0)Object.assign(AProj[xi],p);}
+    cm('m-proj');renderProjects();renderTasks();toast('✅ Updated','success');
+  } else {
+    if(sb){var r=await sb.from('ix_projects').insert(p).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AProj.unshift(r.data);}
+    else{p.id='local-'+Date.now();p.created_at=new Date().toISOString();AProj.unshift(p);}
+    cm('m-proj');['prj-name','prj-desc','prj-start','prj-end'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    renderProjects();toast('✅ Project created','success');
+  }
 }
 async function delProj(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_projects').delete().eq('id',id);AProj=AProj.filter(function(p){return p.id!==id;});renderProjects();toast('Deleted','success');}
 
+function editProj(id){
+  var p=AProj.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById('m-proj').dataset.editId=id;
+  document.getElementById('prj-modal-title').textContent='✏️ Edit Project';
+  document.getElementById('prj-name').value=p.name||'';
+  document.getElementById('prj-desc').value=p.description||'';
+  document.getElementById('prj-status').value=p.status||'Active';
+  document.getElementById('prj-priority').value=p.priority||'medium';
+  document.getElementById('prj-start').value=p.start_date||'';
+  document.getElementById('prj-end').value=p.end_date||'';
+  var cs=document.getElementById('prj-client');
+  if(cs){cs.innerHTML='<option value="">— Internal —</option>'+AC.map(function(c){return '<option value="'+c.name+'"'+(c.name===p.client_name?' selected':'')+'>'+c.name+'</option>';}).join('');}
+  om('m-proj');
+}
+
 function addProjMember(){var list=document.getElementById('prj-members-list');var row=document.createElement('div');row.style.cssText='display:flex;gap:5px;align-items:center;margin-bottom:4px;';var opts='<option value="">— Select —</option>'+APeople.map(function(x){return '<option value="'+x.name+'">'+x.name+(x.role?' · '+x.role:'')+'</option>';}).join('');row.innerHTML='<select class="fs pm-sel" style="flex:1;">'+opts+'</select><button type="button" class="btn bd bsm" onclick="this.parentElement.remove()">✕</button>';list.appendChild(row);}
-function openProjModal(){document.getElementById('prj-members-list').innerHTML='';addProjMember();var cs=document.getElementById('prj-client');if(cs)cs.innerHTML='<option value="">— Internal —</option>'+AC.map(function(c){return '<option value="'+c.name+'">'+c.name+'</option>';}).join('');om('m-proj');}
+function openProjModal(){
+  document.getElementById('m-proj').dataset.editId='';
+  document.getElementById('prj-modal-title').textContent='📁 New Project';
+  ['prj-name','prj-desc','prj-start','prj-end'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('prj-members-list').innerHTML='';addProjMember();
+  var cs=document.getElementById('prj-client');if(cs)cs.innerHTML='<option value="">— Internal —</option>'+AC.map(function(c){return '<option value="'+c.name+'">'+c.name+'</option>';}).join('');
+  om('m-proj');
+}
 
 function renderTasks(){
   var tb=document.getElementById('tasks-tb');if(!tb)return;
@@ -1962,6 +2009,9 @@ function renderTasks(){
 }
 
 function openTaskModal(){
+  document.getElementById('m-task').dataset.editId='';
+  document.getElementById('tsk-modal-title').textContent='📌 New Task';
+  ['tsk-t','tsk-d','tsk-n'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var ps=document.getElementById('tsk-proj');if(ps)ps.innerHTML='<option value="">— No Project —</option>'+AProj.map(function(p){return '<option value="'+p.name+'">'+p.name+'</option>';}).join('');
   var as=document.getElementById('tsk-ass');if(as){var opts='<option value="">— Unassigned —</option>';APeople.forEach(function(x){opts+='<option value="'+x.name+'">'+x.name+(x.role?' · '+x.role:'')+'</option>';});as.innerHTML=opts;}
   om('m-task');
@@ -1969,16 +2019,40 @@ function openTaskModal(){
 
 async function saveTask(){
   var title=document.getElementById('tsk-t').value.trim();if(!title)return toast('Enter title','error');
-  var task={title:title,project_name:document.getElementById('tsk-proj').value,assignee:document.getElementById('tsk-ass').value||null,status:document.getElementById('tsk-status').value,priority:document.getElementById('tsk-pri').value,deadline:document.getElementById('tsk-d').value,notes:document.getElementById('tsk-n').value.trim(),done:false};
-  if(sb){var r=await sb.from('ix_tasks').insert(task).select().single();if(r.error)return toast('Error: '+r.error.message,'error');ATasks.unshift(r.data);}
-  else{task.id='local-'+Date.now();task.created_at=new Date().toISOString();ATasks.unshift(task);}
-  cm('m-task');['tsk-t','tsk-d','tsk-n'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
-  renderTasks();renderProjects();toast('✅ Task added','success');
+  var editId=document.getElementById('m-task').dataset.editId||'';
+  var task={title:title,project_name:document.getElementById('tsk-proj').value,assignee:document.getElementById('tsk-ass').value||null,status:document.getElementById('tsk-status').value,priority:document.getElementById('tsk-pri').value,deadline:document.getElementById('tsk-d').value,notes:document.getElementById('tsk-n').value.trim()};
+  if(editId){
+    if(sb){var ru=await sb.from('ix_tasks').update(task).eq('id',editId).select().single();if(ru.error)return toast('Error: '+ru.error.message,'error');var xi=ATasks.findIndex(function(x){return x.id===editId;});if(xi>=0)ATasks[xi]=ru.data;}
+    else{var xi=ATasks.findIndex(function(x){return x.id===editId;});if(xi>=0)Object.assign(ATasks[xi],task);}
+    cm('m-task');renderTasks();renderProjects();toast('✅ Updated','success');
+  } else {
+    task.done=false;
+    if(sb){var r=await sb.from('ix_tasks').insert(task).select().single();if(r.error)return toast('Error: '+r.error.message,'error');ATasks.unshift(r.data);}
+    else{task.id='local-'+Date.now();task.created_at=new Date().toISOString();ATasks.unshift(task);}
+    cm('m-task');['tsk-t','tsk-d','tsk-n'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    renderTasks();renderProjects();toast('✅ Task added','success');
+  }
 }
 
 function getFilteredTasks(){var pf=document.getElementById('tf-proj')&&document.getElementById('tf-proj').value;var sf=document.getElementById('tf-status')&&document.getElementById('tf-status').value;var f=ATasks;if(pf)f=f.filter(function(t){return t.project_name===pf;});if(sf)f=f.filter(function(t){return t.status===sf;});return f;}
 async function updateTask(i,status){var f=getFilteredTasks();var task=f[i];if(!task)return;task.status=status;task.done=status==='Done';if(sb&&!task.id.startsWith('local-'))await sb.from('ix_tasks').update({status:status,done:task.done}).eq('id',task.id);renderTasks();renderProjects();}
 async function delTask(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_tasks').delete().eq('id',id);ATasks=ATasks.filter(function(t){return t.id!==id;});renderTasks();renderProjects();toast('Deleted','success');}
+
+function editTask(id){
+  var task=ATasks.find(function(x){return x.id===id;});if(!task)return;
+  document.getElementById('m-task').dataset.editId=id;
+  document.getElementById('tsk-modal-title').textContent='✏️ Edit Task';
+  document.getElementById('tsk-t').value=task.title||'';
+  document.getElementById('tsk-d').value=task.deadline||'';
+  document.getElementById('tsk-n').value=task.notes||'';
+  document.getElementById('tsk-status').value=task.status||'To Do';
+  document.getElementById('tsk-pri').value=task.priority||'medium';
+  var ps=document.getElementById('tsk-proj');
+  if(ps){ps.innerHTML='<option value="">— No Project —</option>'+AProj.map(function(p){return '<option value="'+p.name+'"'+(p.name===task.project_name?' selected':'')+'>'+p.name+'</option>';}).join('');}
+  var as=document.getElementById('tsk-ass');
+  if(as){var opts='<option value="">— Unassigned —</option>';APeople.forEach(function(x){opts+='<option value="'+x.name+'"'+(x.name===task.assignee?' selected':'')+'>'+x.name+(x.role?' · '+x.role:'')+'</option>';});as.innerHTML=opts;}
+  om('m-task');
+}
 
 // ── SETTINGS ──
 function chgPass(){var op=document.getElementById('op').value,np=document.getElementById('np').value,s=gs(PK,'intersect2026');if(s&&op!==s)return toast('Wrong password','error');if(!np||np.length<4)return toast('Too short','error');ss(PK,np);['op','np'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});toast('✅ Updated','success');}
