@@ -423,6 +423,13 @@ async function loadTeamData(){
   var m=memberData;
   var clients=[],tasks=[],reqs=[],meetings=[];
   try{var r=await sb.from('ix_clients_v2').select('*').eq('main_am_name',m.name);if(r.data)clients=r.data;}catch(e){}
+  try{
+    var SB2='https://rppwppxyhmuicgemmecu.supabase.co';
+    var KEY2='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+    var ra2=await fetch(SB2+'/rest/v1/ix_clients_v2?assistant_ams=cs.["'+m.name+'"]&select=*',{headers:{'apikey':KEY2,'Authorization':'Bearer '+KEY2}});
+    var asst2=await ra2.json();
+    if(Array.isArray(asst2)){asst2.forEach(function(c){if(!clients.find(function(x){return x.id===c.id;}))clients.push(c);});}
+  }catch(e){}
   try{var ra=await sb.from('ix_actions').select('*').eq('assignee',m.name).eq('done',false).order('created_at',{ascending:false});if(ra.data)tasks=ra.data;}catch(e){}
   try{var rt=await sb.from('ix_tasks').select('*').eq('assignee',m.name).neq('status','Done').order('created_at',{ascending:false});if(rt.data)tasks=tasks.concat(rt.data);}catch(e){}
   try{var r=await sb.from('ix_requests').select('*').eq('assignee_name',m.name).order('created_at',{ascending:false});if(r.data)reqs=r.data;}catch(e){}

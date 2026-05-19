@@ -682,6 +682,11 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
   </div>
   <div class="fgrid"><div class="fg"><label class="fl">Service Type *</label><select class="fs" id="cl-svc"><option value="Soft Landing">Soft Landing</option><option value="Strategic Partnership">Strategic Partnership</option><option value="Market Entry">Market Entry</option><option value="Investment">Investment</option><option value="Joint Venture">Joint Venture</option><option value="Consulting">Consulting</option><option value="Other">Other</option></select></div><div class="fg"><label class="fl">Stage *</label><select class="fs" id="cl-stage"><option value="OPEN">OPEN</option><option value="INITIATION">INITIATION</option><option value="ACTIVE NEGOTIATIONS">ACTIVE NEGOTIATIONS</option><option value="MOU">MOU</option><option value="LEGAL">LEGAL</option><option value="PLANNING">PLANNING</option><option value="EXECUTION">EXECUTION</option><option value="FINALIZATION">FINALIZATION</option><option value="COMPLETED">COMPLETED</option><option value="ON HOLD">ON HOLD</option></select></div></div>
   <div class="fg"><label class="fl">Main Account Manager</label><select class="fs" id="cl-am"></select></div>
+  <div class="fg"><label class="fl">Assistant Account Managers (select multiple)</label>
+    <div id="assistant-am-checks" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;min-height:32px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;">
+      <span style="font-size:12px;color:var(--ink3);">Loading team...</span>
+    </div>
+  </div>
   <div class="fg"><label class="fl">Referred by (internal note)</label><input class="fi" id="cl-ref" placeholder="Name of person who referred this client"></div>
   <div class="fgrid">
     <div class="fg"><label class="fl">🔒 Internal Notes (founders only)</label><textarea class="fta" id="cl-notes-i" style="min-height:55px;"></textarea></div>
@@ -1210,10 +1215,20 @@ function editClient(id){
     var nc=document.getElementById('cl-notes-c');if(nc)nc.value=c.notes_client||'';
     var hs=document.getElementById('cl-health');if(hs)hs.value=c.health_score||100;
     om('m-cl');
-    var svcSel=document.getElementById('cl-svc');
-    if(svcSel)svcSel.value=c.service_type||'Soft Landing';
+    // Set stage
     var stageSel=document.getElementById('cl-stage');
     if(stageSel)stageSel.value=c.stage||'OPEN';
+    // Set service type checkboxes
+    var svcs=c.service_type?c.service_type.split(',').map(function(s){return s.trim();}):[];
+    document.querySelectorAll('#svc-checks input').forEach(function(cb){
+      cb.checked=svcs.some(function(s){return s.toLowerCase()===cb.value.toLowerCase()||s.toLowerCase().includes('other')&&cb.value==='Other';});
+    });
+    var otherSvcs=svcs.filter(function(s){return !['Soft Landing','Strategic Partnership','Market Entry','Investment','Joint Venture','Consulting'].includes(s);});
+    var otherField=document.getElementById('svc-other-text');
+    if(otherSvcs.length&&otherField){otherField.style.display='block';otherField.value=otherSvcs.join(', ');}
+    // Set assistant AMs
+    var selectedAMs=[];try{selectedAMs=JSON.parse(c.assistant_ams||'[]');}catch(e){}
+    populateAssistantAMs(selectedAMs);
   }
   if(people.length){fillModal();}
   else if(sb){
@@ -1250,6 +1265,8 @@ async function saveClient(){
   var amParts=amSel&&amSel.value?amSel.value.split('|'):['',''];
   var c={
     name:n, added_by:document.getElementById('cl-addedby')&&document.getElementById('cl-addedby').value||null, industry:document.getElementById('cl-ind').value.trim(),
+    service_type:(function(){var svcs=[];document.querySelectorAll('#svc-checks input:checked').forEach(function(cb){svcs.push(cb.value==='Other'?document.getElementById('svc-other-text').value||'Other':cb.value);});return svcs.join(', ')||null;})(),
+    assistant_ams:(function(){var ams=[];document.querySelectorAll('#assistant-am-checks input:checked').forEach(function(cb){ams.push(cb.value);});return ams.length?JSON.stringify(ams):null;})(),
     country:document.getElementById('cl-country').value.trim(),
     service_type:document.getElementById('cl-svc').value,
     stage:document.getElementById('cl-stage').value,
