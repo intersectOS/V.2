@@ -288,6 +288,9 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
   .content{padding:10px 10px 40px;}
   .topbar{padding:9px 11px;}
 }
+.svc-opt{display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--ink2);}
+.svc-opt:hover{border-color:var(--teal);color:var(--teal);}
+.svc-opt input:checked+*{color:var(--teal);}
 </style>
 </head>
 <body>
@@ -680,7 +683,31 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
     <div class="fgrid"><div class="fg"><label class="fl">Username *</label><input class="fi" id="cl-username" placeholder="e.g. aramco" dir="ltr"></div><div class="fg"><label class="fl">Password *</label><input class="fi" id="cl-pass" type="text" placeholder="e.g. Aramco@2026" dir="ltr"></div></div>
     <div style="font-size:11px;color:var(--ink3);">Share these with the client to access their portal at <strong style="color:var(--teal);">portal.html</strong></div>
   </div>
-  <div class="fgrid"><div class="fg"><label class="fl">Service Type *</label><select class="fs" id="cl-svc"><option value="Soft Landing">Soft Landing</option><option value="Strategic Partnership">Strategic Partnership</option><option value="Market Entry">Market Entry</option><option value="Investment">Investment</option><option value="Joint Venture">Joint Venture</option><option value="Consulting">Consulting</option><option value="Other">Other</option></select></div><div class="fg"><label class="fl">Stage *</label><select class="fs" id="cl-stage"><option value="OPEN">OPEN</option><option value="INITIATION">INITIATION</option><option value="ACTIVE NEGOTIATIONS">ACTIVE NEGOTIATIONS</option><option value="MOU">MOU</option><option value="LEGAL">LEGAL</option><option value="PLANNING">PLANNING</option><option value="EXECUTION">EXECUTION</option><option value="FINALIZATION">FINALIZATION</option><option value="COMPLETED">COMPLETED</option><option value="ON HOLD">ON HOLD</option></select></div></div>
+  <div class="fgrid"><div class="fg"><label class="fl">Service Type * (select all that apply)</label>
+  <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:6px;" id="svc-checks">
+    <label class="svc-opt"><input type="checkbox" value="Soft Landing"> Soft Landing</label>
+    <label class="svc-opt"><input type="checkbox" value="Strategic Partnership"> Strategic Partnership</label>
+    <label class="svc-opt"><input type="checkbox" value="Market Entry"> Market Entry</label>
+    <label class="svc-opt"><input type="checkbox" value="Investment"> Investment</label>
+    <label class="svc-opt"><input type="checkbox" value="Joint Venture"> Joint Venture</label>
+    <label class="svc-opt"><input type="checkbox" value="Consulting"> Consulting</label>
+    <label class="svc-opt"><input type="checkbox" value="Other" onchange="document.getElementById('svc-other-wrap').style.display=this.checked?'block':'none'"> Other</label>
+  </div>
+  <div id="svc-other-wrap" style="display:none;margin-top:6px;"><input class="fi" id="svc-other-text" placeholder="Describe other service..."></div>
+</div><div class="fg"><label class="fl">Stage</label>
+  <select class="fs" id="cl-stage">
+    <option value="OPEN">OPEN</option>
+    <option value="INITIATION">INITIATION</option>
+    <option value="ACTIVE NEGOTIATIONS">ACTIVE NEGOTIATIONS</option>
+    <option value="MOU">MOU</option>
+    <option value="LEGAL">LEGAL</option>
+    <option value="PLANNING">PLANNING</option>
+    <option value="EXECUTION">EXECUTION</option>
+    <option value="FINALIZATION">FINALIZATION</option>
+    <option value="COMPLETED">COMPLETED</option>
+    <option value="ON HOLD">ON HOLD</option>
+  </select>
+</div></div>
   <div class="fg"><label class="fl">Main Account Manager</label><select class="fs" id="cl-am"></select></div>
   <div class="fg"><label class="fl">Assistant Account Managers (select multiple)</label>
     <div id="assistant-am-checks" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;min-height:32px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;">
@@ -2267,6 +2294,25 @@ function openActModal(){
   om('m-act');
 }
 
+function populateAssistantAMs(selectedAMs){
+  var container=document.getElementById('assistant-am-checks');
+  if(!container)return;
+  var people=APeople.length?APeople:[];
+  function doFill(){
+    if(!people.length){container.innerHTML='<span style="font-size:12px;color:var(--ink3);">No team members</span>';return;}
+    var selected=selectedAMs||[];
+    var html='';
+    people.forEach(function(p){
+      var chk=selected.includes(p.name)?'checked':'';
+      html+='<label class="svc-opt"><input type="checkbox" value="'+p.name+'" '+chk+' style="width:13px;height:13px;"> '+p.name+(p.role?' · '+p.role:'')+'</label>';
+    });
+    container.innerHTML=html;
+  }
+  if(people.length){doFill();}
+  else if(sb){sb.from('ix_people').select('id,name,role,person_type').then(function(r){if(r.data)people=r.data;doFill();});}
+  else{doFill();}
+}
+
 // Open add client helper
 function openAddClient(editId){
   var amSel=document.getElementById('cl-am');
@@ -2301,6 +2347,7 @@ function openAddClient(editId){
     }
   }
   om('m-cl');
+  populateAssistantAMs([]);
 }
 
 
