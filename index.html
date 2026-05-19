@@ -1126,19 +1126,72 @@ function renderAIAlerts(){
 function renderFeed(){
   var feed=document.getElementById('actfeed');if(!feed)return;
   var items=[];
-  AWorkflow.slice(0,5).forEach(function(w){items.push({d:w.created_at,i:'🔄',x:w.title,sub:(w.client_name?'Client: '+w.client_name:'')+(w.created_by?' · by '+w.created_by:''),c:'var(--teal)'});});
-  ARequests.slice(0,5).forEach(function(r){items.push({d:r.created_at,i:'📋',x:r.title,sub:'Request · '+(r.status||'Pending')+(r.client_name?' · '+r.client_name:''),c:'var(--purple-light)'});});
-  AExpertReq.slice(0,4).forEach(function(r){items.push({d:r.created_at,i:'🌟',x:'Expert request: '+r.expert_name,sub:'From: '+(r.client_name||'—')+' · '+r.status,c:'var(--gold)'});});
-  AC.slice(0,3).forEach(function(c){items.push({d:c.created_at,i:'🏢',x:'New client: '+c.name,sub:c.stage||'',c:'var(--green)'});});
+
+  // Workflow updates
+  AWorkflow.slice(0,5).forEach(function(w){
+    items.push({d:w.created_at,i:'🔄',x:w.title,
+      sub:(w.client_name?'Client: '+w.client_name:'')+(w.created_by?' · by '+w.created_by:'')+(w.status?' · '+w.status:''),
+      c:'var(--teal)'});
+  });
+
+  // Requests - all statuses
+  ARequests.slice(0,5).forEach(function(r){
+    var icon=r.status==='Accepted'?'✅':r.status==='Rejected'?'❌':'📋';
+    items.push({d:r.updated_at||r.created_at,i:icon,x:r.title,
+      sub:'Request · '+r.status+(r.client_name?' · '+r.client_name:'')+(r.assignee_name?' → '+r.assignee_name:''),
+      c:r.status==='Accepted'?'var(--green)':r.status==='Rejected'?'var(--red)':'var(--purple-light)'});
+  });
+
+  // Expert requests
+  AExpertReq.slice(0,4).forEach(function(r){
+    items.push({d:r.created_at,i:'🌟',x:'Expert request: '+r.expert_name,
+      sub:'From: '+(r.client_name||'—')+' · '+r.status,
+      c:'var(--gold)'});
+  });
+
+  // New clients
+  AC.slice(0,3).forEach(function(c){
+    items.push({d:c.created_at,i:'🏢',x:'New client: '+c.name,
+      sub:(c.stage||'')+(c.added_by?' · Added by: '+c.added_by:'')+(c.main_am_name?' · AM: '+c.main_am_name:''),
+      c:'var(--green)'});
+  });
+
+  // New people
+  APeople.slice(0,3).forEach(function(p){
+    items.push({d:p.created_at,i:'👤',x:'New member: '+p.name,
+      sub:(p.role||p.person_type||''),
+      c:'#a78bfa'});
+  });
+
+  // Actions
+  AActions.filter(function(a){return a.done;}).slice(0,3).forEach(function(a){
+    items.push({d:a.updated_at||a.created_at,i:'✅',x:'Task completed: '+a.title,
+      sub:(a.assignee?'by '+a.assignee:'')+(a.client_name?' · '+a.client_name:''),
+      c:'var(--green)'});
+  });
+
+  // Meetings
+  AMeetings.slice(0,3).forEach(function(m){
+    items.push({d:m.created_at,i:'📅',x:'Meeting: '+m.title,
+      sub:(m.organization||'')+(m.date?' · '+m.date:''),
+      c:'var(--teal)'});
+  });
+
+  // Sort by date newest first
   items.sort(function(a,b){return new Date(b.d||0)-new Date(a.d||0);});
-  if(!items.length){feed.innerHTML='<div style="text-align:center;padding:16px;color:var(--ink3);font-size:12px;">No activity yet</div>';return;}
-  feed.innerHTML=items.slice(0,12).map(function(i){
+
+  if(!items.length){
+    feed.innerHTML='<div style="text-align:center;padding:16px;color:var(--ink3);font-size:12px;">No activity yet</div>';
+    return;
+  }
+
+  feed.innerHTML=items.slice(0,15).map(function(i){
     return '<div style="display:flex;gap:9px;padding:9px 0;border-bottom:1px solid rgba(26,31,56,.4);">'
-      +'<div style="font-size:14px;flex-shrink:0;">'+i.i+'</div>'
-      +'<div style="flex:1;">'
-        +'<div style="font-size:12px;font-weight:600;">'+i.x+'</div>'
-        +(i.sub?'<div style="font-size:11px;color:var(--ink3);">'+i.sub+'</div>':'')
-        +'<div style="font-size:10px;color:var(--ink3);margin-top:2px;">'+(i.d?new Date(i.d).toLocaleString():'')+'</div>'
+      +'<div style="font-size:15px;flex-shrink:0;">'+i.i+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+i.x+'</div>'
+        +(i.sub?'<div style="font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+i.sub+'</div>':'')
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:1px;">'+(i.d?new Date(i.d).toLocaleString():'')+'</div>'
       +'</div>'
     +'</div>';
   }).join('');
