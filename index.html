@@ -680,7 +680,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
     <div class="fgrid"><div class="fg"><label class="fl">Username *</label><input class="fi" id="cl-username" placeholder="e.g. aramco" dir="ltr"></div><div class="fg"><label class="fl">Password *</label><input class="fi" id="cl-pass" type="text" placeholder="e.g. Aramco@2026" dir="ltr"></div></div>
     <div style="font-size:11px;color:var(--ink3);">Share these with the client to access their portal at <strong style="color:var(--teal);">portal.html</strong></div>
   </div>
-  <div class="fgrid"><div class="fg"><label class="fl">Service Type *</label><select class="fs" id="cl-svc"></select></div><div class="fg"><label class="fl">Stage *</label><select class="fs" id="cl-stage"></select></div></div>
+  <div class="fgrid"><div class="fg"><label class="fl">Service Type *</label><select class="fs" id="cl-svc"><option value="Soft Landing">Soft Landing</option><option value="Strategic Partnership">Strategic Partnership</option><option value="Market Entry">Market Entry</option><option value="Investment">Investment</option><option value="Joint Venture">Joint Venture</option><option value="Consulting">Consulting</option><option value="Other">Other</option></select></div><div class="fg"><label class="fl">Stage *</label><select class="fs" id="cl-stage"><option value="OPEN">OPEN</option><option value="INITIATION">INITIATION</option><option value="ACTIVE NEGOTIATIONS">ACTIVE NEGOTIATIONS</option><option value="MOU">MOU</option><option value="LEGAL">LEGAL</option><option value="PLANNING">PLANNING</option><option value="EXECUTION">EXECUTION</option><option value="FINALIZATION">FINALIZATION</option><option value="COMPLETED">COMPLETED</option><option value="ON HOLD">ON HOLD</option></select></div></div>
   <div class="fg"><label class="fl">Main Account Manager</label><select class="fs" id="cl-am"></select></div>
   <div class="fg"><label class="fl">Referred by (internal note)</label><input class="fi" id="cl-ref" placeholder="Name of person who referred this client"></div>
   <div class="fgrid">
@@ -1205,10 +1205,15 @@ function editClient(id){
     if(amSel){amSel.innerHTML='<option value="">— No AM —</option>'+people.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');}
     // Set selected AM
     if(c.main_am_id&&amSel){for(var i=0;i<amSel.options.length;i++){if(amSel.options[i].value.startsWith(c.main_am_id)){amSel.selectedIndex=i;break;}}}
-    // Fill service type
-    var svcSel=document.getElementById('cl-svc');if(svcSel)svcSel.value=c.service_type||'Soft Landing';
-    var stageSel=document.getElementById('cl-stage');if(stageSel)stageSel.value=c.stage||'OPEN';
+    // Fill remaining fields
+    var ni=document.getElementById('cl-notes-i');if(ni)ni.value=c.notes_internal||'';
+    var nc=document.getElementById('cl-notes-c');if(nc)nc.value=c.notes_client||'';
+    var hs=document.getElementById('cl-health');if(hs)hs.value=c.health_score||100;
     om('m-cl');
+    var svcSel=document.getElementById('cl-svc');
+    if(svcSel)svcSel.value=c.service_type||'Soft Landing';
+    var stageSel=document.getElementById('cl-stage');
+    if(stageSel)stageSel.value=c.stage||'OPEN';
   }
   if(people.length){fillModal();}
   else if(sb){
@@ -1236,11 +1241,6 @@ function editClient(id){
   // Set referred by
   var refSel=document.getElementById('cl-ref');
   if(refSel&&c.referred_by){refSel.value=c.referred_by;}
-  // Notes
-  var ni=document.getElementById('cl-notes-i');if(ni)ni.value=c.notes_internal||'';
-  var nc=document.getElementById('cl-notes-c');if(nc)nc.value=c.notes_client||'';
-  // Health score
-  var hs=document.getElementById('cl-health');if(hs)hs.value=c.health_score||100;
 }
 
 async function saveClient(){
