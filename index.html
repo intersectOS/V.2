@@ -974,7 +974,7 @@ function setLang(l){
 window.addEventListener('DOMContentLoaded',function(){
   if(!gs(PK,''))ss(PK,'intersect2026');
   ss('ix_sb_url',SB_URL_HC); ss('ix_sb_key',SB_KEY_HC);
-  if(!gs(BK,''))ss(BK,'https://intersect-d0j.pages.dev');
+  if(!gs(BK,''))ss(BK,'https://intersectos.github.io/V.2');
   var su=document.getElementById('sb-url'), sk=document.getElementById('sb-key'), bu=document.getElementById('base-url');
   if(su)su.value=SB_URL_HC;
   if(sk)sk.value=SB_KEY_HC;
@@ -1157,7 +1157,7 @@ function renderClients(){
 }
 
 function copyPortalLink(code){
-  var base='https://intersect-d0j.pages.dev';
+  var base='https://intersectos.github.io/V.2';
   var link=base+'/client.html?id='+code;
   navigator.clipboard.writeText(link).then(function(){toast('✅ Portal link copied!','success');});
 }
@@ -1287,9 +1287,9 @@ async function saveClient(){
   } else {
     if(sb){var r=await sb.from('ix_clients_v2').insert(c).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AC.unshift(r.data);c=r.data;}
     else{c.id='local-'+Date.now();c.created_at=new Date().toISOString();AC.unshift(c);}
-    var base='https://intersect-d0j.pages.dev';
+    var base=localStorage.getItem('ix_base_url')||'https://intersectos.github.io/V.2';
     var portalLink=base+'/portal.html';
-    cm('m-cl');renderClients();renderOV();
+    cm('m-cl');renderClients();renderOV();renderFeed();
     showPortalLink(portalLink, c.name, c.username, c.portal_password);
     toast('✅ Client added','success');
   }
@@ -1385,7 +1385,7 @@ async function savePerson(){
     if(sb){var r=await sb.from('ix_people').insert(p).select().single();if(r.error)return toast('Error: '+r.error.message,'error');APeople.unshift(r.data);}
     else{p.id='local-'+Date.now();p.created_at=new Date().toISOString();APeople.unshift(p);}
     cm('m-person');renderPeople();
-    var base='https://intersect-d0j.pages.dev';
+    var base=localStorage.getItem('ix_base_url')||'https://intersectos.github.io/V.2';
     var portal=base+'/portal.html';
     showPortalLink(portal, p.name, p.username, p.portal_password);
     toast('✅ Added to directory','success');
@@ -2133,6 +2133,13 @@ function saveClaudeKey(){
   toast('✅ Claude API key saved','success');
 }
 
+function saveBU(){
+  var u=document.getElementById('base-url').value.trim();
+  if(!u)return toast('Enter URL','error');
+  if(!u.endsWith('/'))u=u;
+  try{localStorage.setItem('ix_base_url',u);}catch(e){}
+  toast('✅ Portal URL saved','success');
+}
 function saveCoord(){var n=document.getElementById('coord-name').value.trim();var p=document.getElementById('coord-pass').value.trim();if(n){ss('ix_coord_name',n);toast('✅ Coordinator name updated','success');}if(p&&p.length>=4){ss('ix_coord_pass',p);toast('✅ Coordinator password updated','success');}if(!n&&!p)toast('Enter name or password','error');['coord-name','coord-pass'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});}
 function saveBU(){ss(BK,document.getElementById('base-url').value.trim());toast('✅ Saved','success');}
 
@@ -2228,7 +2235,7 @@ function openPersonModal(editId){
 
 // Open action modal helper
 function copyPersonPortal(code,ptype){
-  var base='https://intersect-d0j.pages.dev';
+  var base='https://intersectos.github.io/V.2';
   var url=base+(ptype==='expert'?'/expert.html?id=':'/team.html?id=')+code;
   navigator.clipboard.writeText(url).then(function(){toast('✅ Portal link copied!','success');});
 }
