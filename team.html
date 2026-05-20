@@ -730,8 +730,45 @@ async function openClientServices(cid, cname){
       return;
     }
     var stgC={'RELATIONSHIP BUILDING':'#06b6d4','PROPOSAL':'#a78bfa','NEGOTIATION':'#f59e0b','AGREEMENT':'#3b82f6','LEGAL':'#8b5cf6','EXECUTION':'#22c55e','COMPLETED':'#10b981','ON HOLD':'#6b7280'};
+    var stgIcons={'RELATIONSHIP BUILDING':'🤝','PROPOSAL':'📋','NEGOTIATION':'💬','AGREEMENT':'📝','LEGAL':'⚖️','EXECUTION':'🚀','COMPLETED':'✅','ON HOLD':'⏸️'};
     var stages=['RELATIONSHIP BUILDING','PROPOSAL','NEGOTIATION','AGREEMENT','LEGAL','EXECUTION','COMPLETED','ON HOLD'];
     var html='';
+
+    // ── ROADMAP OVERVIEW ──
+    if(Array.isArray(svcs)&&svcs.length){
+      html+='<div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:10px;padding:13px;margin-bottom:14px;">';
+      html+='<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:10px;">🗺️ Partnership Roadmap</div>';
+      svcs.forEach(function(s){
+        var sc=stgC[s.stage]||'#06b6d4';
+        var curIdx=stages.indexOf(s.stage);
+        html+='<div style="margin-bottom:10px;">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+        html+='<div style="font-size:12px;font-weight:700;">'+s.service_type+'</div>';
+        html+='<span style="font-size:9px;padding:2px 8px;border-radius:20px;background:'+sc+'22;color:'+sc+';font-weight:700;">'+s.stage+'</span>';
+        html+='</div>';
+        // Mini horizontal timeline
+        html+='<div style="display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:2px;">';
+        stages.forEach(function(st,idx){
+          if(st==='ON HOLD')return;
+          var isDone=idx<curIdx;
+          var isActive=idx===curIdx;
+          var c2=stgC[st]||'#6b7280';
+          html+='<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:36px;">';
+          html+='<div style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;'
+            +(isDone?'background:'+c2+'33;color:'+c2+';border:1.5px solid '+c2+';':isActive?'background:'+c2+';color:#fff;':' background:var(--card);border:1.5px solid rgba(74,82,112,.3);color:var(--ink3);')
+            +'">'+(isDone?'✓':stgIcons[st]||'·')+'</div>';
+          html+='<div style="font-size:7px;color:'+(isActive?c2:isDone?c2:'var(--ink3)')+';margin-top:2px;text-align:center;max-width:34px;line-height:1.1;">'+st.replace('RELATIONSHIP BUILDING','INTRO').replace('ACTIVE NEGOTIATIONS','NEGO.').split(' ')[0]+'</div>';
+          html+='</div>';
+          if(idx<stages.length-2){
+            html+='<div style="height:1.5px;flex:1;min-width:4px;background:'+(isDone?c2:'rgba(74,82,112,.2)')+';margin-bottom:12px;"></div>';
+          }
+        });
+        html+='</div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+
     // Show JV banner if applicable and allowed
     if(Array.isArray(svcs)&&svcs.length===0){
       // Load client JV info
