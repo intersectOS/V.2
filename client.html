@@ -151,6 +151,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab on" onclick="showTab('overview',this)">📊 Overview</button>
       <button class="tab" onclick="showTab('roadmap',this)">🗺️ Roadmap</button>
       <button class="tab" onclick="showTab('services',this)">🛠️ My Services</button>
+      <button class="tab partner-only" onclick="showTab('my-companies',this)" style="display:none;">🏭 My Companies</button>
       <button class="tab" onclick="showTab('updates',this)">🔄 Updates</button>
       <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
       <button class="tab" onclick="showTab('experts',this)">🌟 Experts</button>
@@ -204,6 +205,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <div class="panel">
         <div class="ph"><div class="pt">🛠️ My Services with Intersect</div></div>
         <div class="pb" id="svc-timeline">
+          <div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY COMPANIES (Partner only) -->
+    <div class="tp" id="tp-my-companies">
+      <div class="panel">
+        <div class="ph">
+          <div class="pt">🏭 Companies I Referred</div>
+          <span id="companies-count" class="pill ptl" style="display:none;"></span>
+        </div>
+        <div class="pb" id="my-companies-list">
           <div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div>
         </div>
       </div>
@@ -850,6 +864,46 @@ async function saveTelegramIdClient(){
   }catch(e){toast('Error saving','te');}
 }
 
+async function loadMyCompanies(){
+  var el=document.getElementById('my-companies-list');if(!el)return;
+  if(!clientData)return;
+  try{
+    // Fetch companies referred by this partner
+    var r=await fetch(SB_URL+'/rest/v1/ix_clients_v2?partner_ref_id=eq.'+clientData.id+'&order=created_at.desc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var companies=await r.json();
+    if(!Array.isArray(companies)||!companies.length){
+      el.innerHTML='<div style="text-align:center;padding:30px;">'
+        +'<div style="font-size:36px;margin-bottom:12px;">🏭</div>'
+        +'<div style="font-size:14px;font-weight:600;margin-bottom:6px;">No Companies Yet</div>'
+        +'<div style="font-size:12px;color:var(--ink3);">Companies you refer to Intersect will appear here.</div>'
+      +'</div>';
+      return;
+    }
+    var badge=document.getElementById('companies-count');
+    if(badge){badge.textContent=companies.length+' companies';badge.style.display='inline-flex';}
+    var stgC={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':'#8b5cf6','MOU':'#06b6d4','LEGAL':'#f59e0b','PLANNING':'#f97316','EXECUTION':'#22c55e','FINALIZATION':'#10b981','COMPLETED':'#22c55e','ON HOLD':'#6b7280'};
+    el.innerHTML=companies.map(function(c){
+      var sc=stgC[c.stage]||'#6b7280';
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">'
+          +'<div>'
+            +'<div style="font-size:14px;font-weight:700;">'+c.name+'</div>'
+            +'<div style="font-size:11px;color:var(--ink3);">'+(c.industry||'—')+(c.country?' · '+c.country:'')+'</div>'
+          +'</div>'
+          +'<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:'+sc+'22;color:'+sc+';">'+c.stage+'</span>'
+        +'</div>'
+        +(c.service_type?'<div style="font-size:12px;color:var(--teal);margin-bottom:5px;">🛠️ '+c.service_type+'</div>':'')
+        +'<div style="font-size:11px;color:var(--ink3);">AM: '+(c.main_am_name||'TBD')+'</div>'
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">Added: '+new Date(c.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:16px;">Unable to load companies</div>';
+  }
+}
+
 async function loadServices(){
   var el=document.getElementById('svc-timeline');if(!el)return;
   if(!clientData)return;
@@ -915,6 +969,7 @@ function showTab(n,el){
   if(n==='tickets')loadExtraData(clientData);
   if(n==='files')renderFiles(clientData);
   if(n==='services')loadServices();
+  if(n==='my-companies')loadMyCompanies();
 }
 </script>
 </body>

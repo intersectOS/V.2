@@ -374,6 +374,8 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
       <div class="ni" onclick="gp('experts',this)"><span class="nico">🌟</span><span data-i="n_experts">Expert Marketplace</span></div>
       <div class="ni" onclick="gp('requests',this)"><span class="nico">📋</span><span data-i="n_requests">Requests</span></div>
       <div class="ni" onclick="gp('meetings',this)"><span class="nico">📅</span><span data-i="n_meetings">Meetings</span></div>
+      <div class="ni" onclick="gp('reports',this)"><span class="nico">📈</span><span>Reports</span></div>
+      <div class="ni" onclick="gp('contracts',this)"><span class="nico">📜</span><span>Contracts</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📄</span><span data-i="n_reports">Reports</span></div>
       <div class="ni" onclick="gp('invoices',this)"><span class="nico">🧾</span><span data-i="n_inv">Invoices</span></div>
       <div class="ni" onclick="gp('projects',this)"><span class="nico">📁</span><span data-i="n_proj">Projects</span></div>
@@ -748,6 +750,12 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
     <div id="svc-other-wrap" style="display:none;margin-top:6px;"><input class="fi" id="svc-other-text" placeholder="Describe other service..."></div>
   </div>
   <div class="fgrid">
+    <div class="fg"><label class="fl">Client Type</label>
+      <select class="fs" id="cl-type" onchange="togglePartnerField()">
+        <option value="client">🏢 Client</option>
+        <option value="partner">🤝 Success Partner</option>
+      </select>
+    </div>
     <div class="fg"><label class="fl">Stage</label>
       <select class="fs" id="cl-stage">
         <option value="OPEN">OPEN</option>
@@ -762,7 +770,13 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
         <option value="ON HOLD">ON HOLD</option>
       </select>
     </div>
-    <div class="fg"><label class="fl">Added by</label><input class="fi" id="cl-addedby" placeholder="Who introduced this client?"></div>
+  </div>
+  <div class="fg"><label class="fl">Added by</label><input class="fi" id="cl-addedby" placeholder="Who introduced this client?"></div>
+  <div class="fg" id="partner-ref-wrap" style="display:none;">
+    <label class="fl">Referred by Partner (optional)</label>
+    <select class="fs" id="cl-partner-ref">
+      <option value="">— None / Direct —</option>
+    </select>
   </div>
   <div class="fg"><label class="fl">Main Account Manager</label><select class="fs" id="cl-am"><option value="">— No AM —</option></select></div>
   <div class="fg"><label class="fl">Assistant Account Managers</label>
@@ -1580,7 +1594,10 @@ async function saveClient(){
   var amParts=amSel&&amSel.value?amSel.value.split('|'):['',''];
   var c={
     name:n,
+    client_type:document.getElementById('cl-type')&&document.getElementById('cl-type').value||'client',
     added_by:document.getElementById('cl-addedby')&&document.getElementById('cl-addedby').value||null,
+    partner_ref_id:(function(){var v=document.getElementById('cl-partner-ref')&&document.getElementById('cl-partner-ref').value;return v?v.split('|')[0]:null;})(),
+    partner_ref_name:(function(){var v=document.getElementById('cl-partner-ref')&&document.getElementById('cl-partner-ref').value;return v?v.split('|')[1]:null;})(),
     industry:document.getElementById('cl-ind').value.trim(),
     country:document.getElementById('cl-country').value.trim(),
     service_type:(function(){var svcs=[];document.querySelectorAll('#svc-checks input[type=checkbox]:checked').forEach(function(cb){var v=cb.value==='Other'?(document.getElementById('svc-other-text')&&document.getElementById('svc-other-text').value.trim()||'Other'):cb.value;svcs.push(v);});return svcs.join(', ')||document.getElementById('cl-svc')&&document.getElementById('cl-svc').value||null;})(),
@@ -2649,6 +2666,299 @@ function saveClaudeKey(){
   toast('✅ Claude API key saved','success');
 }
 
+// ── REPORTS ──
+function loadReports(){
+  // KPIs
+  document.getElementById('rep-total-clients').textContent=AC.length;
+  document.getElementById('rep-active-svcs').textContent=AClientServices.filter(function(s){return s.stage!=='COMPLETED'&&s.stage!=='ON HOLD';}).length;
+  document.getElementById('rep-pending-reqs').textContent=ARequests.filter(function(r){return r.status==='Pending';}).length;
+  document.getElementById('rep-total-meetings').textContent=AMeetings.length;
+
+  // Client Stage Funnel
+  var stages=['OPEN','INITIATION','ACTIVE NEGOTIATIONS','MOU','LEGAL','PLANNING','EXECUTION','FINALIZATION','COMPLETED','ON HOLD'];
+  var stageCounts={};
+  AC.forEach(function(c){stageCounts[c.stage]=(stageCounts[c.stage]||0)+1;});
+  var funnelEl=document.getElementById('rep-funnel');
+  var stgColors={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':'#8b5cf6','MOU':'#06b6d4','LEGAL':'#f59e0b','PLANNING':'#f97316','EXECUTION':'#22c55e','FINALIZATION':'#10b981','COMPLETED':'#22c55e','ON HOLD':'#6b7280'};
+  if(funnelEl){
+    var html='';
+    stages.forEach(function(s){
+      var cnt=stageCounts[s]||0;
+      if(!cnt)return;
+      var pct=Math.round(cnt/AC.length*100);
+      var c=stgColors[s]||'#6b7280';
+      html+='<div style="margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:3px;">'
+          +'<span style="font-size:12px;">'+s+'</span>'
+          +'<span style="font-size:12px;font-weight:700;color:'+c+';">'+cnt+'</span>'
+        +'</div>'
+        +'<div style="height:6px;background:var(--border);border-radius:3px;">'
+          +'<div style="height:100%;width:'+pct+'%;background:'+c+';border-radius:3px;transition:width .5s;"></div>'
+        +'</div>'
+      +'</div>';
+    });
+    funnelEl.innerHTML=html||'<div style="color:var(--ink3);font-size:12px;">No data</div>';
+  }
+
+  // Services Distribution
+  var svcCounts={};
+  AClientServices.forEach(function(s){svcCounts[s.service_type]=(svcCounts[s.service_type]||0)+1;});
+  var svcEl=document.getElementById('rep-services-dist');
+  if(svcEl){
+    var total=AClientServices.length;
+    var svcColors=['#06b6d4','#22c55e','#f59e0b','#a78bfa','#3b82f6','#f97316','#10b981'];
+    var html='';
+    Object.keys(svcCounts).sort(function(a,b){return svcCounts[b]-svcCounts[a];}).forEach(function(svc,i){
+      var cnt=svcCounts[svc];
+      var pct=total?Math.round(cnt/total*100):0;
+      var c=svcColors[i%svcColors.length];
+      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+        +'<div style="width:10px;height:10px;border-radius:50%;background:'+c+';flex-shrink:0;"></div>'
+        +'<div style="flex:1;font-size:12px;">'+svc+'</div>'
+        +'<div style="font-size:12px;font-weight:700;color:'+c+';">'+cnt+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">('+pct+'%)</div>'
+      +'</div>';
+    });
+    svcEl.innerHTML=html||'<div style="color:var(--ink3);font-size:12px;">No services yet</div>';
+  }
+
+  // Team Performance
+  var teamPerf={};
+  AC.forEach(function(c){
+    var am=c.main_am_name||'Unassigned';
+    if(!teamPerf[am])teamPerf[am]={clients:0,stages:{}};
+    teamPerf[am].clients++;
+    teamPerf[am].stages[c.stage]=(teamPerf[am].stages[c.stage]||0)+1;
+  });
+  var teamEl=document.getElementById('rep-team-perf');
+  if(teamEl){
+    var html='';
+    Object.keys(teamPerf).sort(function(a,b){return teamPerf[b].clients-teamPerf[a].clients;}).forEach(function(am){
+      var p=teamPerf[am];
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(26,31,56,.3);">'
+        +'<div><div style="font-size:13px;font-weight:600;">'+am+'</div>'
+          +'<div style="font-size:11px;color:var(--ink3);">'+Object.keys(p.stages).map(function(s){return p.stages[s]+'× '+s;}).join(', ')+'</div>'
+        +'</div>'
+        +'<div style="font-size:18px;font-weight:800;color:var(--teal);font-family:Syne;">'+p.clients+'</div>'
+      +'</div>';
+    });
+    teamEl.innerHTML=html||'<div style="color:var(--ink3);font-size:12px;">No data</div>';
+  }
+
+  // Recent activity count
+  var now=new Date();
+  var month_ago=new Date(now-30*24*60*60*1000);
+  var actEl=document.getElementById('rep-activity');
+  if(actEl){
+    var newClients=AC.filter(function(c){return new Date(c.created_at)>month_ago;}).length;
+    var newMeetings=AMeetings.filter(function(m){return new Date(m.created_at)>month_ago;}).length;
+    var newReqs=ARequests.filter(function(r){return new Date(r.created_at)>month_ago;}).length;
+    var newSvcs=AClientServices.filter(function(s){return new Date(s.created_at)>month_ago;}).length;
+    actEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+      +'<div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:8px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:800;color:var(--teal);font-family:Syne;">'+newClients+'</div><div style="font-size:11px;color:var(--ink3);">New Clients</div></div>'
+      +'<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:8px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#22c55e;font-family:Syne;">'+newMeetings+'</div><div style="font-size:11px;color:var(--ink3);">Meetings</div></div>'
+      +'<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:8px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#a78bfa;font-family:Syne;">'+newReqs+'</div><div style="font-size:11px;color:var(--ink3);">Requests</div></div>'
+      +'<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:8px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:800;color:var(--gold);font-family:Syne;">'+newSvcs+'</div><div style="font-size:11px;color:var(--ink3);">New Services</div></div>'
+    +'</div>';
+  }
+
+  // Stage detail
+  var detailEl=document.getElementById('rep-stage-detail');
+  if(detailEl){
+    var byStage={};
+    AC.forEach(function(c){
+      var s=c.stage||'OPEN';
+      if(!byStage[s])byStage[s]=[];
+      byStage[s].push(c);
+    });
+    var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">';
+    Object.keys(byStage).forEach(function(s){
+      var c2=stgColors[s]||'#6b7280';
+      html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:11px;">'
+        +'<div style="font-size:11px;font-weight:700;color:'+c2+';margin-bottom:6px;">'+s+' ('+byStage[s].length+')</div>'
+        +byStage[s].map(function(c){return '<div style="font-size:12px;padding:3px 0;border-bottom:1px solid rgba(26,31,56,.2);">'+c.name+'</div>';}).join('')
+      +'</div>';
+    });
+    html+='</div>';
+    detailEl.innerHTML=html;
+  }
+}
+
+// ── CONTRACTS ──
+var AContracts=[];
+
+function openReplyModal(rid, name){
+  document.getElementById('reply-rid').value=rid;
+  var req=ARequests.find(function(r){return r.id===rid;});
+  var ctx=document.getElementById('reply-context');
+  if(ctx&&req){
+    ctx.innerHTML='<div style="font-size:12px;font-weight:700;margin-bottom:4px;">'+req.title+'</div>'
+      +'<div style="font-size:11px;color:var(--ink3);">'+(req.description||'').slice(0,100)+'</div>'
+      +'<div style="font-size:11px;color:var(--ink3);margin-top:4px;">From: '+(req.client_name||req.requested_by||'—')+'</div>';
+  }
+  document.getElementById('reply-text').value='';
+  document.getElementById('reply-status').value='';
+  om('m-reply');
+}
+
+async function sendReply(){
+  var rid=document.getElementById('reply-rid').value;
+  var text=document.getElementById('reply-text').value.trim();
+  var status=document.getElementById('reply-status').value;
+  var notify=document.getElementById('reply-notify').checked;
+  if(!text)return toast('Write a reply first','error');
+  var req=ARequests.find(function(r){return r.id===rid;});
+  try{
+    var updates={reply:text,replied_at:new Date().toISOString(),replied_by:'Management'};
+    if(status)updates.status=status;
+    await sb.from('ix_requests').update(updates).eq('id',rid);
+    var i=ARequests.findIndex(function(r){return r.id===rid;});
+    if(i>=0)Object.assign(ARequests[i],updates);
+    // Add workflow update if client related
+    if(req&&req.client_id){
+      await sb.from('ix_workflow').insert({
+        client_id:req.client_id,client_name:req.client_name,
+        title:'Reply: '+req.title.slice(0,50),
+        description:text,show_to_client:true,created_by:'Management'
+      });
+    }
+    if(notify&&req){
+      tgNotif('💬','Reply Sent','*'+(req.client_name||req.requested_by||'Team')+'*\n'+text.slice(0,100));
+    }
+    cm('m-reply');
+    lRequests();
+    toast('✅ Reply sent!','success');
+  }catch(e){toast('Error sending reply','error');}
+}
+
+function populateContractClients(){
+  var sel=document.getElementById('ct-client');if(!sel)return;
+  sel.innerHTML='<option value="">— Select Client —</option>'+AC.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>';}).join('');
+}
+
+async function loadContracts(){
+  if(!sb)return;
+  try{
+    var r=await sb.from('ix_contracts').select('*').order('end_date',{ascending:true});
+    if(!r.error){
+      AContracts=r.data||[];
+      renderContracts();
+    }
+  }catch(e){renderContracts();}
+}
+
+function renderContracts(){
+  var el=document.getElementById('contracts-list');if(!el)return;
+  if(!AContracts.length){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--ink3);"><div style="font-size:40px;margin-bottom:12px;">📜</div><div>No contracts yet</div></div>';
+    return;
+  }
+  var today=new Date();
+  var sc={Draft:'pgo',Sent:'ptl',Signed:'pg',Active:'pg',Expired:'pr',Cancelled:'pgr'};
+  el.innerHTML=AContracts.map(function(ct){
+    var endDate=ct.end_date?new Date(ct.end_date):null;
+    var daysLeft=endDate?Math.round((endDate-today)/(1000*60*60*24)):null;
+    var isExpiringSoon=daysLeft!==null&&daysLeft<=30&&daysLeft>0;
+    var isExpired=daysLeft!==null&&daysLeft<=0;
+    return '<div style="background:var(--card);border:1px solid '+(isExpiringSoon?'rgba(245,158,11,.3)':isExpired?'rgba(239,68,68,.3)':'var(--border)')+';border-radius:11px;padding:15px;margin-bottom:10px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+        +'<div>'
+          +'<div style="font-size:14px;font-weight:700;">'+ct.client_name+'</div>'
+          +'<div style="font-size:12px;color:var(--ink3);">'+ct.contract_type+' · '+ct.service_type+'</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:6px;align-items:center;">'
+          +(isExpiringSoon?'<span style="font-size:10px;background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.3);padding:2px 8px;border-radius:10px;font-weight:700;">⚠️ Expiring in '+daysLeft+'d</span>':'')
+          +(isExpired?'<span style="font-size:10px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3);padding:2px 8px;border-radius:10px;font-weight:700;">🔴 Expired</span>':'')
+          +'<span class="pill '+(sc[ct.status]||'pgr')+'">'+ct.status+'</span>'
+        +'</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;">'
+        +'<div><div style="font-size:10px;color:var(--ink3);">Start</div><div style="font-size:12px;font-weight:600;">'+(ct.start_date||'—')+'</div></div>'
+        +'<div><div style="font-size:10px;color:var(--ink3);">Expiry</div><div style="font-size:12px;font-weight:600;color:'+(isExpired?'var(--red)':isExpiringSoon?'var(--gold)':'var(--ink)');'">'+(ct.end_date||'—')+'</div></div>'
+        +'<div><div style="font-size:10px;color:var(--ink3);">Value</div><div style="font-size:12px;font-weight:700;color:var(--gold);">'+(ct.value?'$'+parseFloat(ct.value).toLocaleString():'—')+'</div></div>'
+      +'</div>'
+      +(ct.notes?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;">'+ct.notes+'</div>':'')
+      +(ct.drive_link?'<a href="'+ct.drive_link+'" target="_blank" style="font-size:11px;color:var(--teal);">📎 View Document →</a>':'')
+      +'<div style="display:flex;gap:6px;margin-top:8px;">'
+        +'<button class="btn bo bsm" data-id="'+ct.id+'" onclick="editContract(this.dataset.id)">✏️ Edit</button>'
+        +'<button class="btn bsm" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+ct.id+'" onclick="deleteContract(this.dataset.id)">✕</button>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function saveContract(){
+  var clientSel=document.getElementById('ct-client');
+  var clientName=clientSel.options[clientSel.selectedIndex].text;
+  var editId=document.getElementById('ct-id').value;
+  var body={
+    client_id:clientSel.value||null,
+    client_name:clientName==='— Select Client —'?null:clientName,
+    service_type:document.getElementById('ct-svc').value,
+    contract_type:document.getElementById('ct-type').value,
+    status:document.getElementById('ct-status').value,
+    start_date:document.getElementById('ct-start').value||null,
+    end_date:document.getElementById('ct-end').value||null,
+    value:document.getElementById('ct-value').value||null,
+    drive_link:document.getElementById('ct-link').value.trim()||null,
+    notes:document.getElementById('ct-notes').value.trim()||null,
+    alert_before_expiry:document.getElementById('ct-alert').checked
+  };
+  if(!body.client_name)return toast('Select a client','error');
+  try{
+    if(editId){
+      await sb.from('ix_contracts').update(body).eq('id',editId);
+    } else {
+      var r=await sb.from('ix_contracts').insert(body).select().single();
+      if(!r.error)AContracts.unshift(r.data);
+    }
+    cm('m-contract');
+    loadContracts();
+    toast('✅ Contract saved!','success');
+    tgNotif('📜','Contract Saved','*'+body.client_name+'*\n'+body.contract_type+'\nStatus: '+body.status);
+  }catch(e){toast('Error saving','error');}
+}
+
+function editContract(id){
+  var ct=AContracts.find(function(c){return c.id===id;});if(!ct)return;
+  document.getElementById('ct-id').value=id;
+  document.getElementById('contract-modal-title').textContent='✏️ Edit Contract';
+  document.getElementById('ct-svc').value=ct.service_type||'';
+  document.getElementById('ct-type').value=ct.contract_type||'';
+  document.getElementById('ct-status').value=ct.status||'Draft';
+  document.getElementById('ct-start').value=ct.start_date||'';
+  document.getElementById('ct-end').value=ct.end_date||'';
+  document.getElementById('ct-value').value=ct.value||'';
+  document.getElementById('ct-link').value=ct.drive_link||'';
+  document.getElementById('ct-notes').value=ct.notes||'';
+  document.getElementById('ct-alert').checked=ct.alert_before_expiry!==false;
+  om('m-contract');
+}
+
+async function deleteContract(id){
+  if(!confirm('Delete this contract?'))return;
+  await sb.from('ix_contracts').delete().eq('id',id);
+  AContracts=AContracts.filter(function(c){return c.id!==id;});
+  renderContracts();
+  toast('Deleted','success');
+}
+
+function checkExpiringContracts(){
+  if(!AContracts.length)return;
+  var today=new Date();
+  var expiring=AContracts.filter(function(ct){
+    if(!ct.end_date||!ct.alert_before_expiry)return false;
+    var d=Math.round((new Date(ct.end_date)-today)/(1000*60*60*24));
+    return d>=0&&d<=30;
+  });
+  if(expiring.length){
+    expiring.forEach(function(ct){
+      var d=Math.round((new Date(ct.end_date)-today)/(1000*60*60*24));
+      tgNotif('⚠️','Contract Expiring Soon','*'+ct.client_name+'*\n'+ct.contract_type+'\nExpires in '+d+' days');
+    });
+  }
+}
+
 // ── TELEGRAM NOTIFICATIONS ──
 var TG_TOKEN='8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0';
 var TG_CHAT='851323429';
@@ -2803,6 +3113,20 @@ function openActModal(){
   om('m-act');
 }
 
+function togglePartnerField(){
+  var type=document.getElementById('cl-type').value;
+  var wrap=document.getElementById('partner-ref-wrap');
+  if(wrap)wrap.style.display=type==='client'?'block':'none';
+}
+
+function populatePartnerRef(){
+  var sel=document.getElementById('cl-partner-ref');if(!sel)return;
+  var partners=AC.filter(function(c){return c.client_type==='partner';});
+  sel.innerHTML='<option value="">— None / Direct —</option>'+partners.map(function(p){
+    return '<option value="'+p.id+'|'+p.name+'">🤝 '+p.name+'</option>';
+  }).join('');
+}
+
 function populateAssistantAMs(selectedAMs){
   var container=document.getElementById('assistant-am-checks');
   if(!container)return;
@@ -2832,6 +3156,9 @@ function openAddClient(editId){
   if(amSel)amSel.innerHTML='<option value="">— No AM —</option>'+APeople.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
   // Reset service checkboxes
   document.querySelectorAll('#svc-checks input[type=checkbox]').forEach(function(cb){cb.checked=false;});
+  populatePartnerRef();
+  var typeEl=document.getElementById('cl-type');if(typeEl)typeEl.value='client';
+  var wrap=document.getElementById('partner-ref-wrap');if(wrap)wrap.style.display='block';
   var ow=document.getElementById('svc-other-wrap');if(ow)ow.style.display='none';
   var ot=document.getElementById('svc-other-text');if(ot)ot.value='';
   var updateSec=document.getElementById('cl-update-section');
