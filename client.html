@@ -16,20 +16,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 #main{display:none;}
 .spin{width:36px;height:36px;border:3px solid #1a1f38;border-top-color:var(--teal);border-radius:50%;animation:sp .8s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg)}}
-.hero{background:linear-gradient(180deg,rgba(6,182,212,.06),transparent);border-bottom:1px solid var(--border);padding:22px 20px 16px;}
-.hero-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.hero{background:linear-gradient(160deg,rgba(6,182,212,.08),rgba(124,58,237,.04),transparent);border-bottom:1px solid var(--border);padding:24px 20px 18px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.08),transparent);pointer-events:none;}
+.hero-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
 .brand{font-size:10px;letter-spacing:3px;color:var(--ink3);text-transform:uppercase;font-family:'Syne',sans-serif;}
 .logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
+.client-info{display:flex;gap:14px;align-items:center;}
+.client-avatar{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;flex-shrink:0;}
 .c-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:3px;}
 .c-sub{font-size:12px;color:var(--ink3);}
-.stage-badge{display:inline-flex;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px;}
+.stage-badge{display:inline-flex;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:6px;}
+.kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 20px;border-bottom:1px solid var(--border);}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px;text-align:center;}
+.kv{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--teal);margin-bottom:2px;}
+.kl{font-size:9px;color:var(--ink3);font-weight:600;letter-spacing:1px;text-transform:uppercase;}
 .ct{padding:14px 20px;}
-.kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;}
-.kpi{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:13px;text-align:center;}
-.kv{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--teal);margin-bottom:3px;}
-.kl{font-size:10px;color:var(--ink3);font-weight:600;letter-spacing:1px;text-transform:uppercase;}
-.tabs{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.tab{flex-shrink:0;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.tabs{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+.tab{flex-shrink:0;padding:7px 13px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .tab.on{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.1);color:var(--teal);}
 .tp{display:none;}.tp.on{display:block;}
 .panel{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:12px;}
@@ -37,17 +40,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 .pt{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
 .pb{padding:14px;}
 .pill{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
-.pg{background:rgba(34,197,94,.1);color:#22c55e;}.ptl{background:rgba(6,182,212,.1);color:var(--teal);}.pp{background:rgba(124,58,237,.1);color:#a78bfa;}.pgo{background:rgba(245,158,11,.1);color:var(--gold);}.pgr{background:rgba(74,82,112,.15);color:var(--ink3);}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 16px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+.pg{background:rgba(34,197,94,.1);color:#22c55e;}.ptl{background:rgba(6,182,212,.1);color:var(--teal);}.pp{background:rgba(124,58,237,.1);color:#a78bfa;}.pgo{background:rgba(245,158,11,.1);color:var(--gold);}.pgr{background:rgba(74,82,112,.15);color:var(--ink3);}.pr{background:rgba(239,68,68,.1);color:var(--red);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 16px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s;}
 .bbg{background:var(--grad);color:#fff;}.bbg:hover{opacity:.9;}
 .bbo{background:transparent;border:1px solid var(--border);color:var(--ink2);}
+.bw{width:100%;}
 .fi,.fs,.fta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font-family:inherit;font-size:13px;}
 .fi:focus,.fs:focus,.fta:focus{outline:none;border-color:var(--teal);}
 .fs option{background:var(--card2);}
 .fta{resize:vertical;min-height:75px;line-height:1.6;}
 .fg{margin-bottom:11px;}
 .fl{font-size:11px;color:var(--ink2);font-weight:600;margin-bottom:4px;display:block;}
-.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center;padding:14px;}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;padding:14px;}
 .modal{background:var(--card);border:1px solid #232a45;border-radius:14px;padding:20px;width:480px;max-width:100%;max-height:90vh;overflow-y:auto;}
 .mti{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;}
 .mft{display:flex;gap:7px;justify-content:flex-end;margin-top:13px;padding-top:12px;border-top:1px solid var(--border);}
@@ -59,10 +63,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 .rb{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px;text-align:center;}
 .rv{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--gold);margin-bottom:2px;}
 .rl{font-size:10px;color:var(--ink3);}
-.lang-bar{position:fixed;top:10px;right:10px;display:flex;gap:4px;z-index:999;flex-wrap:wrap;max-width:175px;justify-content:flex-end;}
+.lang-bar{position:fixed;top:10px;right:10px;display:flex;gap:4px;z-index:999;flex-wrap:wrap;max-width:180px;justify-content:flex-end;}
 .lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.lb.on{background:rgba(6,182,212,.2);border-color:#06b6d4;color:var(--teal);}
 .ftr{text-align:center;padding:20px;color:var(--ink3);font-size:11px;border-top:1px solid var(--border);margin-top:10px;}
-@media(max-width:480px){.ct{padding:12px 13px;}.kgrid{grid-template-columns:1fr 1fr;}.rg{grid-template-columns:1fr;}.modal{width:100%;padding:16px 13px;border-radius:12px;}}
+.rm-step{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid rgba(26,31,56,.4);}
+.rm-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:'Syne',sans-serif;flex-shrink:0;}
+.rm-active{background:linear-gradient(135deg,#06b6d4,#7c3aed);color:#fff;}
+.rm-done{background:rgba(34,197,94,.15);color:#22c55e;border:2px solid #22c55e;}
+.rm-pending{background:var(--card2);color:var(--ink3);border:2px solid var(--border);}
+.ticket-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;}
+@media(max-width:480px){.ct{padding:12px 13px;}.kgrid{grid-template-columns:repeat(2,1fr);}.rg{grid-template-columns:1fr;}.modal{width:100%;padding:16px 13px;border-radius:12px;}}
 </style>
 </head>
 <body>
@@ -78,121 +89,182 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   <button class="lb" data-l="ko" onclick="setL('ko')">KO</button>
   <button class="lb" data-l="zh" onclick="setL('zh')">ZH</button>
 </div>
-<div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);" id="loading-text">Loading...</div></div>
+
+<div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);">Loading your portal...</div></div>
 <div id="error-sc" style="display:none;flex-direction:column;">
   <div style="font-size:48px;">🚫</div>
-  <div style="font-family:Syne;font-size:18px;font-weight:700;color:var(--red);margin-bottom:8px;" id="access-denied-title">Access Denied</div>
-  <div style="font-size:13px;color:var(--ink3);" id="access-denied-msg">Please <a href="portal.html" style="color:var(--teal);">login</a> first.</div>
+  <div style="font-family:Syne;font-size:18px;font-weight:700;color:var(--red);margin-bottom:8px;">Access Denied</div>
+  <div style="font-size:13px;color:var(--ink3);">Please <a href="portal.html" style="color:var(--teal);">login</a> first.</div>
 </div>
 
 <div id="main">
   <div class="hero">
     <div class="hero-top">
-      <div class="brand" id="brand">INTERSECT PartnerOS · Client Portal</div>
-      <button class="logout-btn" id="logout-btn" onclick="doLogout()">→ Logout</button>
+      <div class="brand">INTERSECT PartnerOS · Client Portal</div>
+      <button class="logout-btn" onclick="doLogout()">→ Logout</button>
     </div>
-    <div class="c-name" id="c-name">—</div>
-    <div class="c-sub" id="c-sub">Client Portal · Confidential</div>
-    <div class="stage-badge" id="c-stage">—</div>
+    <div class="client-info">
+      <div class="client-avatar" id="c-avatar">CL</div>
+      <div>
+        <div class="c-name" id="c-name">—</div>
+        <div class="c-sub" id="c-sub">Client Portal</div>
+        <div class="stage-badge" id="c-stage">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kgrid">
+    <div class="kpi"><div class="kv" id="k-wf">0</div><div class="kl">Updates</div></div>
+    <div class="kpi"><div class="kv" id="k-mt">0</div><div class="kl">Meetings</div></div>
+    <div class="kpi"><div class="kv" id="k-ex">0</div><div class="kl">Experts</div></div>
+    <div class="kpi"><div class="kv" id="k-tk">0</div><div class="kl">Tickets</div></div>
   </div>
 
   <div class="ct">
-    <div class="kgrid">
-      <div class="kpi"><div class="kv" id="k-wf">0</div><div class="kl">Updates</div></div>
-      <div class="kpi"><div class="kv" id="k-mt">0</div><div class="kl">Meetings</div></div>
-      <div class="kpi"><div class="kv" id="k-ex">0</div><div class="kl">Experts</div></div>
-    </div>
     <div class="tabs">
       <button class="tab on" onclick="showTab('overview',this)">📊 Overview</button>
+      <button class="tab" onclick="showTab('roadmap',this)">🗺️ Roadmap</button>
       <button class="tab" onclick="showTab('updates',this)">🔄 Updates</button>
       <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
       <button class="tab" onclick="showTab('experts',this)">🌟 Experts</button>
+      <button class="tab" onclick="showTab('tickets',this)">🎫 Tickets</button>
       <button class="tab" onclick="showTab('requests',this)">📋 My Requests</button>
-      <button class="tab" onclick="showTab('help',this)">🆘 Request Help</button>
       <button class="tab" onclick="showTab('invoices',this)">🧾 Invoices</button>
       <button class="tab" onclick="showTab('news',this)">📰 News</button>
     </div>
 
+    <!-- OVERVIEW -->
     <div class="tp on" id="tp-overview">
       <div class="panel">
-        <div class="ph"><div class="pt">📋 Project Overview</div><span id="ov-svc" class="pill ptl"></span></div>
+        <div class="ph"><div class="pt">📋 Partnership Overview</div><span id="ov-svc" class="pill ptl"></span></div>
         <div class="pb">
-          <div style="margin-bottom:10px;"><span style="font-size:11px;color:var(--ink3);">Stage</span><br><strong id="ov-stage" style="font-size:14px;"></strong></div>
-          <div style="margin-bottom:10px;"><span style="font-size:11px;color:var(--ink3);">Account Manager</span><br><strong id="ov-am" style="font-size:13px;color:#a78bfa;"></strong></div>
-          <div id="ov-notes" style="display:none;font-size:13px;color:var(--ink2);line-height:1.6;background:var(--card2);border-radius:8px;padding:12px;"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div><span style="font-size:11px;color:var(--ink3);">Stage</span><br><strong id="ov-stage" style="font-size:14px;"></strong></div>
+            <div><span style="font-size:11px;color:var(--ink3);">Account Manager</span><br><strong id="ov-am" style="font-size:13px;color:#a78bfa;"></strong></div>
+          </div>
+          <div id="ov-notes" style="display:none;font-size:13px;color:var(--ink2);line-height:1.6;background:var(--card2);border-radius:8px;padding:12px;margin-bottom:12px;"></div>
+          <div id="ov-quick-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt">🔄 Latest Updates</div></div>
+        <div class="pb" id="ov-updates-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:12px;">No updates yet</div></div>
+      </div>
+    </div>
+
+    <!-- ROADMAP -->
+    <div class="tp" id="tp-roadmap">
+      <div class="panel">
+        <div class="ph"><div class="pt">🗺️ Partnership Roadmap</div></div>
+        <div class="pb" id="roadmap-body">
+          <div style="text-align:center;color:var(--ink3);font-size:13px;padding:24px;">
+            <div style="font-size:32px;margin-bottom:10px;">🗺️</div>
+            Your roadmap will appear here after your partnership agreement is finalized.
+          </div>
+        </div>
+      </div>
+      <div id="roadmap-link-panel" style="display:none;">
+        <div class="panel">
+          <div class="ph"><div class="pt">📎 Documents & Resources</div></div>
+          <div class="pb" id="roadmap-docs"></div>
         </div>
       </div>
     </div>
 
+    <!-- UPDATES -->
     <div class="tp" id="tp-updates">
       <div class="panel"><div class="ph"><div class="pt">🔄 Project Updates</div></div>
       <div class="pb" id="wf-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No updates yet</div></div></div>
     </div>
 
+    <!-- MEETINGS -->
     <div class="tp" id="tp-meetings">
       <div class="panel"><div class="ph"><div class="pt">📅 Meetings</div></div>
       <div class="pb" id="mt-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings yet</div></div></div>
     </div>
 
+    <!-- EXPERTS -->
     <div class="tp" id="tp-experts">
       <div style="margin-bottom:10px;"><input class="fi" id="exp-search" placeholder="🔍 Filter by specialization..." oninput="filterExperts(this.value)"></div>
-      <div id="exp-list"></div>
+      <div id="exp-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading experts...</div></div>
     </div>
 
-    <div class="tp" id="tp-requests">
-      <div class="panel"><div class="ph"><div class="pt">📋 My Expert Requests</div></div>
-      <div class="pb" id="req-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div></div></div>
-    </div>
-  </div>
-    <div class="tp" id="tp-help">
+    <!-- TICKETS -->
+    <div class="tp" id="tp-tickets">
       <div class="panel">
-        <div class="ph"><div class="pt">🆘 Request Help from Intersect Team</div></div>
+        <div class="ph"><div class="pt">🎫 Submit a Ticket</div></div>
         <div class="pb">
-          <div class="fg"><label class="fl">What do you need help with? *</label>
-            <select class="fs" id="help-type">
+          <!-- Who to contact -->
+          <div class="fg">
+            <label class="fl">Send to</label>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
+              <label style="display:flex;align-items:flex-start;gap:9px;background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:12px;cursor:pointer;">
+                <input type="radio" name="ticket-target" value="am" id="tkt-to-am" checked style="margin-top:3px;flex-shrink:0;">
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--teal);">👤 Account Manager <span style="font-size:10px;background:rgba(34,197,94,.1);color:#22c55e;padding:2px 7px;border-radius:10px;font-weight:600;margin-left:5px;">Recommended</span></div>
+                  <div style="font-size:11px;color:var(--ink3);margin-top:3px;">Fastest response. Your AM handles day-to-day requests and follows up with you directly.</div>
+                </div>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:9px;background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:12px;cursor:pointer;">
+                <input type="radio" name="ticket-target" value="management" id="tkt-to-mgmt" style="margin-top:3px;flex-shrink:0;">
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#a78bfa;">🏛️ Senior Management</div>
+                  <div style="font-size:11px;color:var(--ink3);margin-top:3px;">For strategic decisions or escalations. Note: your AM is still your primary point of contact for most matters.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="fg"><label class="fl">Category *</label>
+            <select class="fs" id="tkt-category">
+              <option value="General">📌 General Inquiry</option>
               <option value="Legal">⚖️ Legal</option>
               <option value="Financial">💰 Financial</option>
               <option value="Strategic">🎯 Strategic</option>
               <option value="Technical">💻 Technical</option>
-              <option value="Marketing">📢 Marketing</option>
-              <option value="Other">📌 Other</option>
+              <option value="Partnership">🤝 Partnership Update</option>
+              <option value="Document">📄 Document Request</option>
+              <option value="Urgent">🔴 Urgent</option>
             </select>
           </div>
-          <div class="fg"><label class="fl">Description *</label><textarea class="fta" id="help-desc" placeholder="Describe what you need..."></textarea></div>
-          <div class="fg"><label class="fl">Preferred Timeline</label>
-            <select class="fs" id="help-timeline">
+          <div class="fg"><label class="fl">Subject *</label><input class="fi" id="tkt-subject" placeholder="Brief summary of your request"></div>
+          <div class="fg"><label class="fl">Details *</label><textarea class="fta" id="tkt-details" placeholder="Describe your request in detail..."></textarea></div>
+          <div class="fg"><label class="fl">Priority</label>
+            <select class="fs" id="tkt-priority">
               <option value="Urgent">🔴 Urgent (ASAP)</option>
-              <option value="This week">🟡 This week</option>
+              <option value="This week" selected>🟡 This week</option>
               <option value="This month">🟢 This month</option>
             </select>
           </div>
-          <button class="btn bbg bw" onclick="submitHelp()">📤 Submit Request</button>
-          <div id="help-sent" style="display:none;margin-top:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;font-size:13px;color:#22c55e;text-align:center;">✅ Request sent! Intersect team will contact you shortly.</div>
+          <div class="fg"><label class="fl">Attachment / Link (optional)</label><input class="fi" id="tkt-file" type="url" dir="ltr" placeholder="https://drive.google.com/..."></div>
+          <button class="btn bbg bw" onclick="submitTicket()">🎫 Submit Ticket</button>
+          <div id="tkt-sent" style="display:none;margin-top:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:9px;padding:13px;font-size:13px;color:#22c55e;"></div>
         </div>
       </div>
       <div class="panel">
-        <div class="ph"><div class="pt" id="my-help-reqs-title">📋 My Help Requests</div></div>
-        <div class="pb" id="help-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div></div>
+        <div class="ph"><div class="pt">📋 My Tickets</div></div>
+        <div class="pb" id="tkt-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No tickets yet</div></div>
       </div>
     </div>
 
-    <!-- INVOICES TAB -->
+    <!-- MY REQUESTS (expert requests) -->
+    <div class="tp" id="tp-requests">
+      <div class="panel"><div class="ph"><div class="pt">📋 My Expert Requests</div></div>
+      <div class="pb" id="req-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet — browse Experts tab</div></div></div>
+    </div>
+
+    <!-- INVOICES -->
     <div class="tp" id="tp-invoices">
-      <div class="panel">
-        <div class="ph"><div class="pt">🧾 My Invoices</div></div>
-        <div class="pb" id="inv-portal-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No invoices yet</div></div>
-      </div>
+      <div class="panel"><div class="ph"><div class="pt">🧾 My Invoices</div></div>
+      <div class="pb" id="inv-portal-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No invoices yet</div></div></div>
     </div>
 
-    <!-- NEWS TAB -->
+    <!-- NEWS -->
     <div class="tp" id="tp-news">
-      <div class="panel">
-        <div class="ph"><div class="pt">📰 News & Announcements</div></div>
-        <div class="pb" id="news-feed-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news yet</div></div>
-      </div>
+      <div class="panel"><div class="ph"><div class="pt">📰 News & Announcements</div></div>
+      <div class="pb" id="news-feed-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div></div>
     </div>
   </div>
-  <div class="ftr" id="footer-text">INTERSECT PartnerOS · Confidential Client Portal</div>
+  <div class="ftr"><strong style="color:var(--teal);">INTERSECT</strong> PartnerOS · Confidential Client Portal</div>
 </div>
 
 <!-- REQUEST EXPERT MODAL -->
@@ -213,7 +285,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <div id="req-rate" style="font-family:Syne;font-size:22px;font-weight:800;color:var(--gold);">—</div>
     </div>
     <div class="fg"><label class="fl">Preferred Date</label><input class="fi" type="date" id="req-date"></div>
-    <div class="fg"><label class="fl">Message / Requirements *</label><textarea class="fta" id="req-msg" placeholder="Describe what you need..."></textarea></div>
+    <div class="fg"><label class="fl">Message / Requirements *</label><textarea class="fta" id="req-msg" placeholder="Describe what you need from this expert..."></textarea></div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="req-notes" placeholder="Any additional context..."></textarea></div>
     <div class="mft">
       <button class="btn bbo" onclick="closeModal('m-req')" style="padding:8px 14px;">Cancel</button>
       <button class="btn bbg" onclick="submitReq()" style="padding:8px 20px;">📤 Submit</button>
@@ -228,52 +301,7 @@ var sb=null, clientData=null, allExperts=[], myReqs=[], currentRates={};
 
 try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
 
-var T={"en": {"brand_client": "INTERSECT PartnerOS · Client Portal", "brand_team": "INTERSECT PartnerOS · Team Portal", "logout": "→ Logout", "tab_overview": "📊 Overview", "tab_updates": "🔄 Updates", "tab_meetings": "📅 Meetings", "tab_experts": "🌟 Experts", "tab_requests": "📋 My Requests", "tab_help": "🆘 Request Help", "tab_clients": "🏢 My Clients", "tab_tasks": "📌 My Tasks", "tab_reqs": "📋 Requests", "tab_workflow": "🔄 Add Update", "tab_expert_reqs": "📋 Requests", "tab_profile": "👤 My Profile", "tab_avail": "📅 Availability", "stage": "Stage", "am": "Account Manager", "no_updates": "No updates yet", "no_meetings": "No meetings yet", "no_experts": "No experts available", "no_requests": "No requests yet", "no_clients": "No clients assigned", "no_tasks": "No tasks", "updates": "Updates", "meetings": "Meetings", "experts": "Experts", "clients": "Clients", "tasks": "Tasks", "help_title": "🆘 Request Help from Intersect Team", "help_what": "What do you need help with?", "help_desc": "Description", "help_desc_ph": "Describe what you need...", "help_timeline": "Preferred Timeline", "help_submit": "📤 Submit Request", "help_sent": "✅ Request sent! Intersect team will contact you shortly.", "req_expert": "🌟 Request Expert", "req_svc": "Service Type", "req_per_hour": "Per Hour", "req_per_month": "Per Month", "req_per_year": "Per Year", "req_date": "Preferred Date", "req_msg": "Message / Requirements", "req_msg_ph": "Describe what you need...", "cancel": "Cancel", "submit": "📤 Submit", "rate": "Rate", "on_request": "On Request", "filter_spec": "🔍 Filter by specialization...", "project_overview": "📋 Project Overview", "project_updates": "🔄 Project Updates", "acknowledge": "✅ Acknowledge", "update_avail": "💾 Update", "save_update": "💾 Save Update", "send_req": "📤 Send", "new_request": "+ New Request", "select_client": "— Select Client —", "no_client": "— None —", "title": "Title", "description": "Description", "priority": "Priority", "attachment": "Attachment (Drive link)", "visible_client": "Visible to client", "update_title_ph": "e.g. Contract sent for review", "status": "Status", "in_progress": "In Progress", "completed": "Completed", "blocked": "Blocked", "urgent": "🔴 Urgent (ASAP)", "this_week": "🟡 This week", "this_month": "🟢 This month", "footer_client": "INTERSECT PartnerOS · Confidential Client Portal", "footer_team": "INTERSECT PartnerOS · Confidential", "access_denied": "Access Denied", "access_denied_msg": "Please login first.", "loading": "Loading...", "no_exp_reqs": "No requests yet — your profile is visible in the marketplace", "my_help_reqs": "📋 My Help Requests"}, "ar": {"brand_client": "إنترسيكت PartnerOS · بوابة العميل", "brand_team": "إنترسيكت PartnerOS · بوابة الفريق", "logout": "→ خروج", "tab_overview": "📊 نظرة عامة", "tab_updates": "🔄 التحديثات", "tab_meetings": "📅 الاجتماعات", "tab_experts": "🌟 الخبراء", "tab_requests": "📋 طلباتي", "tab_help": "🆘 طلب مساعدة", "tab_clients": "🏢 عملائي", "tab_tasks": "📌 مهامي", "tab_reqs": "📋 الطلبات", "tab_workflow": "🔄 إضافة تحديث", "tab_expert_reqs": "📋 الطلبات", "tab_profile": "👤 ملفي", "tab_avail": "📅 التوفر", "stage": "المرحلة", "am": "مدير الحساب", "no_updates": "لا توجد تحديثات بعد", "no_meetings": "لا توجد اجتماعات بعد", "no_experts": "لا يوجد خبراء متاحون", "no_requests": "لا توجد طلبات بعد", "no_clients": "لا يوجد عملاء معينون", "no_tasks": "لا توجد مهام", "updates": "التحديثات", "meetings": "الاجتماعات", "experts": "الخبراء", "clients": "العملاء", "tasks": "المهام", "help_title": "🆘 طلب مساعدة من فريق إنترسيكت", "help_what": "ماذا تحتاج؟", "help_desc": "الوصف", "help_desc_ph": "اشرح ما تحتاجه...", "help_timeline": "الإطار الزمني المفضل", "help_submit": "📤 إرسال الطلب", "help_sent": "✅ تم إرسال الطلب! سيتواصل معك فريق إنترسيكت قريباً.", "req_expert": "🌟 طلب خبير", "req_svc": "نوع الخدمة", "req_per_hour": "بالساعة", "req_per_month": "بالشهر", "req_per_year": "بالسنة", "req_date": "التاريخ المفضل", "req_msg": "الرسالة / المتطلبات", "req_msg_ph": "اشرح ما تحتاجه من هذا الخبير...", "cancel": "إلغاء", "submit": "📤 إرسال", "rate": "السعر", "on_request": "عند الطلب", "filter_spec": "🔍 تصفية حسب التخصص...", "project_overview": "📋 نظرة عامة على المشروع", "project_updates": "🔄 تحديثات المشروع", "acknowledge": "✅ إقرار", "update_avail": "💾 تحديث", "save_update": "💾 حفظ التحديث", "send_req": "📤 إرسال", "new_request": "+ طلب جديد", "select_client": "— اختر العميل —", "no_client": "— لا يوجد —", "title": "العنوان", "description": "الوصف", "priority": "الأولوية", "attachment": "مرفق (رابط Drive)", "visible_client": "مرئي للعميل", "update_title_ph": "مثال: تم إرسال العقد للمراجعة", "status": "الحالة", "in_progress": "قيد التنفيذ", "completed": "مكتمل", "blocked": "متوقف", "urgent": "🔴 عاجل (فوراً)", "this_week": "🟡 هذا الأسبوع", "this_month": "🟢 هذا الشهر", "footer_client": "إنترسيكت PartnerOS · بوابة العميل السرية", "footer_team": "إنترسيكت PartnerOS · سري", "access_denied": "تم رفض الوصول", "access_denied_msg": "يرجى تسجيل الدخول أولاً.", "loading": "جارٍ التحميل...", "no_exp_reqs": "لا توجد طلبات بعد — ملفك مرئي في السوق", "my_help_reqs": "📋 طلبات المساعدة"}, "es": {"brand_client": "INTERSECT PartnerOS · Portal Cliente", "brand_team": "INTERSECT PartnerOS · Portal Equipo", "logout": "→ Salir", "tab_overview": "📊 Resumen", "tab_updates": "🔄 Actualizaciones", "tab_meetings": "📅 Reuniones", "tab_experts": "🌟 Expertos", "tab_requests": "📋 Mis Solicitudes", "tab_help": "🆘 Pedir Ayuda", "tab_clients": "🏢 Mis Clientes", "tab_tasks": "📌 Mis Tareas", "tab_reqs": "📋 Solicitudes", "tab_workflow": "🔄 Añadir Actualización", "tab_expert_reqs": "📋 Solicitudes", "tab_profile": "👤 Mi Perfil", "tab_avail": "📅 Disponibilidad", "stage": "Etapa", "am": "Gestor de Cuenta", "no_updates": "Sin actualizaciones", "no_meetings": "Sin reuniones", "no_experts": "Sin expertos disponibles", "no_requests": "Sin solicitudes", "no_clients": "Sin clientes asignados", "no_tasks": "Sin tareas", "updates": "Actualizaciones", "meetings": "Reuniones", "experts": "Expertos", "clients": "Clientes", "tasks": "Tareas", "cancel": "Cancelar", "submit": "📤 Enviar", "acknowledge": "✅ Confirmar", "update_avail": "💾 Actualizar", "save_update": "💾 Guardar", "rate": "Tarifa", "on_request": "A consultar", "loading": "Cargando...", "access_denied": "Acceso Denegado", "access_denied_msg": "Por favor inicie sesión.", "footer_client": "INTERSECT PartnerOS · Portal Confidencial", "footer_team": "INTERSECT PartnerOS · Confidencial", "help_submit": "📤 Enviar Solicitud", "help_sent": "✅ ¡Solicitud enviada!", "no_exp_reqs": "Sin solicitudes aún", "my_help_reqs": "📋 Mis Solicitudes", "project_overview": "📋 Resumen del Proyecto", "project_updates": "🔄 Actualizaciones", "filter_spec": "🔍 Filtrar por especialización...", "req_expert": "🌟 Solicitar Experto", "req_svc": "Tipo de Servicio", "req_per_hour": "Por Hora", "req_per_month": "Por Mes", "req_per_year": "Por Año", "req_date": "Fecha Preferida", "req_msg": "Mensaje / Requisitos", "req_msg_ph": "Describa lo que necesita..."}, "fr": {"brand_client": "INTERSECT PartnerOS · Portail Client", "brand_team": "INTERSECT PartnerOS · Portail Équipe", "logout": "→ Déconnexion", "tab_overview": "📊 Aperçu", "tab_updates": "🔄 Mises à jour", "tab_meetings": "📅 Réunions", "tab_experts": "🌟 Experts", "tab_requests": "📋 Mes demandes", "tab_help": "🆘 Demander aide", "tab_clients": "🏢 Mes clients", "tab_tasks": "📌 Mes tâches", "tab_reqs": "📋 Demandes", "tab_workflow": "🔄 Ajouter mise à jour", "tab_expert_reqs": "📋 Demandes", "tab_profile": "👤 Mon profil", "tab_avail": "📅 Disponibilité", "stage": "Étape", "am": "Gestionnaire de compte", "no_updates": "Pas de mises à jour", "no_meetings": "Pas de réunions", "no_experts": "Pas d experts disponibles", "no_requests": "Pas de demandes", "no_clients": "Pas de clients assignés", "no_tasks": "Pas de tâches", "updates": "Mises à jour", "meetings": "Réunions", "experts": "Experts", "clients": "Clients", "tasks": "Tâches", "cancel": "Annuler", "submit": "📤 Envoyer", "acknowledge": "✅ Confirmer", "update_avail": "💾 Mettre à jour", "save_update": "💾 Sauvegarder", "rate": "Tarif", "on_request": "Sur demande", "loading": "Chargement...", "access_denied": "Accès refusé", "access_denied_msg": "Veuillez vous connecter.", "footer_client": "INTERSECT PartnerOS · Portail Confidentiel", "footer_team": "INTERSECT PartnerOS · Confidentiel", "help_submit": "📤 Soumettre", "help_sent": "✅ Demande envoyée!", "no_exp_reqs": "Pas de demandes encore", "my_help_reqs": "📋 Mes demandes", "project_overview": "📋 Vue d ensemble", "project_updates": "🔄 Mises à jour", "filter_spec": "🔍 Filtrer par spécialisation...", "req_expert": "🌟 Demander un expert", "req_svc": "Type de service", "req_per_hour": "Par heure", "req_per_month": "Par mois", "req_per_year": "Par an", "req_date": "Date préférée", "req_msg": "Message / Exigences", "req_msg_ph": "Décrivez ce dont vous avez besoin..."}, "de": {"brand_client": "INTERSECT PartnerOS · Kundenportal", "brand_team": "INTERSECT PartnerOS · Teamportal", "logout": "→ Abmelden", "tab_overview": "📊 Übersicht", "tab_updates": "🔄 Aktualisierungen", "tab_meetings": "📅 Meetings", "tab_experts": "🌟 Experten", "tab_requests": "📋 Meine Anfragen", "tab_help": "🆘 Hilfe anfordern", "tab_clients": "🏢 Meine Kunden", "tab_tasks": "📌 Meine Aufgaben", "stage": "Phase", "am": "Kundenbetreuer", "no_updates": "Keine Aktualisierungen", "no_meetings": "Keine Meetings", "cancel": "Abbrechen", "submit": "📤 Senden", "loading": "Laden...", "access_denied": "Zugang verweigert", "access_denied_msg": "Bitte melden Sie sich an.", "rate": "Preis", "on_request": "Auf Anfrage"}, "it": {"brand_client": "INTERSECT PartnerOS · Portale Cliente", "brand_team": "INTERSECT PartnerOS · Portale Team", "logout": "→ Esci", "tab_overview": "📊 Panoramica", "tab_updates": "🔄 Aggiornamenti", "tab_meetings": "📅 Riunioni", "tab_experts": "🌟 Esperti", "tab_requests": "📋 Le mie richieste", "tab_help": "🆘 Richiedi aiuto", "tab_clients": "🏢 I miei clienti", "tab_tasks": "📌 I miei compiti", "stage": "Fase", "am": "Responsabile account", "no_updates": "Nessun aggiornamento", "no_meetings": "Nessuna riunione", "cancel": "Annulla", "submit": "📤 Invia", "loading": "Caricamento...", "access_denied": "Accesso negato", "access_denied_msg": "Per favore accedi.", "rate": "Tariffa", "on_request": "Su richiesta"}, "ja": {"brand_client": "INTERSECT PartnerOS · クライアントポータル", "brand_team": "INTERSECT PartnerOS · チームポータル", "logout": "→ ログアウト", "tab_overview": "📊 概要", "tab_updates": "🔄 更新", "tab_meetings": "📅 会議", "tab_experts": "🌟 専門家", "tab_requests": "📋 リクエスト", "tab_help": "🆘 ヘルプ", "tab_clients": "🏢 クライアント", "tab_tasks": "📌 タスク", "stage": "ステージ", "am": "アカウントマネージャー", "no_updates": "更新なし", "no_meetings": "会議なし", "cancel": "キャンセル", "submit": "📤 送信", "loading": "読み込み中...", "access_denied": "アクセス拒否", "access_denied_msg": "ログインしてください。", "rate": "料金", "on_request": "お問い合わせ"}, "ko": {"brand_client": "INTERSECT PartnerOS · 고객 포털", "brand_team": "INTERSECT PartnerOS · 팀 포털", "logout": "→ 로그아웃", "tab_overview": "📊 개요", "tab_updates": "🔄 업데이트", "tab_meetings": "📅 회의", "tab_experts": "🌟 전문가", "tab_requests": "📋 내 요청", "tab_help": "🆘 도움 요청", "tab_clients": "🏢 내 고객", "tab_tasks": "📌 내 작업", "stage": "단계", "am": "계정 관리자", "no_updates": "업데이트 없음", "no_meetings": "회의 없음", "cancel": "취소", "submit": "📤 제출", "loading": "로딩 중...", "access_denied": "접근 거부", "access_denied_msg": "로그인해 주세요.", "rate": "요금", "on_request": "요청 시"}, "zh": {"brand_client": "INTERSECT PartnerOS · 客户门户", "brand_team": "INTERSECT PartnerOS · 团队门户", "logout": "→ 退出", "tab_overview": "📊 概览", "tab_updates": "🔄 更新", "tab_meetings": "📅 会议", "tab_experts": "🌟 专家", "tab_requests": "📋 我的请求", "tab_help": "🆘 请求帮助", "tab_clients": "🏢 我的客户", "tab_tasks": "📌 我的任务", "stage": "阶段", "am": "客户经理", "no_updates": "暂无更新", "no_meetings": "暂无会议", "cancel": "取消", "submit": "📤 提交", "loading": "加载中...", "access_denied": "访问被拒绝", "access_denied_msg": "请先登录。", "rate": "费率", "on_request": "按需报价"}};
-var currentLang='en';
-function t(k){return (T[currentLang]&&T[currentLang][k])?T[currentLang][k]:(T.en[k]||k);}
-function setL(l){
-  currentLang=l;
-  var h=document.getElementById('ch');
-  h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');
-  try{localStorage.setItem('ix_lang',l);}catch(e){}
-  document.querySelectorAll('.lb').forEach(function(b){b.style.background='rgba(255,255,255,.08)';b.style.color='#e8ecf8';b.style.borderColor='rgba(255,255,255,.15)';});
-  var active=document.querySelector('.lb[data-l="'+l+'"]');
-  if(active){active.style.background='rgba(6,182,212,.2)';active.style.color='#06b6d4';active.style.borderColor='#06b6d4';}
-  applyTranslations();
-}
-function applyTranslations(){
-  // Apply to static elements
-  var els=[
-    ['brand','brand_client'],['logout-btn','logout'],
-    ['tab-overview','tab_overview'],['tab-updates','tab_updates'],
-    ['tab-meetings','tab_meetings'],['tab-experts','tab_experts'],
-    ['tab-requests','tab_requests'],['tab-help','tab_help'],
-    ['loading-text','loading'],['access-denied-title','access_denied'],
-    ['access-denied-msg','access_denied_msg'],
-    ['stage-label','stage'],['am-label','am'],
-    ['footer-text','footer_client'],
-  ];
-  els.forEach(function(e){
-    var el=document.getElementById(e[0]);
-    if(el)el.textContent=t(e[1]);
-  });
-  // Tabs
-  var tabs=document.querySelectorAll('.tab');
-  var tabKeys=['tab_overview','tab_updates','tab_meetings','tab_experts','tab_requests','tab_help'];
-  tabs.forEach(function(tab,i){if(tabKeys[i])tab.textContent=t(tabKeys[i]);});
-  // Placeholders
-  var search=document.getElementById('exp-search');
-  if(search)search.placeholder=t('filter_spec');
-  var helpDesc=document.getElementById('help-desc');
-  if(helpDesc)helpDesc.placeholder=t('help_desc_ph');
-  var reqMsg=document.getElementById('req-msg');
-  if(reqMsg)reqMsg.placeholder=t('req_msg_ph');
-  // Dynamic content - re-render with new language
-  if(clientData){
-    var stgLabel=document.getElementById('stage-label-val');
-    if(stgLabel)stgLabel.textContent=t('stage')+': ';
-  }
-}
+function setL(l){var h=document.getElementById('ch');h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');try{localStorage.setItem('ix_lang',l);}catch(e){}document.querySelectorAll('.lb').forEach(function(b){b.classList.remove('on');});var a=document.querySelector('.lb[data-l="'+l+'"]');if(a)a.classList.add('on');}
 function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
 function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
 var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
@@ -285,12 +313,11 @@ window.addEventListener('DOMContentLoaded',function(){
   initLang();
   var stored=null;
   try{stored=localStorage.getItem('ix_portal_data');}catch(e){}
-  if(!stored){return showError();}
+  if(!stored)return showError();
   try{
     clientData=JSON.parse(stored);
     if(!clientData||!clientData.name)return showError();
     renderMain(clientData);
-    // Load extra data in background
     loadExtraData(clientData);
   }catch(e){showError();}
 });
@@ -299,121 +326,211 @@ function renderMain(c){
   var stgC={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':'#8b5cf6','MOU':'#06b6d4','LEGAL':'#f59e0b','PLANNING':'#f97316','EXECUTION':'#22c55e','FINALIZATION':'#10b981','COMPLETED':'#22c55e','ON HOLD':'#6b7280'};
   var stage=c.stage||'Active';
   var sc=stgC[stage]||'#06b6d4';
+  var init=(c.name||'CL').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  document.getElementById('c-avatar').textContent=init;
   document.getElementById('c-name').textContent=c.name;
   document.getElementById('c-sub').textContent=(c.industry||c.service_type||'Strategic Partner')+' · Client Portal';
   var stgEl=document.getElementById('c-stage');
   stgEl.textContent=stage;
-  stgEl.style.cssText='display:inline-flex;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px;background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'44;';
-  document.getElementById('ov-svc').textContent=c.service_type||c.service||'Partnership';
+  stgEl.style.cssText='display:inline-flex;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:6px;background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'44;';
+  document.getElementById('ov-svc').textContent=c.service_type||'Partnership';
   document.getElementById('ov-stage').textContent=stage;
-  document.getElementById('ov-am').textContent=c.main_am_name||c.assigned_to||'Your Account Manager';
+  document.getElementById('ov-am').textContent=c.main_am_name||'Your Account Manager';
   var notes=c.notes_client||c.notes||'';
   if(notes.trim()){document.getElementById('ov-notes').textContent=notes;document.getElementById('ov-notes').style.display='block';}
   document.getElementById('loading').style.display='none';
   document.getElementById('main').style.display='block';
-  applyTranslations();
+}
+
+function fetchSB(table,params){
+  return fetch(SB_URL+'/rest/v1/'+table+'?'+params,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).then(function(r){return r.json();}).catch(function(){return [];});
 }
 
 async function loadExtraData(c){
-  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
-  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  function fetchSB(table,params){
-    return fetch(SB+'/rest/v1/'+table+'?'+params,{
-      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
-    }).then(function(r){return r.json();}).catch(function(){return [];});
-  }
-  var wf=[],meet=[],experts=[],reqs=[],news=[];
+  var wf=[],meet=[],experts=[],reqs=[],invs=[],news=[],tickets=[];
   try{var r=await fetchSB('ix_workflow','client_id=eq.'+c.id+'&show_to_client=eq.true&order=created_at.desc');if(Array.isArray(r))wf=r;}catch(e){}
   try{var r=await fetchSB('ix_meetings','organization=eq.'+encodeURIComponent(c.name)+'&order=date.desc&limit=10');if(Array.isArray(r))meet=r;}catch(e){}
   try{var r=await fetchSB('ix_people','show_in_marketplace=eq.true');if(Array.isArray(r))experts=r;}catch(e){}
   try{var r=await fetchSB('ix_expert_requests','client_id=eq.'+c.id+'&order=created_at.desc');if(Array.isArray(r))reqs=r;}catch(e){}
-  var invs=[];
   try{var r=await fetchSB('ix_invoices','client_id=eq.'+c.id+'&order=created_at.desc');if(Array.isArray(r))invs=r;}catch(e){}
   try{var r=await fetchSB('ix_news','order=created_at.desc&limit=20');if(Array.isArray(r))news=r.filter(function(n){try{var a=JSON.parse(n.audience||'[]');return a.includes('all')||a.includes('clients');}catch(e){return true;}});}catch(e){}
+  try{var r=await fetchSB('ix_requests','client_id=eq.'+c.id+'&order=created_at.desc');if(Array.isArray(r))tickets=r;}catch(e){}
   allExperts=experts;myReqs=reqs;
   document.getElementById('k-wf').textContent=wf.length;
   document.getElementById('k-mt').textContent=meet.length;
   document.getElementById('k-ex').textContent=experts.length;
-  renderWF(wf);renderMeetings(meet);renderExperts(experts);renderReqs(reqs);renderInvoicesPortal(invs);renderNewsFeed(news);
+  document.getElementById('k-tk').textContent=tickets.length;
+  renderWF(wf);renderMeetings(meet);renderExperts(experts);renderReqs(reqs);
+  renderInvoices(invs);renderNews(news);renderTickets(tickets);
+  renderOvUpdates(wf.slice(0,3));
+  renderRoadmap(c);
 }
 
-function renderInvoicesPortal(invs){
-  var el=document.getElementById('inv-portal-list');if(!el)return;
-  if(!invs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No invoices yet</div>';return;}
-  var sc={Draft:'pgo',Sent:'ptl',Paid:'pg',Cancelled:'pgr'};
-  el.innerHTML=invs.map(function(inv){
-    return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:8px;">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">'
-        +'<div><div style="font-size:13px;font-weight:700;font-family:monospace;">#'+inv.invoice_number+'</div>'
-        +'<div style="font-size:11px;color:var(--ink3);">'+(inv.service_description||'—')+'</div></div>'
-        +'<span class="pill '+(sc[inv.status]||'pgr')+'">'+inv.status+'</span>'
-      +'</div>'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-        +'<div style="font-size:18px;font-weight:800;color:var(--gold);">'+(inv.currency||'USD')+' '+(parseFloat(inv.total)||0).toFixed(2)+'</div>'
-        +'<div style="font-size:11px;color:var(--ink3);">'+(inv.issue_date||'')+(inv.due_date?' · Due: '+inv.due_date:'')+'</div>'
-      +'</div>'
-      +(inv.status==='Paid'?'<div style="margin-top:6px;font-size:11px;color:#22c55e;font-weight:600;">✅ Payment received — Thank you!</div>':'')
-    +'</div>';
-  }).join('');
+function renderOvUpdates(wf){
+  var el=document.getElementById('ov-updates-list');if(!el)return;
+  if(!wf.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:10px;">No updates yet</div>';return;}
+  var dc={Completed:'#22c55e',Blocked:'#ef4444','In Progress':'#06b6d4'};
+  el.innerHTML=wf.map(function(w){return '<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(26,31,56,.3);">'+'<div style="width:8px;height:8px;border-radius:50%;background:'+(dc[w.status]||'#06b6d4')+';flex-shrink:0;margin-top:4px;"></div>'+'<div><div style="font-size:12px;font-weight:600;">'+w.title+'</div>'+(w.description?'<div style="font-size:11px;color:var(--ink2);">'+w.description.slice(0,60)+'</div>':'')+'</div></div>';}).join('')+'<div style="margin-top:8px;"><button class="btn" style="font-size:11px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);color:var(--teal);padding:5px 12px;width:100%;border-radius:7px;cursor:pointer;" onclick="showTab(\'updates\',document.querySelectorAll(\'.tab\')[2])">View All Updates →</button></div>';
 }
 
-function renderNewsFeed(news){
-  var el=document.getElementById('news-feed-list');if(!el)return;
-  if(!news.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news yet</div>';return;}
-  var typeColors={announcement:'var(--teal)',alert:'var(--red)',update:'#a78bfa',opportunity:'var(--gold)',event:'#22c55e'};
-  var typeIcons={announcement:'📢',alert:'⚠️',update:'🔄',opportunity:'🎯',event:'📅'};
-  el.innerHTML=news.map(function(n){
-    var tc=typeColors[n.type]||'var(--teal)';
-    return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+tc+';border-radius:9px;padding:13px;margin-bottom:9px;">'
-      +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:6px;">'
-        +'<span style="font-size:16px;">'+(typeIcons[n.type]||'📢')+'</span>'
-        +'<div style="font-size:13px;font-weight:700;">'+n.title+'</div>'
+function renderRoadmap(c){
+  var stgOrder=['OPEN','INITIATION','ACTIVE NEGOTIATIONS','MOU','LEGAL','PLANNING','EXECUTION','FINALIZATION','COMPLETED'];
+  var stages=[
+    {key:'INITIATION',label:'Initial Meeting',icon:'🤝',desc:'First contact and understanding of partnership goals'},
+    {key:'ACTIVE NEGOTIATIONS',label:'Negotiations',icon:'💬',desc:'Discussing terms, scope, and partnership structure'},
+    {key:'MOU',label:'MOU Signed',icon:'📋',desc:'Memorandum of Understanding signed by both parties'},
+    {key:'LEGAL',label:'Legal Review',icon:'⚖️',desc:'Legal team reviewing contracts and compliance'},
+    {key:'PLANNING',label:'Planning',icon:'📐',desc:'Detailed project planning and resource allocation'},
+    {key:'EXECUTION',label:'Execution',icon:'🚀',desc:'Active implementation of partnership agreement'},
+    {key:'FINALIZATION',label:'Finalization',icon:'✅',desc:'Final reviews, handover, and partnership completion'},
+    {key:'COMPLETED',label:'Completed',icon:'🏆',desc:'Partnership successfully delivered'}
+  ];
+  var curIdx=stgOrder.indexOf(c.stage||'OPEN');
+  var el=document.getElementById('roadmap-body');if(!el)return;
+  var html='<div style="margin-bottom:14px;font-size:12px;color:var(--ink3);">Your current stage: <strong style="color:var(--teal);">'+c.stage+'</strong></div>';
+  stages.forEach(function(s,i){
+    var stgIdx=stgOrder.indexOf(s.key);
+    var isDone=stgIdx<curIdx;
+    var isActive=stgIdx===curIdx;
+    var isPending=stgIdx>curIdx;
+    var dotClass=isDone?'rm-done':isActive?'rm-active':'rm-pending';
+    var dotContent=isDone?'✓':(i+1).toString();
+    html+='<div class="rm-step">'
+      +'<div class="rm-dot '+dotClass+'">'+dotContent+'</div>'
+      +'<div style="flex:1;">'
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">'
+          +'<span style="font-size:16px;">'+s.icon+'</span>'
+          +'<span style="font-size:13px;font-weight:700;'+(isActive?'color:var(--teal);':isPending?'color:var(--ink3);':'')+'">'+s.label+'</span>'
+          +(isActive?'<span style="font-size:10px;background:rgba(6,182,212,.1);color:var(--teal);padding:2px 8px;border-radius:20px;font-weight:700;">Current</span>':'')
+          +(isDone?'<span style="font-size:10px;background:rgba(34,197,94,.1);color:#22c55e;padding:2px 8px;border-radius:20px;font-weight:700;">Done</span>':'')
+        +'</div>'
+        +'<div style="font-size:12px;color:var(--ink3);">'+s.desc+'</div>'
       +'</div>'
-      +'<div style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:6px;">'+n.content+'</div>'
-      +(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')
-      +'<div style="font-size:10px;color:var(--ink3);margin-top:6px;">'+new Date(n.created_at).toLocaleDateString()+'</div>'
     +'</div>';
-  }).join('');
+  });
+  // Add roadmap link if exists
+  if(c.roadmap_url){
+    html+='<div style="margin-top:14px;"><a href="'+c.roadmap_url+'" target="_blank" class="btn bbg bw" style="display:flex;">📄 View Full Roadmap Document</a></div>';
+  }
+  el.innerHTML=html;
 }
 
 function renderWF(wf){
-  var el=document.getElementById('wf-list');
+  var el=document.getElementById('wf-list');if(!el)return;
   if(!wf.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No updates yet</div>';return;}
   var dc={Completed:'#22c55e',Blocked:'#ef4444','In Progress':'#06b6d4'};
   el.innerHTML=wf.map(function(w){return '<div style="display:flex;gap:10px;padding:11px 0;border-bottom:1px solid rgba(26,31,56,.4);"><div style="width:9px;height:9px;border-radius:50%;background:'+(dc[w.status]||'#06b6d4')+';flex-shrink:0;margin-top:4px;"></div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">'+w.title+'</div>'+(w.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:3px;">'+w.description+'</div>':'')+'<div style="font-size:11px;color:var(--ink3);">'+new Date(w.created_at).toLocaleDateString()+'</div></div></div>';}).join('');
 }
 
 function renderMeetings(meet){
-  var el=document.getElementById('mt-list');
+  var el=document.getElementById('mt-list');if(!el)return;
   if(!meet.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings yet</div>';return;}
   el.innerHTML=meet.map(function(m){return '<div style="background:var(--card2);border-radius:9px;padding:12px;margin-bottom:8px;"><div style="font-size:13px;font-weight:600;margin-bottom:3px;">'+m.title+'</div>'+(m.date?'<div style="font-size:11px;color:var(--ink3);">📅 '+m.date+(m.followup_deadline?' · Follow-up: '+m.followup_deadline:'')+'</div>':'')+(m.summary?'<div style="font-size:12px;color:var(--ink2);margin-top:4px;line-height:1.5;">'+m.summary.slice(0,120)+'</div>':'')+'</div>';}).join('');
 }
 
 function renderExperts(experts){
-  var el=document.getElementById('exp-list');
+  var el=document.getElementById('exp-list');if(!el)return;
   if(!experts.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No experts available</div>';return;}
   el.innerHTML=experts.map(function(e){
     var init=(e.name||'EX').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     var specs=e.specializations?e.specializations.split(',').slice(0,4):[];
     var rh=e.rate_hourly_price,rm=e.rate_monthly_price,ry=e.rate_yearly_price;
-    return '<div class="ec"><div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;"><div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;overflow:hidden;flex-shrink:0;">'+init+'</div><div style="flex:1;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">'+e.name+'</div><div style="font-size:11px;color:var(--ink3);">'+(e.nationality||'')+(e.languages?' · '+e.languages:'')+'</div>'+(e.bio?'<div style="font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.4;">'+e.bio.slice(0,80)+'...</div>':'')+'</div></div>'
+    return '<div class="ec">'
+      +'<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">'
+        +'<div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;overflow:hidden;flex-shrink:0;">'+init+'</div>'
+        +'<div style="flex:1;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">'+e.name+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">'+(e.nationality||'')+(e.languages?' · '+e.languages:'')+'</div>'
+        +(e.bio?'<div style="font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.4;">'+e.bio.slice(0,80)+'...</div>':'')
+        +'</div></div>'
       +(specs.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">'+specs.map(function(s){return '<span style="font-size:10px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);padding:2px 8px;border-radius:5px;color:var(--teal);">'+s.trim()+'</span>';}).join('')+'</div>':'')
       +'<div class="rg"><div class="rb"><div class="rv">'+(rh?rh+' USD':'—')+'</div><div class="rl">Per Hour</div></div><div class="rb"><div class="rv">'+(rm?rm+' USD':'—')+'</div><div class="rl">Per Month</div></div><div class="rb"><div class="rv">'+(ry?ry+' USD':'—')+'</div><div class="rl">Per Year</div></div></div>'
-      +'<button data-eid="'+e.id+'" data-ename="'+e.name+'" data-rh="'+(rh||'')+'" data-rm="'+(rm||'')+'" data-ry="'+(ry||'')+'" onclick="openReqModal(this.dataset.eid,this.dataset.ename,this.dataset.rh,this.dataset.rm,this.dataset.ry)" style="width:100%;background:var(--grad);border:none;border-radius:8px;padding:10px;color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;">📤 Request This Expert</button></div>';
+      +'<button data-eid="'+e.id+'" data-ename="'+e.name+'" data-rh="'+(rh||'')+'" data-rm="'+(rm||'')+'" data-ry="'+(ry||'')+'" onclick="openReqModal(this.dataset.eid,this.dataset.ename,this.dataset.rh,this.dataset.rm,this.dataset.ry)" style="width:100%;background:var(--grad);border:none;border-radius:8px;padding:10px;color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;">📤 Request This Expert</button>'
+    +'</div>';
   }).join('');
 }
 
-function filterExperts(q){
-  if(!q){renderExperts(allExperts);return;}
-  q=q.toLowerCase();
-  renderExperts(allExperts.filter(function(e){return e.specializations&&e.specializations.toLowerCase().includes(q);}));
-}
+function filterExperts(q){if(!q){renderExperts(allExperts);return;}q=q.toLowerCase();renderExperts(allExperts.filter(function(e){return e.specializations&&e.specializations.toLowerCase().includes(q);}));}
 
 function renderReqs(reqs){
-  var el=document.getElementById('req-list');
+  var el=document.getElementById('req-list');if(!el)return;
   if(!reqs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div>';return;}
   var sc={Pending:'pgo',Responded:'pp',Accepted:'pg',Rejected:'pgr'};
   el.innerHTML=reqs.map(function(r){return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><div><div style="font-size:13px;font-weight:600;">'+r.expert_name+'</div><div style="font-size:11px;color:var(--ink3);">'+(r.service_type||'')+(r.requested_date?' · '+r.requested_date:'')+'</div></div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'+(r.message?'<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">'+r.message.slice(0,100)+'</div>':'')+(r.our_rate&&r.status==='Responded'?'<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:9px;font-size:12px;color:var(--gold);font-weight:600;">💰 Rate: '+r.our_rate+'</div>':'')+'</div>';}).join('');
+}
+
+function renderInvoices(invs){
+  var el=document.getElementById('inv-portal-list');if(!el)return;
+  if(!invs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No invoices yet</div>';return;}
+  var sc={Draft:'pgo',Sent:'ptl',Paid:'pg',Cancelled:'pgr'};
+  el.innerHTML=invs.map(function(inv){return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;"><div><div style="font-size:13px;font-weight:700;font-family:monospace;">#'+inv.invoice_number+'</div><div style="font-size:11px;color:var(--ink3);">'+(inv.service_description||'—')+'</div></div><span class="pill '+(sc[inv.status]||'pgr')+'">'+inv.status+'</span></div><div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-size:18px;font-weight:800;color:var(--gold);">'+(inv.currency||'USD')+' '+(parseFloat(inv.total)||0).toFixed(2)+'</div><div style="font-size:11px;color:var(--ink3);">'+(inv.issue_date||'')+(inv.due_date?' · Due: '+inv.due_date:'')+'</div></div>'+(inv.status==='Paid'?'<div style="margin-top:6px;font-size:11px;color:#22c55e;font-weight:600;">✅ Payment received — Thank you!</div>':'')+'</div>';}).join('');
+}
+
+function renderNews(news){
+  var el=document.getElementById('news-feed-list');if(!el)return;
+  if(!news.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news yet</div>';return;}
+  var tC={announcement:'var(--teal)',alert:'var(--red)',update:'#a78bfa',opportunity:'var(--gold)',event:'#22c55e'};
+  var tI={announcement:'📢',alert:'⚠️',update:'🔄',opportunity:'🎯',event:'📅'};
+  el.innerHTML=news.map(function(n){var tc=tC[n.type]||'var(--teal)';return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+tc+';border-radius:9px;padding:13px;margin-bottom:9px;"><div style="display:flex;gap:7px;align-items:center;margin-bottom:6px;"><span style="font-size:16px;">'+(tI[n.type]||'📢')+'</span><div style="font-size:13px;font-weight:700;">'+n.title+'</div></div><div style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:6px;">'+n.content+'</div>'+(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')+'<div style="font-size:10px;color:var(--ink3);margin-top:6px;">'+new Date(n.created_at).toLocaleDateString()+'</div></div>';}).join('');
+}
+
+function renderTickets(tickets){
+  var el=document.getElementById('tkt-list');if(!el)return;
+  if(!tickets.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No tickets yet</div>';return;}
+  var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',Completed:'pgr',Rejected:'pr'};
+  var at={am:'👤 Account Manager',management:'🏛️ Senior Management'};
+  el.innerHTML=tickets.map(function(r){
+    return '<div class="ticket-card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">'
+        +'<div><div style="font-size:13px;font-weight:600;">'+r.title.replace('[Client Request] ','').replace(' [Management]','')+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);margin-top:2px;">'+(at[r.assignee_type]||'Intersect Team')+'</div></div>'
+        +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+      +'</div>'
+      +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;line-height:1.5;">'+r.description.slice(0,120)+'</div>':'')
+      +(r.estimated_days&&r.status==='Accepted'?'<div style="font-size:11px;color:#22c55e;">⏱ Est. '+r.estimated_days+' days</div>':'')
+      +'<div style="font-size:10px;color:var(--ink3);margin-top:5px;">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function submitTicket(){
+  var subject=document.getElementById('tkt-subject').value.trim();
+  var details=document.getElementById('tkt-details').value.trim();
+  if(!subject||!details){toast('Fill subject and details','te');return;}
+  var toMgmt=document.getElementById('tkt-to-mgmt').checked;
+  var category=document.getElementById('tkt-category').value;
+  var priority=document.getElementById('tkt-priority').value;
+  var file=document.getElementById('tkt-file').value.trim();
+  var body={
+    title:'[Client Request] '+category+' - '+(clientData?clientData.name:'')+(toMgmt?' [Management]':''),
+    description:details+(file?'\n\nAttachment: '+file:''),
+    client_id:clientData?clientData.id:null,
+    client_name:clientData?clientData.name:null,
+    requested_by:clientData?clientData.name:'Client',
+    priority:priority==='Urgent'?'high':priority==='This week'?'medium':'low',
+    status:'Pending',
+    assignee_type:toMgmt?'management':'am',
+    show_to_client:true,
+    file_url:file||null
+  };
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('tkt-subject').value='';
+      document.getElementById('tkt-details').value='';
+      document.getElementById('tkt-file').value='';
+      var sentEl=document.getElementById('tkt-sent');
+      sentEl.textContent=toMgmt?'✅ Ticket submitted to Senior Management. Note: your Account Manager is your primary point of contact for faster responses.':'✅ Ticket sent to your Account Manager! They will follow up with you shortly.';
+      sentEl.style.display='block';
+      setTimeout(function(){sentEl.style.display='none';},5000);
+      document.getElementById('k-tk').textContent=parseInt(document.getElementById('k-tk').textContent)+1;
+      loadExtraData(clientData);
+      toast('✅ Ticket submitted!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error submitting','te');}
 }
 
 function openReqModal(id,name,rh,rm,ry){
@@ -424,83 +541,18 @@ function openReqModal(id,name,rh,rm,ry){
   document.getElementById('req-date').value=new Date().toISOString().split('T')[0];
   updateRate();openModal('m-req');
 }
-function updateRate(){
-  var svc=document.getElementById('req-svc').value;
-  var rate=svc==='hourly'?currentRates.hourly:svc==='monthly'?currentRates.monthly:currentRates.yearly;
-  document.getElementById('req-rate').textContent=rate?(rate+' USD'):'On Request';
-}
+function updateRate(){var svc=document.getElementById('req-svc').value;var rate=svc==='hourly'?currentRates.hourly:svc==='monthly'?currentRates.monthly:currentRates.yearly;document.getElementById('req-rate').textContent=rate?(rate+' USD'):'On Request';}
+
 async function submitReq(){
   var msg=document.getElementById('req-msg').value.trim();
   if(!msg){toast('Please describe your requirements','te');return;}
-  var body={expert_id:document.getElementById('req-eid').value,expert_name:document.getElementById('req-ename').value,client_id:clientData?clientData.id:null,client_name:clientData?clientData.name:null,service_type:document.getElementById('req-svc').value,requested_date:document.getElementById('req-date').value,message:msg,status:'Pending'};
-  if(sb){
-    try{
-      await sb.from('ix_expert_requests').insert(body);
-      closeModal('m-req');document.getElementById('req-msg').value='';
-      toast('✅ Request submitted!','ts');
-      loadExtraData(clientData);
-      showTab('requests',document.querySelectorAll('.tab')[4]);
-    }catch(e){toast('Error submitting','te');}
-  }
-}
-
-async function submitHelp(){
-  var type=document.getElementById('help-type').value;
-  var desc=document.getElementById('help-desc').value.trim();
-  if(!desc){toast('Please describe what you need','te');return;}
-  var timeline=document.getElementById('help-timeline').value;
-  var toMgmt=document.getElementById('help-to-mgmt').checked;
-  var notes=document.getElementById('help-notes')&&document.getElementById('help-notes').value.trim();
-  var body={
-    title:'[Client Request] '+type+' - '+(clientData?clientData.name:'')+(toMgmt?' [Management]':''),
-    description:desc+(notes?'\n\nNotes: '+notes:'')+'\n\nTimeline: '+timeline,
-    client_id:clientData?clientData.id:null,
-    client_name:clientData?clientData.name:null,
-    requested_by:clientData?clientData.name:'Client',
-    priority:timeline==='Urgent'?'high':timeline==='This week'?'medium':'low',
-    status:'Pending',
-    assignee_type:toMgmt?'management':'am',
-    show_to_client:true
-  };
-  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
-  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var notes=document.getElementById('req-notes').value.trim();
+  var body={expert_id:document.getElementById('req-eid').value,expert_name:document.getElementById('req-ename').value,client_id:clientData?clientData.id:null,client_name:clientData?clientData.name:null,service_type:document.getElementById('req-svc').value,requested_date:document.getElementById('req-date').value,message:msg+(notes?'\n\nNotes: '+notes:''),status:'Pending'};
   try{
-    var r=await fetch(SB+'/rest/v1/ix_requests',{
-      method:'POST',
-      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify(body)
-    });
-    if(r.ok){
-      document.getElementById('help-desc').value='';
-      if(document.getElementById('help-notes'))document.getElementById('help-notes').value='';
-      var sentEl=document.getElementById('help-sent');
-      sentEl.textContent=toMgmt?'✅ Request sent to Senior Management! Note: your Account Manager is usually faster for most requests.':'✅ Request sent to your Account Manager! They will get back to you shortly.';
-      sentEl.style.display='block';
-      setTimeout(function(){sentEl.style.display='none';},5000);
-      loadHelpRequests();
-    }else{toast('Error submitting','te');}
+    var r=await fetch(SB_URL+'/rest/v1/ix_expert_requests',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
+    if(r.ok){closeModal('m-req');document.getElementById('req-msg').value='';document.getElementById('req-notes').value='';toast('✅ Request submitted!','ts');loadExtraData(clientData);showTab('requests',document.querySelectorAll('.tab')[6]);}
+    else toast('Error submitting','te');
   }catch(e){toast('Error submitting','te');}
-}
-
-async function loadHelpRequests(){
-  if(!sb||!clientData)return;
-  try{
-    var r=await sb.from('ix_requests').select('*').eq('client_id',clientData.id).order('created_at',{ascending:false});
-    var reqs=r.data||[];
-    var el=document.getElementById('help-list');
-    if(!reqs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests yet</div>';return;}
-    var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',Completed:'pgr',Rejected:'pr'};
-    el.innerHTML=reqs.map(function(r){
-      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
-        +'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
-          +'<div style="font-size:13px;font-weight:600;">'+r.title.replace('[Client Request] ','')+'</div>'
-          +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
-        +'</div>'
-        +(r.estimated_days&&r.status==='Accepted'?'<div style="font-size:11px;color:#22c55e;">⏱ Est: '+r.estimated_days+' days</div>':'')
-        +'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">'+new Date(r.created_at).toLocaleDateString()+'</div>'
-      +'</div>';
-    }).join('');
-  }catch(e){}
 }
 
 function showTab(n,el){
@@ -508,8 +560,7 @@ function showTab(n,el){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tp-'+n).classList.add('on');
   if(el)el.classList.add('on');
-  if(n==='help')loadHelpRequests();
-  if(n==='news'||n==='invoices'||n==='experts')loadExtraData(clientData);
+  if(n==='tickets')loadExtraData(clientData);
 }
 </script>
 </body>
