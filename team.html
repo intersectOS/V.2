@@ -59,6 +59,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 .lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
 .ftr{text-align:center;padding:20px;color:var(--ink3);font-size:11px;border-top:1px solid var(--border);margin-top:10px;}
 @media(max-width:480px){.ct{padding:12px 13px;}.kgrid{grid-template-columns:1fr 1fr;}.modal{width:100%;padding:16px 13px;border-radius:12px;}}
+@media(max-width:768px){
+  .tabs{gap:4px;}
+  .tab{padding:6px 10px;font-size:11px;}
+  .mo{padding:8px;align-items:flex-end;}
+  .modal{width:100%;border-radius:14px 14px 0 0;max-height:85vh;padding:18px 14px;}
+  .mft{flex-direction:column;}
+  .mft .btn{width:100%;}
+  .rg{grid-template-columns:1fr 1fr;}
+  .ph{flex-wrap:wrap;gap:5px;}
+}
+@media(max-width:480px){
+  .ct{padding:12px 13px;}
+  .kgrid{grid-template-columns:1fr 1fr;}
+  .rg{grid-template-columns:1fr;}
+  .lang-bar{max-width:140px;}
+  .lb{padding:2px 5px;font-size:9px;}
+  .hero{padding:16px 14px 12px;}
+  .c-name,.mn{font-size:17px;}
+  .ec{padding:11px;}
+}
 </style>
 </head>
 <body>
