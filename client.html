@@ -130,6 +130,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('tickets',this)">🎫 Tickets</button>
       <button class="tab" onclick="showTab('requests',this)">📋 My Requests</button>
       <button class="tab" onclick="showTab('invoices',this)">🧾 Invoices</button>
+      <button class="tab" onclick="showTab('files',this)">📁 My Files</button>
       <button class="tab" onclick="showTab('news',this)">📰 News</button>
     </div>
 
@@ -258,6 +259,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <div class="pb" id="inv-portal-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No invoices yet</div></div></div>
     </div>
 
+    <!-- FILES -->
+    <div class="tp" id="tp-files">
+      <div class="panel">
+        <div class="ph"><div class="pt">📁 My Files</div></div>
+        <div class="pb" id="files-body">
+          <div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div>
+        </div>
+      </div>
+    </div>
+
     <!-- NEWS -->
     <div class="tp" id="tp-news">
       <div class="panel"><div class="ph"><div class="pt">📰 News & Announcements</div></div>
@@ -340,6 +351,7 @@ function renderMain(c){
   if(notes.trim()){document.getElementById('ov-notes').textContent=notes;document.getElementById('ov-notes').style.display='block';}
   document.getElementById('loading').style.display='none';
   document.getElementById('main').style.display='block';
+  renderFiles(c);
 }
 
 function fetchSB(table,params){
@@ -555,12 +567,39 @@ async function submitReq(){
   }catch(e){toast('Error submitting','te');}
 }
 
+function renderFiles(c){
+  var el=document.getElementById('files-body');if(!el)return;
+  var html='';
+  if(c.drive_url){
+    html+='<a href="'+c.drive_url+'" target="_blank" style="display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;text-decoration:none;">'
+      +'<div style="width:40px;height:40px;border-radius:10px;background:rgba(6,182,212,.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📁</div>'
+      +'<div><div style="font-size:14px;font-weight:700;color:var(--ink);">Client Files Folder</div>'
+      +'<div style="font-size:12px;color:var(--teal);margin-top:2px;">Google Drive → Open →</div></div>'
+    +'</a>';
+  }
+  if(c.roadmap_url){
+    html+='<a href="'+c.roadmap_url+'" target="_blank" style="display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;text-decoration:none;">'
+      +'<div style="width:40px;height:40px;border-radius:10px;background:rgba(124,58,237,.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🗺️</div>'
+      +'<div><div style="font-size:14px;font-weight:700;color:var(--ink);">Partnership Roadmap</div>'
+      +'<div style="font-size:12px;color:#a78bfa;margin-top:2px;">Google Drive → Open →</div></div>'
+    +'</a>';
+  }
+  if(!html){
+    html='<div style="text-align:center;padding:24px;">'
+      +'<div style="font-size:40px;margin-bottom:12px;">📭</div>'
+      +'<div style="font-size:13px;color:var(--ink3);">No files shared yet.<br>Your Account Manager will share documents here.</div>'
+    +'</div>';
+  }
+  el.innerHTML=html;
+}
+
 function showTab(n,el){
   document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tp-'+n).classList.add('on');
   if(el)el.classList.add('on');
   if(n==='tickets')loadExtraData(clientData);
+  if(n==='files')renderFiles(clientData);
 }
 </script>
 </body>

@@ -1323,6 +1323,8 @@ function editClient(id){
     // Set stage
     var stageSel=document.getElementById('cl-stage');
     if(stageSel)stageSel.value=c.stage||'OPEN';
+    var driveF=document.getElementById('cl-drive');if(driveF)driveF.value=c.drive_url||'';
+    var roadmapF=document.getElementById('cl-roadmap');if(roadmapF)roadmapF.value=c.roadmap_url||'';
     // Show update note section when editing
     var updateSec=document.getElementById('cl-update-section');
     if(updateSec)updateSec.style.display='block';
@@ -1389,6 +1391,8 @@ async function saveClient(){
     referred_by:document.getElementById('cl-ref').value.trim()||null,
     notes_internal:document.getElementById('cl-notes-i').value.trim(),
     notes_client:document.getElementById('cl-notes-c').value.trim(),
+    drive_url:document.getElementById('cl-drive')&&document.getElementById('cl-drive').value.trim()||null,
+    roadmap_url:document.getElementById('cl-roadmap')&&document.getElementById('cl-roadmap').value.trim()||null,
     health_score:100
   };
   var editId=document.getElementById('m-cl').dataset.editId||'';
