@@ -425,7 +425,20 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
         </div>
         <div>
           <div class="panel" style="margin-bottom:12px;">
-            <div class="ph"><div class="ptit">⚡ Recent Activity</div><button class="btn bo bsm" style="font-size:10px;" onclick="renderFeed()">↻</button></div>
+            <div class="ph"><div class="ptit">⚡ Recent Activity</div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <select id="feed-filter-type" class="fs" style="font-size:11px;padding:4px 8px;width:110px;" onchange="renderFeed()">
+              <option value="">All</option>
+              <option value="client">Client</option>
+              <option value="person">Person</option>
+              <option value="project">Project</option>
+              <option value="request">Request</option>
+              <option value="workflow">Update</option>
+              <option value="meeting">Meeting</option>
+            </select>
+            <input id="feed-filter-search" class="fi" style="font-size:11px;padding:4px 8px;width:130px;" placeholder="Search..." oninput="renderFeed()">
+            <button class="btn bo bsm" style="font-size:10px;" onclick="renderFeed()">↻</button>
+          </div></div>
             <div class="pb" style="padding:7px 13px;max-height:110px;overflow-y:auto;" id="actfeed"></div>
           </div>
           <div class="panel">
@@ -718,6 +731,14 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
   <div class="fgrid">
     <div class="fg"><label class="fl">🔒 Internal Notes (founders only)</label><textarea class="fta" id="cl-notes-i" style="min-height:55px;"></textarea></div>
     <div class="fg"><label class="fl">📋 Client Notes (visible in portal)</label><textarea class="fta" id="cl-notes-c" style="min-height:55px;"></textarea></div>
+  </div>
+  <div id="cl-update-section" style="display:none;background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
+    <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:8px;">📝 Update Note (optional)</div>
+    <div class="fg"><textarea class="fta" id="cl-update-note" placeholder="What changed? Add a note about this update..." style="min-height:60px;"></textarea></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="cl-update-show" style="width:15px;height:15px;">
+      <label for="cl-update-show" style="font-size:12px;color:var(--ink2);">Show this update to client in their portal</label>
+    </div>
   </div>
   <div class="mfoot"><button class="btn bo" onclick="cm('m-cl')">Cancel</button><button class="btn bg" onclick="saveClient()">💾 Save & Generate Portal</button></div>
 </div></div>
@@ -1131,67 +1152,65 @@ function renderAIAlerts(){
 
 function renderFeed(){
   var feed=document.getElementById('actfeed');if(!feed)return;
+  var filterType=document.getElementById('feed-filter-type')&&document.getElementById('feed-filter-type').value||'';
+  var filterSearch=(document.getElementById('feed-filter-search')&&document.getElementById('feed-filter-search').value||'').toLowerCase();
   var items=[];
 
-  // Workflow updates
-  AWorkflow.slice(0,5).forEach(function(w){
-    items.push({d:w.created_at,i:'🔄',x:w.title,
-      sub:(w.client_name?'Client: '+w.client_name:'')+(w.created_by?' · by '+w.created_by:'')+(w.status?' · '+w.status:''),
-      c:'var(--teal)'});
-  });
+  if(!filterType||filterType==='workflow'){
+    AWorkflow.slice(0,8).forEach(function(w){
+      items.push({d:w.created_at,i:'🔄',x:w.title,sub:(w.client_name?'Client: '+w.client_name:'')+(w.created_by?' · by '+w.created_by:'')+(w.status?' · '+w.status:''),c:'var(--teal)',type:'workflow',ref:w.client_name});
+    });
+  }
+  if(!filterType||filterType==='request'){
+    ARequests.slice(0,8).forEach(function(r){
+      var icon=r.status==='Accepted'?'✅':r.status==='Rejected'?'❌':r.assignee_type==='management'?'🏛️':'📋';
+      items.push({d:r.updated_at||r.created_at,i:icon,x:r.title,sub:'Request · '+r.status+(r.client_name?' · '+r.client_name:'')+(r.assignee_name?' → '+r.assignee_name:''),c:r.status==='Accepted'?'var(--green)':r.status==='Rejected'?'var(--red)':'var(--purple-light)',type:'request',ref:(r.client_name||'')+'|'+(r.assignee_name||'')});
+    });
+  }
+  if(!filterType||filterType==='client'){
+    AExpertReq.slice(0,5).forEach(function(r){
+      items.push({d:r.created_at,i:'🌟',x:'Expert request: '+r.expert_name,sub:'From: '+(r.client_name||'—')+' · '+r.status,c:'var(--gold)',type:'client',ref:r.client_name});
+    });
+    AC.slice(0,5).forEach(function(c){
+      items.push({d:c.created_at,i:'🏢',x:'Client: '+c.name,sub:(c.stage||'')+(c.added_by?' · Added by: '+c.added_by:'')+(c.main_am_name?' · AM: '+c.main_am_name:''),c:'var(--green)',type:'client',ref:c.name});
+    });
+  }
+  if(!filterType||filterType==='person'){
+    APeople.slice(0,5).forEach(function(p){
+      items.push({d:p.created_at,i:'👤',x:'Member: '+p.name,sub:(p.role||p.person_type||''),c:'#a78bfa',type:'person',ref:p.name});
+    });
+    AActions.filter(function(a){return a.done;}).slice(0,5).forEach(function(a){
+      items.push({d:a.updated_at||a.created_at,i:'✅',x:'Done: '+a.title,sub:(a.assignee?'by '+a.assignee:'')+(a.client_name?' · '+a.client_name:''),c:'var(--green)',type:'person',ref:a.assignee});
+    });
+  }
+  if(!filterType||filterType==='project'){
+    AProj.slice(0,5).forEach(function(p){
+      items.push({d:p.created_at,i:'📁',x:'Project: '+p.name,sub:(p.client_name?'Client: '+p.client_name:'')+(p.status?' · '+p.status:''),c:'var(--teal)',type:'project',ref:p.name+'|'+(p.client_name||'')});
+    });
+  }
+  if(!filterType||filterType==='meeting'){
+    AMeetings.slice(0,5).forEach(function(m){
+      items.push({d:m.created_at,i:'📅',x:'Meeting: '+m.title,sub:(m.organization||'')+(m.date?' · '+m.date:''),c:'var(--teal)',type:'meeting',ref:m.organization});
+    });
+  }
 
-  // Requests - all statuses
-  ARequests.slice(0,5).forEach(function(r){
-    var icon=r.status==='Accepted'?'✅':r.status==='Rejected'?'❌':'📋';
-    items.push({d:r.updated_at||r.created_at,i:icon,x:r.title,
-      sub:'Request · '+r.status+(r.client_name?' · '+r.client_name:'')+(r.assignee_name?' → '+r.assignee_name:''),
-      c:r.status==='Accepted'?'var(--green)':r.status==='Rejected'?'var(--red)':'var(--purple-light)'});
-  });
+  // Apply search filter
+  if(filterSearch){
+    items=items.filter(function(i){
+      return i.x.toLowerCase().includes(filterSearch)||
+             (i.sub&&i.sub.toLowerCase().includes(filterSearch))||
+             (i.ref&&i.ref.toLowerCase().includes(filterSearch));
+    });
+  }
 
-  // Expert requests
-  AExpertReq.slice(0,4).forEach(function(r){
-    items.push({d:r.created_at,i:'🌟',x:'Expert request: '+r.expert_name,
-      sub:'From: '+(r.client_name||'—')+' · '+r.status,
-      c:'var(--gold)'});
-  });
-
-  // New clients
-  AC.slice(0,3).forEach(function(c){
-    items.push({d:c.created_at,i:'🏢',x:'New client: '+c.name,
-      sub:(c.stage||'')+(c.added_by?' · Added by: '+c.added_by:'')+(c.main_am_name?' · AM: '+c.main_am_name:''),
-      c:'var(--green)'});
-  });
-
-  // New people
-  APeople.slice(0,3).forEach(function(p){
-    items.push({d:p.created_at,i:'👤',x:'New member: '+p.name,
-      sub:(p.role||p.person_type||''),
-      c:'#a78bfa'});
-  });
-
-  // Actions
-  AActions.filter(function(a){return a.done;}).slice(0,3).forEach(function(a){
-    items.push({d:a.updated_at||a.created_at,i:'✅',x:'Task completed: '+a.title,
-      sub:(a.assignee?'by '+a.assignee:'')+(a.client_name?' · '+a.client_name:''),
-      c:'var(--green)'});
-  });
-
-  // Meetings
-  AMeetings.slice(0,3).forEach(function(m){
-    items.push({d:m.created_at,i:'📅',x:'Meeting: '+m.title,
-      sub:(m.organization||'')+(m.date?' · '+m.date:''),
-      c:'var(--teal)'});
-  });
-
-  // Sort by date newest first
   items.sort(function(a,b){return new Date(b.d||0)-new Date(a.d||0);});
 
   if(!items.length){
-    feed.innerHTML='<div style="text-align:center;padding:16px;color:var(--ink3);font-size:12px;">No activity yet</div>';
+    feed.innerHTML='<div style="text-align:center;padding:16px;color:var(--ink3);font-size:12px;">No activity'+(filterSearch?' matching "'+filterSearch+'"':'')+'</div>';
     return;
   }
 
-  feed.innerHTML=items.slice(0,15).map(function(i){
+  feed.innerHTML=items.slice(0,20).map(function(i){
     return '<div style="display:flex;gap:9px;padding:9px 0;border-bottom:1px solid rgba(26,31,56,.4);">'
       +'<div style="font-size:15px;flex-shrink:0;">'+i.i+'</div>'
       +'<div style="flex:1;min-width:0;">'
@@ -1304,6 +1323,11 @@ function editClient(id){
     // Set stage
     var stageSel=document.getElementById('cl-stage');
     if(stageSel)stageSel.value=c.stage||'OPEN';
+    // Show update note section when editing
+    var updateSec=document.getElementById('cl-update-section');
+    if(updateSec)updateSec.style.display='block';
+    var noteField=document.getElementById('cl-update-note');
+    if(noteField)noteField.value='';
     // Set service type checkboxes
     var svcs=c.service_type?c.service_type.split(',').map(function(s){return s.trim();}):[];
     document.querySelectorAll('#svc-checks input').forEach(function(cb){
@@ -1367,8 +1391,19 @@ async function saveClient(){
   };
   var editId=document.getElementById('m-cl').dataset.editId||'';
   if(editId){
+    // Get old data to detect changes
+    var oldClient=AC.find(function(x){return x.id===editId;});
     if(sb){var ru=await sb.from('ix_clients_v2').update(c).eq('id',editId).select().single();if(ru.error)return toast('Error: '+ru.error.message,'error');var xi=AC.findIndex(function(x){return x.id===editId;});if(xi>=0)AC[xi]=ru.data;}
     else{var xi=AC.findIndex(function(x){return x.id===editId;});if(xi>=0)Object.assign(AC[xi],c);}
+    // Create workflow update for stage change
+    var note=document.getElementById('cl-update-note')&&document.getElementById('cl-update-note').value.trim();
+    var showC=document.getElementById('cl-update-show')&&document.getElementById('cl-update-show').checked;
+    var stageChanged=oldClient&&oldClient.stage!==c.stage;
+    if(stageChanged||note){
+      var wfTitle=stageChanged?'Stage updated: '+c.stage:(note?note.slice(0,60):'Client updated');
+      var wfDesc=(stageChanged?'Stage changed from '+(oldClient?oldClient.stage:'—')+' to '+c.stage:'')+(note?(stageChanged?'\n':'')+note:'');
+      if(sb)await sb.from('ix_workflow').insert({client_id:editId,client_name:c.name||oldClient.name,title:wfTitle,description:wfDesc,status:c.stage,show_to_client:showC||false,created_by:'Account Manager'});
+    }
     cm('m-cl');renderClients();renderOV();renderFeed();toast('✅ Client updated','success');
   } else {
     if(sb){var r=await sb.from('ix_clients_v2').insert(c).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AC.unshift(r.data);c=r.data;}

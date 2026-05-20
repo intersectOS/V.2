@@ -449,25 +449,37 @@ async function submitHelp(){
   var desc=document.getElementById('help-desc').value.trim();
   if(!desc){toast('Please describe what you need','te');return;}
   var timeline=document.getElementById('help-timeline').value;
+  var toMgmt=document.getElementById('help-to-mgmt').checked;
+  var notes=document.getElementById('help-notes')&&document.getElementById('help-notes').value.trim();
   var body={
-    title:'[Client Request] '+type+' - '+(clientData?clientData.name:''),
-    description:desc+' | Timeline: '+timeline,
+    title:'[Client Request] '+type+' - '+(clientData?clientData.name:'')+(toMgmt?' [Management]':''),
+    description:desc+(notes?'\n\nNotes: '+notes:'')+'\n\nTimeline: '+timeline,
     client_id:clientData?clientData.id:null,
     client_name:clientData?clientData.name:null,
     requested_by:clientData?clientData.name:'Client',
     priority:timeline==='Urgent'?'high':timeline==='This week'?'medium':'low',
     status:'Pending',
-    assignee_type:'internal'
+    assignee_type:toMgmt?'management':'am',
+    show_to_client:true
   };
-  if(sb){
-    try{
-      await sb.from('ix_requests').insert(body);
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
       document.getElementById('help-desc').value='';
-      document.getElementById('help-sent').style.display='block';
-      setTimeout(function(){document.getElementById('help-sent').style.display='none';},4000);
+      if(document.getElementById('help-notes'))document.getElementById('help-notes').value='';
+      var sentEl=document.getElementById('help-sent');
+      sentEl.textContent=toMgmt?'✅ Request sent to Senior Management! Note: your Account Manager is usually faster for most requests.':'✅ Request sent to your Account Manager! They will get back to you shortly.';
+      sentEl.style.display='block';
+      setTimeout(function(){sentEl.style.display='none';},5000);
       loadHelpRequests();
-    }catch(e){toast('Error submitting','te');}
-  }
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error submitting','te');}
 }
 
 async function loadHelpRequests(){

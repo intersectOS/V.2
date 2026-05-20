@@ -185,6 +185,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab on" onclick="showTabE('requests',this)">📋 Requests</button>
         <button class="tab" onclick="showTabE('profile',this)">👤 My Profile</button>
         <button class="tab" onclick="showTabE('availability',this)">📅 Availability</button>
+        <button class="tab" onclick="showTabE('exp-projects',this)">📁 Projects</button>
+        <button class="tab" onclick="showTabE('exp-inbox',this)">🔔 Inbox</button>
+        <button class="tab" onclick="showTabE('exp-news',this)">📰 News</button>
       </div>
       <div class="tp on" id="tpe-requests">
         <div class="panel"><div class="ph"><div class="pt">📋 Incoming Requests</div></div>
@@ -206,6 +209,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
           </div>
           <button class="btn bbg bw" onclick="updateAvail()">💾 Update</button>
         </div></div>
+      </div>
+
+      <!-- Expert Projects -->
+      <div class="tp" id="tpe-exp-projects">
+        <div class="panel"><div class="ph"><div class="pt">📁 My Projects</div></div>
+        <div class="pb" id="exp-projs-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div></div>
+        <div class="panel">
+          <div class="ph"><div class="pt">📋 Assign Task</div></div>
+          <div class="pb">
+            <div class="fg"><label class="fl">Task Title *</label><input class="fi" id="exp-at-title" placeholder="Task description"></div>
+            <div class="fg"><label class="fl">Assign to *</label><select class="fs" id="exp-at-assignee"><option value="">— Select —</option></select></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+              <div class="fg"><label class="fl">Priority</label>
+                <select class="fs" id="exp-at-pri"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select>
+              </div>
+              <div class="fg"><label class="fl">Deadline</label><input class="fi" type="date" id="exp-at-deadline"></div>
+            </div>
+            <div class="fg"><label class="fl">Description</label><textarea class="fta" id="exp-at-desc" placeholder="Task details..."></textarea></div>
+            <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="exp-at-notes" placeholder="Additional notes..."></textarea></div>
+            <button class="btn bbg bw" onclick="sendExpTaskRequest()">📤 Send Task</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expert Inbox -->
+      <div class="tp" id="tpe-exp-inbox">
+        <div class="panel"><div class="ph"><div class="pt">🔔 Incoming Requests</div></div>
+        <div class="pb" id="exp-inbox-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No incoming requests</div></div></div>
+        <div class="panel"><div class="ph"><div class="pt">📤 Sent Requests</div></div>
+        <div class="pb" id="exp-sent-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No sent requests</div></div></div>
+      </div>
+
+      <!-- Expert News -->
+      <div class="tp" id="tpe-exp-news">
+        <div class="panel"><div class="ph"><div class="pt">📰 News & Announcements</div></div>
+        <div class="pb" id="exp-news-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div></div>
       </div>
     </div>
       <!-- MY PROJECTS TAB -->
@@ -309,16 +348,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
             <div class="fg"><label class="fl">Company Name *</label><input class="fi" id="nc-name" placeholder="e.g. Aramco"></div>
             <div class="fg"><label class="fl">Industry</label><input class="fi" id="nc-industry" placeholder="e.g. Energy"></div>
             <div class="fg"><label class="fl">Country</label><input class="fi" id="nc-country" placeholder="e.g. Saudi Arabia"></div>
-            <div class="fg"><label class="fl">Service Type</label>
-              <select class="fs" id="nc-svc">
-                <option value="Soft Landing">Soft Landing</option>
-                <option value="Strategic Partnership">Strategic Partnership</option>
-                <option value="Market Entry">Market Entry</option>
-                <option value="Investment">Investment</option>
-                <option value="Joint Venture">Joint Venture</option>
-                <option value="Consulting">Consulting</option>
-                <option value="Other">Other</option>
-              </select>
+            <div class="fg"><label class="fl">Service Type (select all that apply)</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;" id="nc-svc-checks">
+                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Soft Landing"> Soft Landing</label>
+                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Strategic Partnership"> Strategic Partnership</label>
+                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Market Entry"> Market Entry</label>
+                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Investment"> Investment</label>
+                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Joint Venture"> Joint Venture</label>
+                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Consulting"> Consulting</label>
+                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Other" onchange="this.closest('.fg').querySelector('.nc-other-field').style.display=this.checked?'block':'none'"> Other</label>
+              </div>
+              <input class="fi nc-other-field" placeholder="Describe other service..." style="display:none;margin-top:6px;">
             </div>
             <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="nc-notes" placeholder="Any initial notes..."></textarea></div>
             <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
@@ -345,6 +385,48 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
     </div>
   </div>
   <div class="ftr"><strong style="color:var(--purple-light,#a78bfa);">INTERSECT</strong> PartnerOS · Confidential</div>
+</div>
+
+<!-- EDIT CLIENT MODAL (from portal) -->
+<div class="mo" id="m-edit-cl">
+  <div class="modal">
+    <div class="mti" id="edit-cl-title">✏️ Edit Client</div>
+    <input type="hidden" id="edit-cl-id">
+    <div class="fg"><label class="fl">Stage</label>
+      <select class="fs" id="edit-cl-stage">
+        <option value="OPEN">OPEN</option>
+        <option value="INITIATION">INITIATION</option>
+        <option value="ACTIVE NEGOTIATIONS">ACTIVE NEGOTIATIONS</option>
+        <option value="MOU">MOU</option>
+        <option value="LEGAL">LEGAL</option>
+        <option value="PLANNING">PLANNING</option>
+        <option value="EXECUTION">EXECUTION</option>
+        <option value="FINALIZATION">FINALIZATION</option>
+        <option value="COMPLETED">COMPLETED</option>
+        <option value="ON HOLD">ON HOLD</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Add Service</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="edit-cl-svc-checks">
+        <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Soft Landing"> Soft Landing</label>
+        <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Strategic Partnership"> Strategic Partnership</label>
+        <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Market Entry"> Market Entry</label>
+        <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Investment"> Investment</label>
+        <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Joint Venture"> Joint Venture</label>
+        <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Consulting"> Consulting</label>
+        <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Other"> Other</label>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Update / Note</label><textarea class="fta" id="edit-cl-note" placeholder="What changed? Add a note..."></textarea></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <input type="checkbox" id="edit-cl-show-client" style="width:15px;height:15px;">
+      <label for="edit-cl-show-client" style="font-size:12px;color:var(--ink2);">Show this update to client in their portal</label>
+    </div>
+    <div class="mft">
+      <button class="btn bbo" onclick="closeModal('m-edit-cl')" style="padding:8px 14px;">Cancel</button>
+      <button class="btn bbg" onclick="saveClientEditPortal()" style="padding:8px 20px;">💾 Save Update</button>
+    </div>
+  </div>
 </div>
 
 <!-- REQUEST MODAL -->
@@ -402,6 +484,65 @@ function showError(){document.getElementById('loading').style.display='none';doc
 var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
 function openModal(id){document.getElementById(id).style.display='flex';}
 function closeModal(id){document.getElementById(id).style.display='none';}
+function openEditClientPortal(cid){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  document.getElementById('edit-cl-id').value=cid;
+  // Load client data
+  fetch(SB+'/rest/v1/ix_clients_v2?id=eq.'+cid,{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}})
+    .then(function(r){return r.json();}).then(function(data){
+      if(Array.isArray(data)&&data.length){
+        var c=data[0];
+        document.getElementById('edit-cl-title').textContent='✏️ Edit: '+c.name;
+        document.getElementById('edit-cl-stage').value=c.stage||'OPEN';
+        // Set service checkboxes
+        var svcs=c.service_type?c.service_type.split(',').map(function(s){return s.trim();}):[];
+        document.querySelectorAll('#edit-cl-svc-checks input').forEach(function(cb){cb.checked=svcs.includes(cb.value);});
+        document.getElementById('edit-cl-note').value='';
+        openModal('m-edit-cl');
+      }
+    });
+}
+
+async function saveClientEditPortal(){
+  var cid=document.getElementById('edit-cl-id').value;
+  var stage=document.getElementById('edit-cl-stage').value;
+  var note=document.getElementById('edit-cl-note').value.trim();
+  var showClient=document.getElementById('edit-cl-show-client').checked;
+  var svcs=[];
+  document.querySelectorAll('#edit-cl-svc-checks input:checked').forEach(function(cb){svcs.push(cb.value);});
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Update client
+    var updates={stage:stage};
+    if(svcs.length)updates.service_type=svcs.join(', ');
+    await fetch(SB+'/rest/v1/ix_clients_v2?id=eq.'+cid,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify(updates)
+    });
+    // Add workflow update if note exists
+    if(note){
+      await fetch(SB+'/rest/v1/ix_workflow',{
+        method:'POST',
+        headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          client_id:cid,
+          title:'Stage update: '+stage,
+          description:note,
+          status:stage,
+          show_to_client:showClient,
+          created_by:memberData?memberData.name:null
+        })
+      });
+    }
+    closeModal('m-edit-cl');
+    toast('✅ Client updated!','ts');
+    loadTeamData(memberData);
+  }catch(e){toast('Error saving','te');}
+}
+
 function doLogout(){try{localStorage.removeItem('ix_portal_data');localStorage.removeItem('ix_portal_type');}catch(e){}window.location.href='portal.html';}
 
 window.addEventListener('DOMContentLoaded',function(){
@@ -498,6 +639,7 @@ function renderClients(clients){
       +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;">'+c.name+'</div>'
       +'<div style="font-size:11px;color:var(--ink3);">'+(c.service_type||c.industry||'—')+'</div></div>'
       +'<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+sc+'22;color:'+sc+';">'+c.stage+'</span>'
+      +'<button class="btn" style="font-size:11px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);padding:4px 8px;margin-left:4px;" data-cid="'+c.id+'" onclick="openEditClientPortal(this.dataset.cid)">✏️</button>'
       +'</div>';
   }).join('');
 }
@@ -653,7 +795,7 @@ async function addClientFromPortal(){
     name:name,
     industry:document.getElementById('nc-industry').value.trim()||null,
     country:document.getElementById('nc-country').value.trim()||null,
-    service_type:document.getElementById('nc-svc').value,
+    service_type:(function(){var svcs=[];document.querySelectorAll('#nc-svc-checks input:checked').forEach(function(cb){var v=cb.value==='Other'?(cb.closest('.fg').querySelector('.nc-other-field').value||'Other'):cb.value;svcs.push(v);});return svcs.join(', ')||null;})(),
     stage:'INITIATION',
     code:code,
     main_am_name:memberData?memberData.name:null,
@@ -720,28 +862,38 @@ async function loadMyProjects(){
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   try{
-    // Load projects where member is in members list or AM
+    // Load ALL projects
     var r=await fetch(SB+'/rest/v1/ix_projects?order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
     var projs=await r.json();
-    if(Array.isArray(projs)){
-      projs=projs.filter(function(p){
-        try{var m=JSON.parse(p.members||'[]');return m.includes(memberData.name)||p.client_name===memberData.name;}catch(e){return false;}
-      });
-      renderMyProjects(projs);
-    }
-    // Load people for assignee dropdown
+    if(!Array.isArray(projs))projs=[];
+    var myProjs=projs.filter(function(p){
+      try{var m=JSON.parse(p.members||'[]');return m.includes(memberData.name);}catch(e){return false;}
+    });
+    renderMyProjects(myProjs.length?myProjs:projs.slice(0,10));
+
+    // Load ALL people
     var rp=await fetch(SB+'/rest/v1/ix_people?select=id,name,role,person_type',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
     var people=await rp.json();
-    if(Array.isArray(people)){
-      var asel=document.getElementById('help-proj-assignee');
-      if(asel)asel.innerHTML='<option value="">— Select Team Member —</option>'+people.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
-    }
-    // Populate client dropdown
-    if(myClients&&myClients.length){
-      var csel=document.getElementById('help-client-sel');
-      if(csel)csel.innerHTML='<option value="">— Select Client —</option>'+myClients.map(function(c){return '<option value="'+c.name+'">'+c.name+'</option>';}).join('');
-    }
-  }catch(e){}
+    if(!Array.isArray(people))people=[];
+    window._allPeople=people;
+    var peopleOpts='<option value="">— Select —</option>'+people.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+    ['at-assignee','help-proj-assignee'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=peopleOpts;});
+
+    // Load ALL clients (for this member)
+    var rc=await fetch(SB+'/rest/v1/ix_clients_v2?order=name.asc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var allClients=await rc.json();
+    if(!Array.isArray(allClients))allClients=[];
+    // Filter to member's clients
+    var myCls=allClients.filter(function(c){return c.main_am_name===memberData.name||c.added_by===memberData.name;});
+    var clToShow=myCls.length?myCls:allClients.slice(0,20);
+    var clOpts='<option value="">— Select Client —</option>'+clToShow.map(function(c){return '<option value="'+c.name+'">'+c.name+'</option>';}).join('');
+    ['at-cl-sel','help-client-sel','ts-client'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=clOpts;});
+
+    // Populate project selects
+    var projOpts='<option value="">— Select Project —</option>'+projs.map(function(p){return '<option value="'+p.name+'">'+p.name+(p.client_name?' ('+p.client_name+')':'')+'</option>';}).join('');
+    ['at-proj-sel','help-proj-sel','ts-proj'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=projOpts;});
+
+  }catch(e){console.error('loadMyProjects error:',e);}
 }
 
 var _myProjects=[];
@@ -1126,11 +1278,122 @@ function showTab(n,el){
   if(n==='inbox')loadInbox();
   if(n==='meetings'){var d=document.getElementById('mt-date-new');if(d&&!d.value)d.value=new Date().toISOString().split('T')[0];}
 }
+async function sendExpTaskRequest(){
+  var title=document.getElementById('exp-at-title').value.trim();
+  var desc=document.getElementById('exp-at-desc').value.trim();
+  var assignee=document.getElementById('exp-at-assignee').value;
+  if(!title||!assignee){toast('Fill title and assignee','te');return;}
+  var parts=assignee.split('|');
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var notes=document.getElementById('exp-at-notes').value.trim();
+  var body={title:title,description:desc+(notes?'\n\nNotes: '+notes:''),assignee_id:parts[0]||null,assignee_name:parts[1]||null,requested_by:memberData?memberData.name:null,priority:document.getElementById('exp-at-pri').value,status:'Pending',show_to_client:false};
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
+    if(r.ok){toast('✅ Task sent!','ts');document.getElementById('exp-at-title').value='';document.getElementById('exp-at-desc').value='';}
+    else toast('Error','te');
+  }catch(e){toast('Error','te');}
+}
+
+async function loadExpProjects(){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var el=document.getElementById('exp-projs-list');if(!el)return;
+  try{
+    var rp=await fetch(SB+'/rest/v1/ix_people?select=id,name,role,person_type',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var people=await rp.json();
+    if(Array.isArray(people)){
+      window._allPeople=people;
+      var asel=document.getElementById('exp-at-assignee');
+      if(asel)asel.innerHTML='<option value="">— Select —</option>'+people.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+    }
+    var r=await fetch(SB+'/rest/v1/ix_projects?order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var projs=await r.json();
+    if(!Array.isArray(projs))projs=[];
+    if(!projs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No projects</div>';return;}
+    var html='';
+    projs.forEach(function(p){
+      var sc={Active:'#22c55e',Planning:'#06b6d4',Done:'#6b7280'};
+      var tc=sc[p.status]||'#6b7280';
+      html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+          +'<div style="font-size:13px;font-weight:700;">'+p.name+'</div>'
+          +'<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:'+tc+'22;color:'+tc+';">'+p.status+'</span>'
+        +'</div>'
+        +(p.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+p.client_name+'</div>':'')
+        +(p.description?'<div style="font-size:12px;color:var(--ink2);margin-top:4px;">'+p.description.slice(0,80)+'</div>':'')
+      +'</div>';
+    });
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error loading</div>';}
+}
+
+async function loadExpInbox(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var inEl=document.getElementById('exp-inbox-list');
+  var stEl=document.getElementById('exp-sent-list');
+  try{
+    var ri=await fetch(SB+'/rest/v1/ix_requests?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var inc=await ri.json();
+    inc=Array.isArray(inc)?inc:[];
+    var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
+    if(inEl){
+      if(!inc.length)inEl.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No incoming requests</div>';
+      else inEl.innerHTML=inc.map(function(r){
+        return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><div style="font-size:13px;font-weight:700;">'+r.title+'</div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'
+          +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:10px;">'+r.description.slice(0,120)+'</div>':'')
+          +'<div style="font-size:11px;color:var(--ink3);">From: '+(r.requested_by||'—')+'</div>'
+          +(r.status==='Pending'?'<div style="display:flex;gap:7px;margin-top:8px;"><button class="btn bbg" style="flex:1;font-size:12px;" data-id="'+r.id+'" data-st="Accepted" onclick="respondReq(this.dataset.id,this.dataset.st)">✅ Accept</button><button class="btn" style="flex:1;font-size:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+r.id+'" data-st="Rejected" onclick="respondReq(this.dataset.id,this.dataset.st)">✕ Decline</button></div>':'')
+        +'</div>';
+      }).join('');
+    }
+    var rs=await fetch(SB+'/rest/v1/ix_requests?requested_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var sent=await rs.json();
+    sent=Array.isArray(sent)?sent:[];
+    if(stEl){
+      if(!sent.length)stEl.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No sent requests</div>';
+      else stEl.innerHTML=sent.map(function(r){
+        return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:13px;font-weight:600;">'+r.title+'</div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'
+          +(r.assignee_name?'<div style="font-size:11px;color:var(--ink3);">To: '+r.assignee_name+'</div>':'')
+        +'</div>';
+      }).join('');
+    }
+  }catch(e){}
+}
+
+async function loadExpNews(){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var el=document.getElementById('exp-news-list');if(!el)return;
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_news?order=created_at.desc&limit=20',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var news=await r.json();
+    if(!Array.isArray(news)||!news.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news yet</div>';return;}
+    var tC={announcement:'var(--teal)',alert:'var(--red)',update:'#a78bfa',opportunity:'var(--gold)',event:'#22c55e'};
+    var tI={announcement:'📢',alert:'⚠️',update:'🔄',opportunity:'🎯',event:'📅'};
+    el.innerHTML=news.filter(function(n){try{var a=JSON.parse(n.audience||'[]');return a.includes('all')||a.includes('experts');}catch(e){return true;}}).map(function(n){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+(tC[n.type]||'var(--teal)')+';border-radius:9px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:6px;"><span style="font-size:16px;">'+(tI[n.type]||'📢')+'</span><div style="font-size:13px;font-weight:700;">'+n.title+'</div></div>'
+        +'<div style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:6px;">'+n.content+'</div>'
+        +(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:6px;">'+new Date(n.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news</div>';}
+}
+
 function showTabE(n,el){
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#expert-tabs .tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tpe-'+n).classList.add('on');
   if(el)el.classList.add('on');
+  if(n==='exp-projects')loadExpProjects();
+  if(n==='exp-inbox')loadExpInbox();
+  if(n==='exp-news')loadExpNews();
 }
 </script>
 </body>
