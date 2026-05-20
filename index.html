@@ -2003,6 +2003,111 @@ async function saveMeeting(){
 // ── NOTIFICATIONS ──
 function addNotif(title,body,type,relId){var n={title:title,body:body,type:type,related_id:relId,is_read:false,created_at:new Date().toISOString()};ANotifs.unshift(n);if(sb){sb.from('ix_notifications').insert(n).then(function(){});}updateNotifBadge();}
 function updateNotifBadge(){var unread=ANotifs.filter(function(n){return !n.is_read;}).length;var b=document.getElementById('notif-badge');if(b){b.textContent=unread;b.style.display=unread?'flex':'none';}}
+// ── CLIENT SERVICES SYSTEM ──
+async function manageServices(clientId, clientName){
+  document.getElementById('svc-cl-id').value=clientId;
+  document.getElementById('svc-cl-name').textContent=clientName;
+  document.getElementById('new-svc-date').value=new Date().toISOString().split('T')[0];
+  renderServicesList(clientId);
+  om('m-svc');
+}
+
+function renderServicesList(clientId){
+  var el=document.getElementById('svc-list');if(!el)return;
+  var svcs=AClientServices.filter(function(s){return s.client_id===clientId;});
+  if(!svcs.length){
+    el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:12px;">No services yet — add the first one below</div>';
+    return;
+  }
+  var stgC={'RELATIONSHIP BUILDING':'#06b6d4','PROPOSAL':'#a78bfa','NEGOTIATION':'#f59e0b','AGREEMENT':'#3b82f6','LEGAL':'#8b5cf6','EXECUTION':'#22c55e','COMPLETED':'#10b981','ON HOLD':'#6b7280'};
+  var stages=['RELATIONSHIP BUILDING','PROPOSAL','NEGOTIATION','AGREEMENT','LEGAL','EXECUTION','COMPLETED','ON HOLD'];
+  el.innerHTML=svcs.map(function(s){
+    var sc=stgC[s.stage]||'#06b6d4';
+    var hist=AServiceHistory.filter(function(h){return h.service_id===s.id;});
+    return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+        +'<div><div style="font-size:14px;font-weight:700;">'+s.service_type+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">Started: '+(s.start_date||'—')+'</div></div>'
+        +'<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:'+sc+'22;color:'+sc+';">'+s.stage+'</span>'
+      +'</div>'
+      +(s.notes?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;">'+s.notes+'</div>':'')
+      +'<div style="margin-bottom:8px;">'
+        +'<label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:4px;">Update Stage</label>'
+        +'<div style="display:flex;gap:6px;">'
+          +'<select class="fs" id="stage-sel-'+s.id+'" style="flex:1;font-size:11px;">'
+            +stages.map(function(st){return '<option value="'+st+'"'+(st===s.stage?' selected':'')+'>'+st+'</option>';}).join('')
+          +'</select>'
+          +'<button class="btn bbg" style="font-size:11px;padding:5px 10px;white-space:nowrap;" data-sid="'+s.id+'" data-cid="'+s.client_id+'" onclick="updateServiceStage(this.dataset.sid,this.dataset.cid)">💾 Update</button>'
+        +'</div>'
+        +'<input class="fi" id="stage-note-'+s.id+'" style="margin-top:6px;font-size:11px;" placeholder="Note about this stage change (optional)">'
+        +'<div style="display:flex;align-items:center;gap:6px;margin-top:5px;">'
+          +'<input type="checkbox" id="stage-show-'+s.id+'" checked style="width:13px;height:13px;">'
+          +'<label for="stage-show-'+s.id+'" style="font-size:11px;color:var(--ink3);">Show to client in their portal</label>'
+        +'</div>'
+      +'</div>'
+      +(hist.length?
+        '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:4px;">📋 History ('+hist.length+')</div>'
+        +'<div style="max-height:100px;overflow-y:auto;">'
+          +hist.slice(0,5).map(function(h){return '<div style="font-size:11px;color:var(--ink3);padding:3px 0;border-bottom:1px solid rgba(26,31,56,.3);">'
+            +'<span style="color:var(--ink2);">'+new Date(h.created_at).toLocaleDateString()+'</span> · '
+            +(h.from_stage?h.from_stage+' → ':'')+'<strong>'+h.to_stage+'</strong>'
+            +(h.note?' — '+h.note.slice(0,60):'')
+          +'</div>';}).join('')
+        +'</div>'
+      :'')
+    +'</div>';
+  }).join('');
+}
+
+async function addClientService(){
+  var clientId=document.getElementById('svc-cl-id').value;
+  var clientName=document.getElementById('svc-cl-name').textContent;
+  var svcType=document.getElementById('new-svc-type').value;
+  var stage=document.getElementById('new-svc-stage').value;
+  var date=document.getElementById('new-svc-date').value;
+  var notes=document.getElementById('new-svc-notes').value.trim();
+  if(!svcType){toast('Select a service type','error');return;}
+  var body={client_id:clientId,client_name:clientName,service_type:svcType,stage:stage,start_date:date||null,notes:notes||null};
+  try{
+    var r=await sb.from('ix_client_services').insert(body).select().single();
+    if(r.error)return toast('Error: '+r.error.message,'error');
+    AClientServices.unshift(r.data);
+    // Add initial history entry
+    await sb.from('ix_service_history').insert({service_id:r.data.id,client_name:clientName,service_type:svcType,to_stage:stage,note:'Service started',show_to_client:true,changed_by:'Management'});
+    document.getElementById('new-svc-notes').value='';
+    renderServicesList(clientId);
+    renderFeed();
+    tgNotif('🛠️','New Service Added','*'+clientName+'*\nService: '+svcType+'\nStage: '+stage);
+    toast('✅ Service added!','success');
+  }catch(e){toast('Error adding service','error');}
+}
+
+async function updateServiceStage(svcId,clientId){
+  var newStage=document.getElementById('stage-sel-'+svcId).value;
+  var note=document.getElementById('stage-note-'+svcId).value.trim();
+  var showClient=document.getElementById('stage-show-'+svcId).checked;
+  var svc=AClientServices.find(function(s){return s.id===svcId;});
+  if(!svc)return;
+  try{
+    var r=await sb.from('ix_client_services').update({stage:newStage,updated_at:new Date().toISOString()}).eq('id',svcId).select().single();
+    if(r.error)return toast('Error','error');
+    var idx2=AClientServices.findIndex(function(s){return s.id===svcId;});
+    if(idx2>=0)AClientServices[idx2]=r.data;
+    // Add history
+    var hist={service_id:svcId,client_name:svc.client_name,service_type:svc.service_type,from_stage:svc.stage,to_stage:newStage,note:note||null,show_to_client:showClient,changed_by:'Management'};
+    var rh=await sb.from('ix_service_history').insert(hist).select().single();
+    if(!rh.error)AServiceHistory.unshift(rh.data);
+    // Also add workflow update if note
+    if(note){
+      await sb.from('ix_workflow').insert({client_id:clientId,client_name:svc.client_name,title:svc.service_type+': '+newStage,description:note,status:newStage,show_to_client:showClient,created_by:'Management'});
+    }
+    renderServicesList(clientId);
+    renderFeed();
+    toast('✅ Stage updated!','success');
+    tgNotif('📊','Service Stage Updated','*'+svc.client_name+'*\n'+svc.service_type+'\n'+svc.stage+' - '+newStage);
+  }catch(e){toast('Error','error');}
+}
+
 // ── NOTIFICATION SYSTEM ──
 async function createNotif(title, body, type, relatedId){
   if(!sb)return;

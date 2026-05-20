@@ -150,6 +150,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
     <div class="tabs">
       <button class="tab on" onclick="showTab('overview',this)">📊 Overview</button>
       <button class="tab" onclick="showTab('roadmap',this)">🗺️ Roadmap</button>
+      <button class="tab" onclick="showTab('services',this)">🛠️ My Services</button>
       <button class="tab" onclick="showTab('updates',this)">🔄 Updates</button>
       <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
       <button class="tab" onclick="showTab('experts',this)">🌟 Experts</button>
@@ -194,6 +195,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <div class="panel">
           <div class="ph"><div class="pt">📎 Documents & Resources</div></div>
           <div class="pb" id="roadmap-docs"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVICES -->
+    <div class="tp" id="tp-services">
+      <div class="panel">
+        <div class="ph"><div class="pt">🛠️ My Services with Intersect</div></div>
+        <div class="pb" id="svc-timeline">
+          <div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div>
         </div>
       </div>
     </div>
@@ -839,6 +850,63 @@ async function saveTelegramIdClient(){
   }catch(e){toast('Error saving','te');}
 }
 
+async function loadServices(){
+  var el=document.getElementById('svc-timeline');if(!el)return;
+  if(!clientData)return;
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_client_services?client_id=eq.'+clientData.id+'&order=created_at.asc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var svcs=await r.json();
+    if(!Array.isArray(svcs)||!svcs.length){
+      el.innerHTML='<div style="text-align:center;padding:30px;">'
+        +'<div style="font-size:36px;margin-bottom:12px;">🤝</div>'
+        +'<div style="font-size:14px;font-weight:600;margin-bottom:6px;">Partnership in Progress</div>'
+        +'<div style="font-size:12px;color:var(--ink3);">Your service details will appear here once your partnership is formalized.</div>'
+      +'</div>';
+      return;
+    }
+    // Load history for each service
+    var svcIds=svcs.map(function(s){return s.id;}).join(',');
+    var rh=await fetch(SB_URL+'/rest/v1/ix_service_history?service_id=in.('+svcIds+')&show_to_client=eq.true&order=created_at.asc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var hist=await rh.json();
+    if(!Array.isArray(hist))hist=[];
+    var stgC={'RELATIONSHIP BUILDING':'#06b6d4','PROPOSAL':'#a78bfa','NEGOTIATION':'#f59e0b','AGREEMENT':'#3b82f6','LEGAL':'#8b5cf6','EXECUTION':'#22c55e','COMPLETED':'#10b981','ON HOLD':'#6b7280'};
+    var html='<div style="font-size:12px;color:var(--ink3);margin-bottom:14px;">Partnership started: '+(svcs[0]?new Date(svcs[0].created_at).toLocaleDateString():'—')+'</div>';
+    svcs.forEach(function(s){
+      var sc=stgC[s.stage]||'#06b6d4';
+      var svcHist=hist.filter(function(h){return h.service_id===s.id;});
+      html+='<div style="background:var(--card2);border:1px solid var(--border);border-left:4px solid '+sc+';border-radius:10px;padding:14px;margin-bottom:12px;">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+      html+='<div><div style="font-size:15px;font-weight:800;font-family:Syne;">'+s.service_type+'</div>';
+      html+='<div style="font-size:11px;color:var(--ink3);">Started: '+( s.start_date||new Date(s.created_at).toLocaleDateString())+'</div></div>';
+      html+='<span style="padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;background:'+sc+'22;color:'+sc+';">'+s.stage+'</span>';
+      html+='</div>';
+      if(s.notes)html+='<div style="font-size:12px;color:var(--ink2);margin-bottom:10px;line-height:1.5;">'+s.notes+'</div>';
+      // Timeline of stages
+      if(svcHist.length){
+        html+='<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px;">Journey</div>';
+        html+='<div style="position:relative;padding-left:16px;">';
+        svcHist.forEach(function(h,i){
+          var hc=stgC[h.to_stage]||'#06b6d4';
+          var isLast=i===svcHist.length-1;
+          html+='<div style="display:flex;gap:8px;margin-bottom:8px;position:relative;">';
+          html+='<div style="position:absolute;left:-16px;top:4px;width:8px;height:8px;border-radius:50%;background:'+hc+';flex-shrink:0;"></div>';
+          html+='<div><div style="font-size:12px;font-weight:600;color:'+(isLast?'var(--ink)':'var(--ink2)')+';">'+h.to_stage+'</div>';
+          html+=(h.note?'<div style="font-size:11px;color:var(--ink3);">'+h.note+'</div>':'');
+          html+='<div style="font-size:10px;color:var(--ink3);">'+new Date(h.created_at).toLocaleDateString()+'</div>';
+          html+='</div></div>';
+        });
+        html+='</div>';
+      }
+      html+='</div>';
+    });
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:16px;">Unable to load services</div>';}
+}
+
 function showTab(n,el){
   document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
@@ -846,6 +914,7 @@ function showTab(n,el){
   if(el)el.classList.add('on');
   if(n==='tickets')loadExtraData(clientData);
   if(n==='files')renderFiles(clientData);
+  if(n==='services')loadServices();
 }
 </script>
 </body>
