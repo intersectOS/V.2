@@ -152,6 +152,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('roadmap',this)">🗺️ Roadmap</button>
       <button class="tab" onclick="showTab('services',this)">🛠️ My Services</button>
       <button class="tab partner-only" onclick="showTab('my-companies',this)" style="display:none;">🏭 My Companies</button>
+      <button class="tab strategic-only" onclick="showTab('my-projects-sp',this)" style="display:none;">⚙️ My Assignments</button>
       <button class="tab" onclick="showTab('updates',this)">🔄 Updates</button>
       <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
       <button class="tab" onclick="showTab('experts',this)">🌟 Experts</button>
@@ -219,6 +220,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         </div>
         <div class="pb" id="my-companies-list">
           <div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STRATEGIC PARTNER ASSIGNMENTS -->
+    <div class="tp" id="tp-my-projects-sp">
+      <div class="panel">
+        <div class="ph">
+          <div class="pt">⚙️ My Project Assignments</div>
+          <span id="sp-count" class="pill pp" style="display:none;"></span>
+        </div>
+        <div class="pb" id="sp-assignments-list">
+          <div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div>
+        </div>
+      </div>
+      <!-- Status Update -->
+      <div class="panel">
+        <div class="ph"><div class="pt">📤 Submit Update</div></div>
+        <div class="pb">
+          <div class="fg"><label class="fl">Project / Assignment</label>
+            <select class="fs" id="sp-upd-proj"><option value="">— Select Assignment —</option></select>
+          </div>
+          <div class="fg"><label class="fl">Update *</label>
+            <textarea class="fta" id="sp-upd-text" placeholder="Progress update, deliverables, blockers..."></textarea>
+          </div>
+          <div class="fg"><label class="fl">Attachment (Drive link)</label>
+            <input class="fi" type="url" id="sp-upd-file" dir="ltr" placeholder="https://drive.google.com/...">
+          </div>
+          <button class="btn bbg bw" onclick="submitSPUpdate()">📤 Submit Update</button>
+          <div id="sp-upd-sent" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Update submitted!</div>
         </div>
       </div>
     </div>
@@ -864,6 +895,86 @@ async function saveTelegramIdClient(){
   }catch(e){toast('Error saving','te');}
 }
 
+async function loadSPAssignments(){
+  var el=document.getElementById('sp-assignments-list');if(!el)return;
+  if(!clientData)return;
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_partner_projects?partner_id=eq.'+clientData.id+'&order=created_at.desc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var items=await r.json();
+    if(!Array.isArray(items)||!items.length){
+      el.innerHTML='<div style="text-align:center;padding:30px;">'
+        +'<div style="font-size:36px;margin-bottom:12px;">⚙️</div>'
+        +'<div style="font-size:14px;font-weight:600;margin-bottom:6px;">No Assignments Yet</div>'
+        +'<div style="font-size:12px;color:var(--ink3);">Your project assignments will appear here.</div>'
+      +'</div>';
+      return;
+    }
+    var badge=document.getElementById('sp-count');
+    if(badge){badge.textContent=items.length+' assignments';badge.style.display='inline-flex';}
+    // Populate update dropdown
+    var projSel=document.getElementById('sp-upd-proj');
+    if(projSel)projSel.innerHTML='<option value="">— Select Assignment —</option>'+items.map(function(p){
+      return '<option value="'+p.id+'">'+(p.project_name||p.client_name||'—')+' — '+p.role+'</option>';
+    }).join('');
+    var vLabels={subcontractor:'🔒 Subcontractor',consortium_visible:'👁️ Consortium-Visible',consortium_hidden:'🤝 Consortium-Internal'};
+    var sColors={Active:'#22c55e',Completed:'#6b7280','On Hold':'#f59e0b'};
+    el.innerHTML=items.map(function(p){
+      var sc=sColors[p.status]||'#22c55e';
+      // Only show client name if visible consortium
+      var showClient=p.visibility==='consortium_visible';
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+sc+';border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+          +'<div>'
+            +'<div style="font-size:14px;font-weight:700;">'+(p.project_name||'Project Assignment')+'</div>'
+            +(showClient&&p.client_name?'<div style="font-size:11px;color:var(--teal);">Client: '+p.client_name+'</div>':'')
+            +'<div style="font-size:11px;color:var(--gold);">Role: '+p.role+'</div>'
+          +'</div>'
+          +'<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:'+sc+'22;color:'+sc+';">'+p.status+'</span>'
+        +'</div>'
+        +'<div style="display:flex;gap:5px;flex-wrap:wrap;">'
+          +'<span style="font-size:10px;background:rgba(124,58,237,.1);color:#a78bfa;padding:2px 8px;border-radius:8px;">'+(vLabels[p.visibility]||p.visibility)+'</span>'
+          +(p.notes?'<div style="font-size:11px;color:var(--ink2);margin-top:6px;width:100%;">'+p.notes+'</div>':'')
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:16px;">Unable to load assignments</div>';
+  }
+}
+
+async function submitSPUpdate(){
+  var projId=document.getElementById('sp-upd-proj').value;
+  var text=document.getElementById('sp-upd-text').value.trim();
+  if(!projId||!text){toast('Select assignment and write update','te');return;}
+  var file=document.getElementById('sp-upd-file').value.trim();
+  var body={
+    requested_by:clientData?clientData.name:null,
+    title:'[SP Update] '+clientData.name,
+    description:text+(file?'\n\nAttachment: '+file:''),
+    context_type:'partner_update',
+    context_value:projId,
+    status:'Pending',
+    show_to_client:false,
+    priority:'medium'
+  };
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('sp-upd-text').value='';
+      document.getElementById('sp-upd-file').value='';
+      document.getElementById('sp-upd-sent').style.display='block';
+      setTimeout(function(){document.getElementById('sp-upd-sent').style.display='none';},4000);
+      toast('✅ Update submitted!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
+}
+
 async function loadMyCompanies(){
   var el=document.getElementById('my-companies-list');if(!el)return;
   if(!clientData)return;
@@ -970,6 +1081,7 @@ function showTab(n,el){
   if(n==='files')renderFiles(clientData);
   if(n==='services')loadServices();
   if(n==='my-companies')loadMyCompanies();
+  if(n==='my-projects-sp')loadSPAssignments();
 }
 </script>
 </body>

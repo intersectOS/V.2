@@ -754,6 +754,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
       <select class="fs" id="cl-type" onchange="togglePartnerField()">
         <option value="client">🏢 Client</option>
         <option value="partner">🤝 Success Partner</option>
+        <option value="strategic">⚙️ Strategic Partner</option>
       </select>
     </div>
     <div class="fg"><label class="fl">Stage</label>
@@ -2829,6 +2830,96 @@ async function sendReply(){
     lRequests();
     toast('✅ Reply sent!','success');
   }catch(e){toast('Error sending reply','error');}
+}
+
+async function openPartnerProjects(pid, pname){
+  document.getElementById('pp-pid').value=pid;
+  document.getElementById('pp-pname').textContent=pname;
+  // Populate selects
+  var projSel=document.getElementById('pp-proj');
+  var clSel=document.getElementById('pp-client');
+  if(projSel)projSel.innerHTML='<option value="">— Select Project —</option>'+AProj.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+'</option>';}).join('');
+  if(clSel)clSel.innerHTML='<option value="">— Select Client —</option>'+AC.map(function(c){return '<option value="'+c.id+'|'+c.name+'">'+c.name+'</option>';}).join('');
+  // Load existing assignments
+  renderPartnerProjects(pid);
+  om('m-pp');
+}
+
+async function renderPartnerProjects(pid){
+  var el=document.getElementById('pp-list');if(!el)return;
+  var pps=await sb.from('ix_partner_projects').select('*').eq('partner_id',pid).order('created_at',{ascending:false});
+  var items=pps.data||[];
+  if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:12px;">No project assignments yet</div>';return;}
+  var vLabels={subcontractor:'🔒 Subcontractor',consortium_visible:'👁️ Consortium-Visible',consortium_hidden:'🤝 Consortium-Hidden'};
+  var ctLabels={with_intersect:'📋 With Intersect',joint:'🤝 Joint',direct:'📄 Direct'};
+  var sColors={Active:'#22c55e',Completed:'#6b7280','On Hold':'#f59e0b'};
+  el.innerHTML=items.map(function(p){
+    var sc=sColors[p.status]||'#22c55e';
+    return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+sc+';border-radius:9px;padding:12px;margin-bottom:8px;">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+        +'<div><div style="font-size:13px;font-weight:700;">'+(p.project_name||p.client_name||'—')+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">'+(p.client_name||'—')+'</div></div>'
+        +'<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:'+sc+'22;color:'+sc+';font-weight:700;">'+p.status+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">'
+        +'<span style="font-size:10px;background:rgba(124,58,237,.1);color:#a78bfa;padding:2px 8px;border-radius:8px;">'+(vLabels[p.visibility]||p.visibility)+'</span>'
+        +'<span style="font-size:10px;background:rgba(6,182,212,.1);color:var(--teal);padding:2px 8px;border-radius:8px;">'+(ctLabels[p.contract_type]||p.contract_type)+'</span>'
+        +(p.role?'<span style="font-size:10px;background:rgba(245,158,11,.1);color:var(--gold);padding:2px 8px;border-radius:8px;">'+p.role+'</span>':'')
+      +'</div>'
+      +(p.notes?'<div style="font-size:11px;color:var(--ink2);">'+p.notes.slice(0,100)+'</div>':'')
+      +'<div style="display:flex;gap:5px;margin-top:8px;">'
+        +'<select style="font-size:11px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--ink);flex:1;" id="pp-status-'+p.id+'">'
+          +'<option value="Active"'+(p.status==='Active'?' selected':'')+'>Active</option>'
+          +'<option value="Completed"'+(p.status==='Completed'?' selected':'')+'>Completed</option>'
+          +'<option value="On Hold"'+(p.status==='On Hold'?' selected':'')+'>On Hold</option>'
+        +'</select>'
+        +'<button class="btn bbg bsm" data-id="'+p.id+'" onclick="updatePPStatus(this.dataset.id)">💾</button>'
+        +'<button class="btn bsm" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+p.id+'" data-pid="'+pid+'" onclick="deletePP(this.dataset.id,this.dataset.pid)">✕</button>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function addPartnerProject(){
+  var pid=document.getElementById('pp-pid').value;
+  var pname=document.getElementById('pp-pname').textContent;
+  var projVal=document.getElementById('pp-proj').value;
+  var clVal=document.getElementById('pp-client').value;
+  var role=document.getElementById('pp-role').value.trim();
+  var vis=document.getElementById('pp-visibility').value;
+  var ct=document.getElementById('pp-contract').value;
+  var notes=document.getElementById('pp-notes').value.trim();
+  if(!role)return toast('Enter a role for this partner','error');
+  var projParts=projVal?projVal.split('|'):['',''];
+  var clParts=clVal?clVal.split('|'):['',''];
+  var body={
+    partner_id:pid,partner_name:pname,
+    project_id:projParts[0]||null,project_name:projParts[1]||null,
+    client_id:clParts[0]||null,client_name:clParts[1]||null,
+    role:role,visibility:vis,contract_type:ct,notes:notes||null,status:'Active'
+  };
+  try{
+    var r=await sb.from('ix_partner_projects').insert(body).select().single();
+    if(r.error)return toast('Error: '+r.error.message,'error');
+    document.getElementById('pp-role').value='';
+    document.getElementById('pp-notes').value='';
+    renderPartnerProjects(pid);
+    tgNotif('⚙️','Partner Assigned to Project','*'+pname+'*\nRole: '+role+'\nVisibility: '+vis);
+    toast('✅ Partner assigned!','success');
+  }catch(e){toast('Error','error');}
+}
+
+async function updatePPStatus(id){
+  var status=document.getElementById('pp-status-'+id).value;
+  await sb.from('ix_partner_projects').update({status:status}).eq('id',id);
+  toast('✅ Updated','success');
+}
+
+async function deletePP(id,pid){
+  if(!confirm('Remove this assignment?'))return;
+  await sb.from('ix_partner_projects').delete().eq('id',id);
+  renderPartnerProjects(pid);
+  toast('Removed','success');
 }
 
 function populateContractClients(){
