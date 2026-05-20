@@ -25,6 +25,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 .bbg{background:var(--grad);color:#fff;}.bbo{background:transparent;border:1px solid var(--border);color:var(--ink2);}.br{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);}
 .layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 60px);}
 .sidebar{border-right:1px solid var(--border);padding:16px;overflow-y:auto;}
+.lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.lb.on{background:rgba(6,182,212,.2);border-color:#06b6d4;color:var(--teal);}
 @media(max-width:768px){
   .layout{grid-template-columns:1fr!important;}
   .sidebar{border-right:none;border-bottom:1px solid var(--border);max-height:220px;overflow-y:auto;}
@@ -62,6 +64,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 .mft{display:flex;gap:7px;justify-content:flex-end;margin-top:13px;padding-top:12px;border-top:1px solid var(--border);}
 .empty-state{text-align:center;padding:40px 20px;color:var(--ink3);}
 .empty-icon{font-size:40px;margin-bottom:12px;}
+.lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.lb.on{background:rgba(6,182,212,.2);border-color:#06b6d4;color:var(--teal);}
 @media(max-width:768px){.layout{grid-template-columns:1fr;}.sidebar{border-right:none;border-bottom:1px solid var(--border);max-height:200px;}}
 </style>
 </head>
@@ -89,6 +93,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <div style="font-size:11px;color:var(--ink3);margin-top:2px;" id="meet-count-header">Loading...</div>
     </div>
     <div class="hbtns">
+      <div style="display:flex;gap:3px;">
+        <button class="lb on" data-l="en" onclick="setL('en')">EN</button>
+        <button class="lb" data-l="ar" onclick="setL('ar')">AR</button>
+        <button class="lb" data-l="es" onclick="setL('es')">ES</button>
+        <button class="lb" data-l="fr" onclick="setL('fr')">FR</button>
+        <button class="lb" data-l="ja" onclick="setL('ja')">JA</button>
+        <button class="lb" data-l="zh" onclick="setL('zh')">ZH</button>
+      </div>
       <button class="btn bbg" onclick="exportAll('txt')">📤 All · TXT</button>
       <button class="btn bbg" onclick="exportAll('md')" style="background:linear-gradient(135deg,#7c3aed,#3b82f6);">📤 All · MD</button>
       <button class="btn bbo" onclick="exportClient('txt')">📄 Client · TXT</button>
@@ -194,6 +206,58 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 <script>
 var SB_URL='https://rppwppxyhmuicgemmecu.supabase.co';
 var SB_KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+var TT={
+  en:{title:'Meeting Coordinator',subtitle:'Founders Only',clients_label:'Clients & Files',new_client:'+ New Client File',no_selection_title:'Select a client',no_selection_sub:'Choose a client from the left to view and add meetings',log_meeting:'➕ Log New Meeting',mt_history:'📅 Meeting History',mt_title:'Title *',mt_date:'Date *',mt_type:'Meeting Type',mt_fup:'Follow-up Deadline',mt_att:'Attendees',mt_agenda:'Agenda',mt_sum:'Summary',mt_acts:'Action Items',mt_notes:'Notes',mt_transcript:'🔒 Full Transcript',mt_save:'💾 Save Meeting',mt_search:'Search...',new_cl_title:'📁 New Client File',nc_name:'Client Name *',nc_industry:'Industry',nc_notes:'Notes',nc_create:'📁 Create File',cancel:'Cancel',export_all_txt:'📤 All · TXT',export_all_md:'📤 All · MD',export_cl_txt:'📄 Client · TXT',export_cl_md:'📄 Client · MD',logout:'→ Logout',password_placeholder:'Enter coordinator password',access_btn:'ACCESS PORTAL',wrong_pass:'Wrong password',meetings_count:'meetings',clients_count:'clients'},
+  ar:{title:'منسق الاجتماعات',subtitle:'للمؤسسين فقط',clients_label:'العملاء والملفات',new_client:'+ ملف عميل جديد',no_selection_title:'اختر عميلاً',no_selection_sub:'اختر عميلاً من اليسار لعرض وإضافة الاجتماعات',log_meeting:'➕ تسجيل اجتماع جديد',mt_history:'📅 سجل الاجتماعات',mt_title:'العنوان *',mt_date:'التاريخ *',mt_type:'نوع الاجتماع',mt_fup:'موعد المتابعة',mt_att:'الحضور',mt_agenda:'جدول الأعمال',mt_sum:'الملخص',mt_acts:'بنود العمل',mt_notes:'ملاحظات',mt_transcript:'🔒 النص الكامل',mt_save:'💾 حفظ الاجتماع',mt_search:'بحث...',new_cl_title:'📁 ملف عميل جديد',nc_name:'اسم العميل *',nc_industry:'القطاع',nc_notes:'ملاحظات',nc_create:'📁 إنشاء الملف',cancel:'إلغاء',export_all_txt:'📤 الكل · TXT',export_all_md:'📤 الكل · MD',export_cl_txt:'📄 العميل · TXT',export_cl_md:'📄 العميل · MD',logout:'→ خروج',password_placeholder:'أدخل كلمة مرور المنسق',access_btn:'الدخول',wrong_pass:'كلمة المرور خاطئة',meetings_count:'اجتماعات',clients_count:'عملاء'},
+  es:{title:'Coordinador de Reuniones',subtitle:'Solo Fundadores',clients_label:'Clientes',new_client:'+ Nuevo Archivo',no_selection_title:'Selecciona un cliente',no_selection_sub:'Elige un cliente para ver y añadir reuniones',log_meeting:'➕ Nueva Reunión',mt_history:'📅 Historial',mt_title:'Título *',mt_date:'Fecha *',mt_type:'Tipo',mt_fup:'Seguimiento',mt_att:'Asistentes',mt_agenda:'Agenda',mt_sum:'Resumen',mt_acts:'Acciones',mt_notes:'Notas',mt_transcript:'🔒 Transcripción',mt_save:'💾 Guardar',mt_search:'Buscar...',new_cl_title:'📁 Nuevo Cliente',nc_name:'Nombre *',nc_industry:'Industria',nc_notes:'Notas',nc_create:'📁 Crear',cancel:'Cancelar',export_all_txt:'📤 Todo · TXT',export_all_md:'📤 Todo · MD',export_cl_txt:'📄 Cliente · TXT',export_cl_md:'📄 Cliente · MD',logout:'→ Salir',password_placeholder:'Contraseña',access_btn:'ACCEDER',wrong_pass:'Contraseña incorrecta',meetings_count:'reuniones',clients_count:'clientes'},
+  fr:{title:'Coordinateur de Réunions',subtitle:'Fondateurs Uniquement',clients_label:'Clients',new_client:'+ Nouveau Fichier',no_selection_title:'Sélectionnez un client',no_selection_sub:'Choisissez un client pour voir et ajouter des réunions',log_meeting:'➕ Nouvelle Réunion',mt_history:'📅 Historique',mt_title:'Titre *',mt_date:'Date *',mt_type:'Type',mt_fup:'Suivi',mt_att:'Participants',mt_agenda:'Ordre du jour',mt_sum:'Résumé',mt_acts:'Actions',mt_notes:'Notes',mt_transcript:'🔒 Transcription',mt_save:'💾 Sauvegarder',mt_search:'Rechercher...',new_cl_title:'📁 Nouveau Client',nc_name:'Nom *',nc_industry:'Industrie',nc_notes:'Notes',nc_create:'📁 Créer',cancel:'Annuler',export_all_txt:'📤 Tout · TXT',export_all_md:'📤 Tout · MD',export_cl_txt:'📄 Client · TXT',export_cl_md:'📄 Client · MD',logout:'→ Déconnexion',password_placeholder:'Mot de passe',access_btn:'ACCÉDER',wrong_pass:'Mot de passe incorrect',meetings_count:'réunions',clients_count:'clients'},
+  ja:{title:'会議コーディネーター',subtitle:'創業者専用',clients_label:'クライアント',new_client:'+ 新規ファイル',no_selection_title:'クライアントを選択',no_selection_sub:'左からクライアントを選んでください',log_meeting:'➕ 新規会議',mt_history:'📅 会議履歴',mt_title:'タイトル *',mt_date:'日付 *',mt_type:'会議タイプ',mt_fup:'フォローアップ',mt_att:'参加者',mt_agenda:'アジェンダ',mt_sum:'サマリー',mt_acts:'アクション',mt_notes:'メモ',mt_transcript:'🔒 議事録',mt_save:'💾 保存',mt_search:'検索...',new_cl_title:'📁 新規クライアント',nc_name:'名前 *',nc_industry:'業界',nc_notes:'メモ',nc_create:'📁 作成',cancel:'キャンセル',export_all_txt:'📤 全件 · TXT',export_all_md:'📤 全件 · MD',export_cl_txt:'📄 クライアント · TXT',export_cl_md:'📄 クライアント · MD',logout:'→ ログアウト',password_placeholder:'パスワード',access_btn:'アクセス',wrong_pass:'パスワードが違います',meetings_count:'件',clients_count:'クライアント'},
+  zh:{title:'会议协调员',subtitle:'仅限创始人',clients_label:'客户',new_client:'+ 新建文件',no_selection_title:'选择客户',no_selection_sub:'从左侧选择客户查看和添加会议',log_meeting:'➕ 新建会议',mt_history:'📅 会议记录',mt_title:'标题 *',mt_date:'日期 *',mt_type:'类型',mt_fup:'跟进',mt_att:'参与者',mt_agenda:'议程',mt_sum:'摘要',mt_acts:'行动项',mt_notes:'备注',mt_transcript:'🔒 完整记录',mt_save:'💾 保存',mt_search:'搜索...',new_cl_title:'📁 新建客户',nc_name:'名称 *',nc_industry:'行业',nc_notes:'备注',nc_create:'📁 创建',cancel:'取消',export_all_txt:'📤 全部 · TXT',export_all_md:'📤 全部 · MD',export_cl_txt:'📄 客户 · TXT',export_cl_md:'📄 客户 · MD',logout:'→ 退出',password_placeholder:'密码',access_btn:'访问',wrong_pass:'密码错误',meetings_count:'次会议',clients_count:'客户'}
+};
+
+var curL='en';
+function tt(k){return (TT[curL]&&TT[curL][k])||TT.en[k]||k;}
+
+function setL(l){
+  curL=l;
+  var isRTL=l==='ar';
+  document.getElementById('trh').setAttribute('lang',l);
+  document.getElementById('trh').setAttribute('dir',isRTL?'rtl':'ltr');
+  document.querySelectorAll('.lb').forEach(function(b){b.classList.remove('on');});
+  var a=document.querySelector('.lb[data-l="'+l+'"]');if(a)a.classList.add('on');
+  try{localStorage.setItem('ix_coord_lang',l);}catch(e){}
+  applyCoordTranslations();
+}
+
+function applyCoordTranslations(){
+  // Header
+  document.querySelector('.htit').textContent='📋 '+tt('title');
+  // Logout btn
+  document.querySelectorAll('.br').forEach(function(b){if(b.textContent.includes('Logout')||b.textContent.includes('خروج')||b.textContent.includes('Salir'))b.textContent=tt('logout');});
+  // Sidebar
+  document.querySelector('.sb-title').textContent=tt('clients_label');
+  document.querySelector('.new-cl-btn').textContent=tt('new_client');
+  // No selection
+  var nst=document.querySelector('#no-selection div:nth-child(2)');if(nst)nst.textContent=tt('no_selection_title');
+  var nss=document.querySelector('#no-selection div:nth-child(3)');if(nss)nss.textContent=tt('no_selection_sub');
+  // Log meeting panel
+  var logBtn=document.querySelector('#client-content .btn.bbg');if(logBtn)logBtn.textContent=tt('mt_save');
+  // Search
+  var srch=document.getElementById('mt-search');if(srch)srch.placeholder=tt('mt_search');
+  // Password field
+  var passField=document.getElementById('coord-pass');if(passField)passField.placeholder=tt('password_placeholder');
+  var accessBtn=document.querySelector('.lbtn');if(accessBtn)accessBtn.textContent=tt('access_btn');
+  // Form labels
+  var labels=document.querySelectorAll('#client-content .fl');
+  var labelKeys=['mt_title','mt_date','mt_type','mt_fup','mt_att','mt_agenda','mt_sum','mt_acts','mt_notes','mt_transcript'];
+  labels.forEach(function(lb,i){if(labelKeys[i])lb.textContent=tt(labelKeys[i]);});
+  // Modal
+  document.querySelector('#m-new-cl .mti').textContent=tt('new_cl_title');
+  // Meeting history title
+  var mhTitle=document.querySelector('#meets-list').closest&&document.querySelector('#meets-list').closest('.panel')&&document.querySelector('#meets-list').closest('.panel').querySelector('.pt');
+  if(mhTitle)mhTitle.textContent=tt('mt_history');
+}
+
 var meetings=[], clients=[], selectedClient=null, allMeetings=[];
 
 function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');setTimeout(function(){el.classList.remove('show');},3000);}
@@ -207,6 +271,7 @@ function doLogin(){
     document.getElementById('login-sc').style.display='none';
     document.getElementById('main').style.display='block';
     document.getElementById('mt-date').value=new Date().toISOString().split('T')[0];
+    try{var sl=localStorage.getItem('ix_coord_lang');if(sl)setL(sl);}catch(e){}
     loadData();
   } else {
     document.getElementById('lerr').style.display='block';
