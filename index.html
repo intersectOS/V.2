@@ -255,25 +255,33 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 /* RESPONSIVE */
 @media(max-width:768px){
   :root{--sidebar:0px;}
-  /* Mobile layout fixes */
   .fgrid{grid-template-columns:1fr!important;}
-  .g2{grid-template-columns:1fr!important;}
-  .g3{grid-template-columns:1fr!important;}
+  .g2,.g3{grid-template-columns:1fr!important;}
   .kpis{grid-template-columns:repeat(2,1fr)!important;}
-  .ph{flex-wrap:wrap;gap:6px;}
+  .ph{flex-wrap:wrap;gap:5px;}
   .ph .ptit{font-size:12px;}
-  .modal{width:100%!important;border-radius:12px!important;padding:16px!important;margin:0!important;}
-  .mo{padding:10px!important;align-items:flex-end!important;}
-  .mfoot{flex-direction:column!important;}
-  .mfoot .btn{width:100%!important;}
+  .mo{padding:0!important;align-items:flex-end!important;}
+  .modal{width:100%!important;border-radius:16px 16px 0 0!important;padding:18px 14px!important;margin:0!important;max-height:92vh!important;}
+  .modal-lg{padding:16px 12px!important;}
+  .mfoot,.mft{flex-direction:column!important;gap:8px!important;}
+  .mfoot .btn,.mft .btn{width:100%!important;padding:13px!important;}
+  .fi,.fs,.fta{font-size:16px!important;}
+  input[type=date],input[type=number],input[type=url]{font-size:16px!important;}
   table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .sh{flex-wrap:wrap;gap:8px;}
+  .sh{flex-wrap:wrap;gap:6px;}
   .sh .btn{font-size:11px;padding:6px 10px;}
-  .page{padding:12px!important;}
+  .page{padding:10px!important;}
   .filter-row{flex-wrap:wrap;gap:6px;}
   .filter-row select,.filter-row input{width:100%!important;}
-  #feed-filter-search{width:100px!important;}
-  #feed-filter-type{width:90px!important;}
+  #feed-filter-search{width:100%!important;}
+  #feed-filter-type{width:100%!important;}
+  .cl-type-tab{font-size:11px!important;padding:5px 8px!important;}
+  .svc-opt{font-size:11px;padding:4px 8px;}
+  #svc-checks{gap:5px!important;}
+  #assistant-am-checks{gap:5px!important;}
+  .header{padding:12px 14px;}
+  .logo-area{display:none;}
+  .mmb{display:flex!important;}
   .sidebar{left:-260px;width:260px;box-shadow:8px 0 40px rgba(0,0,0,.6);}
   .sidebar.open{left:0;}
   [lang=ar] .sidebar{right:-260px;left:auto;}
@@ -297,7 +305,12 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
   .notif-panel{width:100%;right:-100%;}
 }
 @media(min-width:769px){.mmb{display:none!important;}.sbo{display:none!important;}}
-@media(max-width:400px){.client-grid,.people-grid{grid-template-columns:1fr;}}
+@media(max-width:400px){
+  .client-grid,.people-grid{grid-template-columns:1fr;}
+  .kpis{grid-template-columns:repeat(2,1fr)!important;}
+  .panel{border-radius:10px;}
+  .ptit{font-size:11px!important;}
+}
 
 /* Extra mobile */
 @media(max-width:600px){
@@ -376,6 +389,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
       <div class="ni" onclick="gp('meetings',this)"><span class="nico">📅</span><span data-i="n_meetings">Meetings</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📈</span><span>Reports</span></div>
       <div class="ni" onclick="gp('contracts',this)"><span class="nico">📜</span><span>Contracts</span></div>
+      <div class="ni" onclick="gp('catalog',this)"><span class="nico">🛒</span><span>Services Catalog</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📄</span><span data-i="n_reports">Reports</span></div>
       <div class="ni" onclick="gp('invoices',this)"><span class="nico">🧾</span><span data-i="n_inv">Invoices</span></div>
       <div class="ni" onclick="gp('projects',this)"><span class="nico">📁</span><span data-i="n_proj">Projects</span></div>
@@ -1119,6 +1133,21 @@ var DT={
     update_note:'📝 Note de mise à jour',show_client:'Montrer au client',
     pending:'En attente',accepted:'Accepté',rejected:'Rejeté',completed:'Terminé'
   }
+,
+pt:{
+  nav_overview:'Visão Geral',nav_clients:'Clientes',nav_people:'Pessoas',nav_projects:'Projetos',
+  nav_tasks:'Tarefas',nav_requests:'Pedidos',nav_pipeline:'Pipeline',nav_invoices:'Faturas',
+  nav_news:'Notícias',nav_settings:'Configurações',
+  btn_add_client:'+ Adicionar Cliente',btn_add_person:'+ Adicionar Pessoa',
+  btn_add_project:'+ Adicionar Projeto',btn_add_task:'+ Adicionar Tarefa',btn_add_request:'+ Novo Pedido',
+  recent_activity:'⚡ Atividade Recente',client_sources:'📊 Fontes de Clientes',
+  from_management:'Da Gestão',from_team:'Da Equipe',by_member:'Por membro',
+  stage:'Fase',am:'Gerente de Conta',service:'Tipo de Serviço',industry:'Setor',country:'País',
+  save:'💾 Salvar e Gerar Portal',cancel:'Cancelar',edit:'✏️',delete:'✕',
+  health:'Saúde',notes_internal:'Notas internas',notes_client:'Notas ao cliente',
+  update_note:'📝 Nota de atualização',show_client:'Mostrar ao cliente',
+  pending:'Pendente',accepted:'Aceito',rejected:'Rejeitado',completed:'Concluído'
+}
 };
 
 var dashL='en';
@@ -3045,6 +3074,105 @@ async function deletePP(id,pid){
   await sb.from('ix_partner_projects').delete().eq('id',id);
   renderPartnerProjects(pid);
   toast('Removed','success');
+}
+
+// ── SERVICES CATALOG ──
+var ACatalog=[];
+
+async function loadCatalog(){
+  if(!sb)return;
+  try{
+    var r=await sb.from('ix_services_catalog').select('*').order('category').order('name');
+    if(!r.error){ACatalog=r.data||[];renderCatalog();}
+  }catch(e){}
+}
+
+function renderCatalog(){
+  var el=document.getElementById('catalog-list');if(!el)return;
+  if(!ACatalog.length){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--ink3);"><div style="font-size:40px;margin-bottom:12px;">🛒</div><div>No services yet — add your first one</div></div>';
+    return;
+  }
+  var catColors={Print:'#06b6d4',Logistics:'#f59e0b',Travel:'#22c55e',Services:'#a78bfa',Events:'#f97316',General:'#6b7280'};
+  // Group by category
+  var bycat={};
+  ACatalog.forEach(function(s){if(!bycat[s.category])bycat[s.category]=[];bycat[s.category].push(s);});
+  var html='';
+  Object.keys(bycat).forEach(function(cat){
+    var cc=catColors[cat]||'#6b7280';
+    html+='<div style="font-size:11px;font-weight:700;color:'+cc+';text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px;">'+cat+'</div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:4px;">';
+    bycat[cat].forEach(function(s){
+      html+='<div style="background:var(--card);border:1px solid '+(s.is_active?'var(--border)':'rgba(239,68,68,.2)')+';border-radius:10px;padding:12px;display:flex;gap:10px;align-items:flex-start;">'
+        +'<div style="font-size:24px;flex-shrink:0;">'+s.icon+'</div>'
+        +'<div style="flex:1;min-width:0;">'
+          +'<div style="font-size:13px;font-weight:600;margin-bottom:2px;">'+s.name+'</div>'
+          +(s.description?'<div style="font-size:11px;color:var(--ink3);margin-bottom:6px;">'+s.description.slice(0,60)+'</div>':'')
+          +'<div style="display:flex;gap:5px;">'
+            +'<span style="font-size:9px;background:'+(s.is_active?'rgba(34,197,94,.1)':'rgba(239,68,68,.1)')+';color:'+(s.is_active?'#22c55e':'var(--red)')+';padding:2px 7px;border-radius:8px;font-weight:700;">'+(s.is_active?'Active':'Inactive')+'</span>'
+            +'<button class="btn bo bsm" style="font-size:10px;" data-id="'+s.id+'" onclick="editCatalogService(this.dataset.id)">✏️</button>'
+            +'<button class="btn bsm" style="font-size:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+s.id+'" onclick="deleteCatalogService(this.dataset.id)">✕</button>'
+          +'</div>'
+        +'</div>'
+      +'</div>';
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+
+function openAddService(){
+  document.getElementById('sc-id').value='';
+  document.getElementById('svc-cat-title').textContent='🛒 Add Service';
+  document.getElementById('sc-name').value='';
+  document.getElementById('sc-icon').value='📦';
+  document.getElementById('sc-desc').value='';
+  document.getElementById('sc-active').checked=true;
+  om('m-svc-cat');
+}
+
+function editCatalogService(id){
+  var s=ACatalog.find(function(x){return x.id===id;});if(!s)return;
+  document.getElementById('sc-id').value=id;
+  document.getElementById('svc-cat-title').textContent='✏️ Edit Service';
+  document.getElementById('sc-name').value=s.name||'';
+  document.getElementById('sc-icon').value=s.icon||'📦';
+  document.getElementById('sc-category').value=s.category||'General';
+  document.getElementById('sc-desc').value=s.description||'';
+  document.getElementById('sc-active').checked=s.is_active!==false;
+  om('m-svc-cat');
+}
+
+async function saveCatalogService(){
+  var name=document.getElementById('sc-name').value.trim();
+  if(!name)return toast('Enter service name','error');
+  var id=document.getElementById('sc-id').value;
+  var body={
+    name:name,
+    icon:document.getElementById('sc-icon').value.trim()||'📦',
+    category:document.getElementById('sc-category').value,
+    description:document.getElementById('sc-desc').value.trim()||null,
+    is_active:document.getElementById('sc-active').checked
+  };
+  try{
+    if(id){
+      await sb.from('ix_services_catalog').update(body).eq('id',id);
+      var i=ACatalog.findIndex(function(s){return s.id===id;});
+      if(i>=0)Object.assign(ACatalog[i],body);
+    } else {
+      var r=await sb.from('ix_services_catalog').insert(body).select().single();
+      if(!r.error)ACatalog.push(r.data);
+    }
+    cm('m-svc-cat');renderCatalog();
+    toast('✅ Service saved!','success');
+  }catch(e){toast('Error saving','error');}
+}
+
+async function deleteCatalogService(id){
+  if(!confirm('Delete this service?'))return;
+  await sb.from('ix_services_catalog').delete().eq('id',id);
+  ACatalog=ACatalog.filter(function(s){return s.id!==id;});
+  renderCatalog();toast('Deleted','success');
 }
 
 function populateContractClients(){

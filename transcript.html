@@ -29,10 +29,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 .lb.on{background:rgba(6,182,212,.2);border-color:#06b6d4;color:var(--teal);}
 @media(max-width:768px){
   .layout{grid-template-columns:1fr!important;}
-  .sidebar{border-right:none;border-bottom:1px solid var(--border);max-height:220px;overflow-y:auto;}
-  .hbtns{flex-wrap:wrap;gap:5px;}
-  .hbtns .btn{font-size:11px;padding:6px 8px;}
-  .content{padding:12px;}
+  .sidebar{border-right:none;border-bottom:1px solid var(--border);max-height:200px;overflow-y:auto;}
+  .hbtns{flex-wrap:wrap;gap:4px;}
+  .hbtns .btn{font-size:10px;padding:5px 7px;}
+  .content{padding:10px;}
+  .mo{padding:0;align-items:flex-end;}
+  .modal{width:100%;border-radius:16px 16px 0 0;max-height:90vh;padding:18px 14px;margin:0;}
+  .mft{flex-direction:column;gap:8px;}
+  .mft .btn{width:100%;padding:12px!important;}
+  .fi2,.fs,.fta{font-size:16px!important;}
+  input[type=date]{font-size:16px!important;}
+  .header{padding:12px 14px;flex-wrap:wrap;gap:8px;}
+  .htit{font-size:15px;}
+}
+@media(max-width:480px){
+  .hbtns .btn{font-size:9px;padding:4px 6px;}
+  .sidebar{max-height:160px;}
+  .cl-item{padding:8px 10px;}
+  .cl-name{font-size:12px;}
 }
 .sb-title{font-size:10px;letter-spacing:2px;color:var(--ink3);text-transform:uppercase;font-weight:700;margin-bottom:10px;padding:0 4px;}
 .cl-item{padding:10px 12px;border-radius:9px;cursor:pointer;margin-bottom:4px;border:1px solid transparent;transition:all .15s;}
@@ -100,6 +114,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="lb" data-l="fr" onclick="setL('fr')">FR</button>
         <button class="lb" data-l="ja" onclick="setL('ja')">JA</button>
         <button class="lb" data-l="zh" onclick="setL('zh')">ZH</button>
+        <button class="lb" data-l="pt" onclick="setL('pt')">PT</button>
       </div>
       <button class="btn bbg" onclick="exportAll('txt')">📤 All · TXT</button>
       <button class="btn bbg" onclick="exportAll('md')" style="background:linear-gradient(135deg,#7c3aed,#3b82f6);">📤 All · MD</button>
@@ -212,7 +227,8 @@ var TT={
   es:{title:'Coordinador de Reuniones',subtitle:'Solo Fundadores',clients_label:'Clientes',new_client:'+ Nuevo Archivo',no_selection_title:'Selecciona un cliente',no_selection_sub:'Elige un cliente para ver y añadir reuniones',log_meeting:'➕ Nueva Reunión',mt_history:'📅 Historial',mt_title:'Título *',mt_date:'Fecha *',mt_type:'Tipo',mt_fup:'Seguimiento',mt_att:'Asistentes',mt_agenda:'Agenda',mt_sum:'Resumen',mt_acts:'Acciones',mt_notes:'Notas',mt_transcript:'🔒 Transcripción',mt_save:'💾 Guardar',mt_search:'Buscar...',new_cl_title:'📁 Nuevo Cliente',nc_name:'Nombre *',nc_industry:'Industria',nc_notes:'Notas',nc_create:'📁 Crear',cancel:'Cancelar',export_all_txt:'📤 Todo · TXT',export_all_md:'📤 Todo · MD',export_cl_txt:'📄 Cliente · TXT',export_cl_md:'📄 Cliente · MD',logout:'→ Salir',password_placeholder:'Contraseña',access_btn:'ACCEDER',wrong_pass:'Contraseña incorrecta',meetings_count:'reuniones',clients_count:'clientes'},
   fr:{title:'Coordinateur de Réunions',subtitle:'Fondateurs Uniquement',clients_label:'Clients',new_client:'+ Nouveau Fichier',no_selection_title:'Sélectionnez un client',no_selection_sub:'Choisissez un client pour voir et ajouter des réunions',log_meeting:'➕ Nouvelle Réunion',mt_history:'📅 Historique',mt_title:'Titre *',mt_date:'Date *',mt_type:'Type',mt_fup:'Suivi',mt_att:'Participants',mt_agenda:'Ordre du jour',mt_sum:'Résumé',mt_acts:'Actions',mt_notes:'Notes',mt_transcript:'🔒 Transcription',mt_save:'💾 Sauvegarder',mt_search:'Rechercher...',new_cl_title:'📁 Nouveau Client',nc_name:'Nom *',nc_industry:'Industrie',nc_notes:'Notes',nc_create:'📁 Créer',cancel:'Annuler',export_all_txt:'📤 Tout · TXT',export_all_md:'📤 Tout · MD',export_cl_txt:'📄 Client · TXT',export_cl_md:'📄 Client · MD',logout:'→ Déconnexion',password_placeholder:'Mot de passe',access_btn:'ACCÉDER',wrong_pass:'Mot de passe incorrect',meetings_count:'réunions',clients_count:'clients'},
   ja:{title:'会議コーディネーター',subtitle:'創業者専用',clients_label:'クライアント',new_client:'+ 新規ファイル',no_selection_title:'クライアントを選択',no_selection_sub:'左からクライアントを選んでください',log_meeting:'➕ 新規会議',mt_history:'📅 会議履歴',mt_title:'タイトル *',mt_date:'日付 *',mt_type:'会議タイプ',mt_fup:'フォローアップ',mt_att:'参加者',mt_agenda:'アジェンダ',mt_sum:'サマリー',mt_acts:'アクション',mt_notes:'メモ',mt_transcript:'🔒 議事録',mt_save:'💾 保存',mt_search:'検索...',new_cl_title:'📁 新規クライアント',nc_name:'名前 *',nc_industry:'業界',nc_notes:'メモ',nc_create:'📁 作成',cancel:'キャンセル',export_all_txt:'📤 全件 · TXT',export_all_md:'📤 全件 · MD',export_cl_txt:'📄 クライアント · TXT',export_cl_md:'📄 クライアント · MD',logout:'→ ログアウト',password_placeholder:'パスワード',access_btn:'アクセス',wrong_pass:'パスワードが違います',meetings_count:'件',clients_count:'クライアント'},
-  zh:{title:'会议协调员',subtitle:'仅限创始人',clients_label:'客户',new_client:'+ 新建文件',no_selection_title:'选择客户',no_selection_sub:'从左侧选择客户查看和添加会议',log_meeting:'➕ 新建会议',mt_history:'📅 会议记录',mt_title:'标题 *',mt_date:'日期 *',mt_type:'类型',mt_fup:'跟进',mt_att:'参与者',mt_agenda:'议程',mt_sum:'摘要',mt_acts:'行动项',mt_notes:'备注',mt_transcript:'🔒 完整记录',mt_save:'💾 保存',mt_search:'搜索...',new_cl_title:'📁 新建客户',nc_name:'名称 *',nc_industry:'行业',nc_notes:'备注',nc_create:'📁 创建',cancel:'取消',export_all_txt:'📤 全部 · TXT',export_all_md:'📤 全部 · MD',export_cl_txt:'📄 客户 · TXT',export_cl_md:'📄 客户 · MD',logout:'→ 退出',password_placeholder:'密码',access_btn:'访问',wrong_pass:'密码错误',meetings_count:'次会议',clients_count:'客户'}
+  pt:{title:'Coordenador de Reuniões',subtitle:'Apenas Fundadores',clients_label:'Clientes',new_client:'+ Novo Arquivo',no_selection_title:'Selecione um cliente',no_selection_sub:'Escolha um cliente para ver e adicionar reuniões',log_meeting:'➕ Nova Reunião',mt_history:'📅 Histórico',mt_title:'Título *',mt_date:'Data *',mt_type:'Tipo',mt_fup:'Acompanhamento',mt_att:'Participantes',mt_agenda:'Pauta',mt_sum:'Resumo',mt_acts:'Ações',mt_notes:'Notas',mt_transcript:'🔒 Transcrição',mt_save:'💾 Salvar',mt_search:'Pesquisar...',new_cl_title:'📁 Novo Cliente',nc_name:'Nome *',nc_industry:'Setor',nc_notes:'Notas',nc_create:'📁 Criar',cancel:'Cancelar',export_all_txt:'📤 Tudo · TXT',export_all_md:'📤 Tudo · MD',export_cl_txt:'📄 Cliente · TXT',export_cl_md:'📄 Cliente · MD',logout:'→ Sair',password_placeholder:'Senha',access_btn:'ACESSAR',wrong_pass:'Senha incorreta',meetings_count:'reuniões',clients_count:'clientes'},
+zh:{title:'会议协调员',subtitle:'仅限创始人',clients_label:'客户',new_client:'+ 新建文件',no_selection_title:'选择客户',no_selection_sub:'从左侧选择客户查看和添加会议',log_meeting:'➕ 新建会议',mt_history:'📅 会议记录',mt_title:'标题 *',mt_date:'日期 *',mt_type:'类型',mt_fup:'跟进',mt_att:'参与者',mt_agenda:'议程',mt_sum:'摘要',mt_acts:'行动项',mt_notes:'备注',mt_transcript:'🔒 完整记录',mt_save:'💾 保存',mt_search:'搜索...',new_cl_title:'📁 新建客户',nc_name:'名称 *',nc_industry:'行业',nc_notes:'备注',nc_create:'📁 创建',cancel:'取消',export_all_txt:'📤 全部 · TXT',export_all_md:'📤 全部 · MD',export_cl_txt:'📄 客户 · TXT',export_cl_md:'📄 客户 · MD',logout:'→ 退出',password_placeholder:'密码',access_btn:'访问',wrong_pass:'密码错误',meetings_count:'次会议',clients_count:'客户'}
 };
 
 var curL='en';

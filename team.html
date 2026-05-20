@@ -79,6 +79,33 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   .c-name,.mn{font-size:17px;}
   .ec{padding:11px;}
 }
+@media(max-width:768px){
+  .tabs{gap:3px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;flex-wrap:nowrap;}
+  .tab{padding:6px 10px;font-size:11px;flex-shrink:0;white-space:nowrap;}
+  .mo{padding:0;align-items:flex-end;}
+  .modal{width:100%!important;border-radius:16px 16px 0 0;max-height:90vh;padding:18px 14px;margin:0;}
+  .mft{flex-direction:column;gap:8px;}
+  .mft .btn{width:100%;padding:12px!important;}
+  .fi,.fs,.fta{font-size:16px!important;}
+  .ph{flex-wrap:wrap;gap:5px;}
+  .kpis{grid-template-columns:repeat(3,1fr)!important;}
+  .hero{padding:14px 14px 10px;}
+  .mn{font-size:16px!important;}
+  .panel{margin-bottom:10px;}
+  .pb{padding:12px;}
+  .btn.bbg.bw{padding:13px!important;}
+}
+@media(max-width:480px){
+  .hero{padding:12px;}
+  .kpis{grid-template-columns:repeat(3,1fr)!important;gap:5px;}
+  .kv{font-size:14px!important;}
+  .kl{font-size:8px!important;}
+  .lang-bar{top:6px;right:6px;gap:2px;}
+  .lb{padding:2px 4px;font-size:8px;}
+  .fgrid{grid-template-columns:1fr!important;}
+  input[type=date]{font-size:16px!important;}
+  .svc-opt{font-size:11px;padding:4px 7px;}
+}
 </style>
 </head>
 <body>
@@ -93,6 +120,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   <button class="lb" data-l="ja" onclick="setL('ja')">JA</button>
   <button class="lb" data-l="ko" onclick="setL('ko')">KO</button>
   <button class="lb" data-l="zh" onclick="setL('zh')">ZH</button>
+  <button class="lb" data-l="pt" onclick="setL('pt')">PT</button>
 </div>
 
 <div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);" id="tm-loading-text">Loading...</div></div>
@@ -138,6 +166,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTab('my-projects',this)">📁 Projects</button>
         <button class="tab" onclick="showTab('inbox',this)">🔔 Inbox</button>
         <button class="tab" onclick="showTab('add-client',this)">➕ Add Client</button>
+        <button class="tab" onclick="showTab('team-marketplace',this)">🛒 Services</button>
         <button class="tab" onclick="showTab('team-news',this)">📰 News</button>
       </div>
       <div class="tp on" id="tp-clients">
@@ -404,6 +433,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         </div>
       </div>
 
+      <!-- TEAM MARKETPLACE -->
+      <div class="tp" id="tp-team-marketplace">
+        <div style="font-size:13px;color:var(--ink2);margin-bottom:14px;line-height:1.6;background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.15);border-radius:10px;padding:13px;">
+          🛒 Request additional services for yourself or your work. Submit an inquiry and our team will get back to you.
+        </div>
+        <div id="tm-mp-filter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
+        <div id="tm-mp-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div></div>
+      </div>
+
       <div class="tp" id="tp-team-news">
         <div class="panel">
           <div class="ph"><div class="pt">📱 Telegram Notifications</div></div>
@@ -480,6 +518,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   <div id="team-svc-list" style="margin-bottom:14px;"></div>
   <div class="mft">
     <button class="btn bbo" onclick="closeModal('m-team-svc')" style="padding:8px 20px;">Close</button>
+  </div>
+</div></div>
+
+<!-- TEAM SERVICE INQUIRY MODAL -->
+<div class="mo" id="m-tm-inquiry"><div class="modal">
+  <div class="mti">📋 Service Request</div>
+  <input type="hidden" id="tm-inq-id">
+  <div id="tm-inq-info" style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:14px;"></div>
+  <div class="fg"><label class="fl">What do you need? *</label>
+    <textarea class="fta" id="tm-inq-desc" placeholder="Describe your requirements — quantity, specs, dates, destination..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">For Client (optional)</label>
+    <select class="fs" id="tm-inq-client">
+      <option value="">— Personal / Internal —</option>
+    </select>
+  </div>
+  <div class="fg"><label class="fl">Timeline</label>
+    <select class="fs" id="tm-inq-timeline">
+      <option value="ASAP">🔴 ASAP</option>
+      <option value="This week" selected>🟡 This week</option>
+      <option value="This month">🟢 This month</option>
+      <option value="Flexible">📅 Flexible</option>
+    </select>
+  </div>
+  <div class="fg"><label class="fl">Attachment / Reference</label>
+    <input class="fi" type="url" id="tm-inq-file" dir="ltr" placeholder="https://drive.google.com/...">
+  </div>
+  <div class="mft">
+    <button class="btn bbo" onclick="closeModal('m-tm-inquiry')" style="padding:8px 14px;">Cancel</button>
+    <button class="btn bbg" onclick="submitTMInquiry()" style="padding:8px 20px;">📤 Submit Request</button>
   </div>
 </div></div>
 
@@ -589,6 +657,41 @@ de:{brand_team:'INTERSECT PartnerOS · Teamportal',logout:'→ Abmelden',tab_cli
 it:{brand_team:'INTERSECT PartnerOS · Portale Team',logout:'→ Esci',tab_clients:'🏢 Miei Clienti',tab_tasks:'📌 Miei Compiti',tab_reqs:'📋 Richieste',tab_workflow:'🔄 Aggiungi Update',tab_meetings:'📅 Riunioni',tab_projects:'📁 Progetti',tab_inbox:'🔔 Posta',tab_add_client:'➕ Aggiungi Cliente',tab_news:'📰 Notizie',tab_expert_reqs:'📋 Richieste',tab_profile:'👤 Mio Profilo',tab_avail:'📅 Disponibilità',tab_exp_projects:'📁 Progetti',tab_exp_inbox:'🔔 Posta',tab_exp_news:'📰 Notizie',my_clients:'Miei Clienti',no_clients:'Nessun cliente assegnato',my_tasks:'Miei Compiti',no_tasks:'Nessun compito',requests:'Richieste',no_requests:'Nessuna richiesta',add_update:'Aggiungi Aggiornamento',update_title:'Titolo *',update_desc:'Descrizione',update_status:'Stato',update_show:'Mostra al cliente',update_save:'💾 Salva',meetings:'Riunioni',log_meeting:'➕ Nuova Riunione',recent_meetings:'📅 Riunioni Recenti',mt_title:'Titolo *',mt_org:'Organizzazione *',mt_date:'Data *',mt_type:'Tipo',mt_att:'Partecipanti',mt_sum:'Sommario',mt_acts:'Azioni',mt_notes:'Note',mt_save:'💾 Salva',projects:'Miei Progetti',project_tasks:'Compiti',assign_task:'📋 Assegna Compito',task_title:'Titolo *',task_context:'Contesto',task_proj:'Progetto',task_client:'Cliente',task_internal:'Interno',task_other:'Altro',task_assign:'Assegna a *',task_pri:'Priorità',task_deadline:'Scadenza',task_desc:'Descrizione *',task_attach:'Allegato',task_notes:'Note',task_send:'📤 Invia',build_team:'🏗️ Crea Team',team_for_client:'Per Cliente *',team_for_proj:'Per Progetto',team_notes:'Note',team_add:'+ Aggiungi membro',team_submit:'📤 Invia per approvazione',inbox_incoming:'🔔 In arrivo',inbox_sent:'📤 Inviati',inbox_none:'Nessuna richiesta',inbox_sent_none:'Nessuna richiesta inviata',accept:'✅ Accetta',decline:'✕ Rifiuta',add_client:'➕ Nuovo Cliente',clients_added:'🏢 Clienti aggiunti',nc_name:'Nome *',nc_industry:'Settore',nc_country:'Paese',nc_svc:'Servizio',nc_notes:'Note',nc_username:'Utente',nc_password:'Password',nc_add:'➕ Aggiungi',news_title:'Notizie',no_news:'Nessuna notizia',expert_reqs:'Richieste esperti',no_exp_reqs:'Nessuna richiesta',my_profile:'Mio Profilo',my_avail:'📅 Disponibilità',avail_status:'Stato',avail_save:'💾 Aggiorna',edit_client:'✏️ Modifica Cliente',stage:'Fase',service_type:'Tipo di Servizio',update_note:'Nota',show_client:'Mostra al cliente',save_update:'💾 Salva',cancel:'Annulla',priority_high:'🔴 Alta',priority_med:'🟡 Media',priority_low:'🟢 Bassa',loading:'Caricamento...',no_selection:'Seleziona un cliente'},
 ja:{brand_team:'INTERSECT PartnerOS · チームポータル',logout:'→ ログアウト',tab_clients:'🏢 マイクライアント',tab_tasks:'📌 マイタスク',tab_reqs:'📋 リクエスト',tab_workflow:'🔄 更新追加',tab_meetings:'📅 会議',tab_projects:'📁 プロジェクト',tab_inbox:'🔔 受信ボックス',tab_add_client:'➕ クライアント追加',tab_news:'📰 ニュース',tab_expert_reqs:'📋 リクエスト',tab_profile:'👤 マイプロフィール',tab_avail:'📅 空き状況',tab_exp_projects:'📁 プロジェクト',tab_exp_inbox:'🔔 受信ボックス',tab_exp_news:'📰 ニュース',my_clients:'担当クライアント',no_clients:'クライアントなし',my_tasks:'マイタスク',no_tasks:'タスクなし',requests:'リクエスト',no_requests:'リクエストなし',add_update:'更新を追加',update_title:'タイトル *',update_desc:'説明',update_status:'ステータス',update_show:'クライアントに表示',update_save:'💾 保存',meetings:'会議',log_meeting:'➕ 新規会議',recent_meetings:'📅 最近の会議',mt_title:'タイトル *',mt_org:'組織 *',mt_date:'日付 *',mt_type:'会議タイプ',mt_att:'参加者',mt_sum:'サマリー',mt_acts:'アクション',mt_notes:'メモ',mt_save:'💾 保存',projects:'マイプロジェクト',project_tasks:'タスク',assign_task:'📋 タスク割り当て',task_title:'タイトル *',task_context:'コンテキスト',task_proj:'プロジェクト',task_client:'クライアント',task_internal:'社内',task_other:'その他',task_assign:'担当者 *',task_pri:'優先度',task_deadline:'期限',task_desc:'説明 *',task_attach:'添付',task_notes:'メモ',task_send:'📤 送信',build_team:'🏗️ チーム構築',team_for_client:'クライアント *',team_for_proj:'プロジェクト',team_notes:'メモ',team_add:'+ メンバー追加',team_submit:'📤 承認のために送信',inbox_incoming:'🔔 受信',inbox_sent:'📤 送信済み',inbox_none:'受信なし',inbox_sent_none:'送信なし',accept:'✅ 承認',decline:'✕ 拒否',add_client:'➕ クライアント追加',clients_added:'🏢 追加したクライアント',nc_name:'名前 *',nc_industry:'業界',nc_country:'国',nc_svc:'サービス',nc_notes:'メモ',nc_username:'ユーザー名',nc_password:'パスワード',nc_add:'➕ 追加',news_title:'ニュース',no_news:'ニュースなし',expert_reqs:'専門家リクエスト',no_exp_reqs:'リクエストなし',my_profile:'マイプロフィール',my_avail:'📅 空き状況更新',avail_status:'ステータス',avail_save:'💾 更新',edit_client:'✏️ クライアント編集',stage:'ステージ',service_type:'サービスタイプ',update_note:'メモ',show_client:'クライアントに表示',save_update:'💾 保存',cancel:'キャンセル',priority_high:'🔴 高',priority_med:'🟡 中',priority_low:'🟢 低',loading:'読み込み中...',no_selection:'クライアントを選択'},
 ko:{brand_team:'INTERSECT PartnerOS · 팀 포털',logout:'→ 로그아웃',tab_clients:'🏢 내 고객',tab_tasks:'📌 내 작업',tab_reqs:'📋 요청',tab_workflow:'🔄 업데이트 추가',tab_meetings:'📅 회의',tab_projects:'📁 프로젝트',tab_inbox:'🔔 받은편지함',tab_add_client:'➕ 고객 추가',tab_news:'📰 뉴스',tab_expert_reqs:'📋 요청',tab_profile:'👤 내 프로필',tab_avail:'📅 가용성',tab_exp_projects:'📁 프로젝트',tab_exp_inbox:'🔔 받은편지함',tab_exp_news:'📰 뉴스',my_clients:'담당 고객',no_clients:'배정된 고객 없음',my_tasks:'내 작업',no_tasks:'작업 없음',requests:'요청',no_requests:'요청 없음',add_update:'업데이트 추가',update_title:'제목 *',update_desc:'설명',update_status:'상태',update_show:'고객에게 표시',update_save:'💾 저장',meetings:'회의',log_meeting:'➕ 새 회의',recent_meetings:'📅 최근 회의',mt_title:'제목 *',mt_org:'조직 *',mt_date:'날짜 *',mt_type:'회의 유형',mt_att:'참석자',mt_sum:'요약',mt_acts:'작업 항목',mt_notes:'메모',mt_save:'💾 저장',projects:'내 프로젝트',project_tasks:'작업',assign_task:'📋 작업 할당',task_title:'제목 *',task_context:'컨텍스트',task_proj:'프로젝트',task_client:'고객',task_internal:'내부',task_other:'기타',task_assign:'담당자 *',task_pri:'우선순위',task_deadline:'마감일',task_desc:'설명 *',task_attach:'첨부',task_notes:'메모',task_send:'📤 전송',build_team:'🏗️ 팀 구성',team_for_client:'고객 *',team_for_proj:'프로젝트',team_notes:'메모',team_add:'+ 멤버 추가',team_submit:'📤 승인 요청',inbox_incoming:'🔔 수신',inbox_sent:'📤 발신',inbox_none:'수신 요청 없음',inbox_sent_none:'발신 요청 없음',accept:'✅ 수락',decline:'✕ 거절',add_client:'➕ 고객 추가',clients_added:'🏢 추가한 고객',nc_name:'이름 *',nc_industry:'업종',nc_country:'국가',nc_svc:'서비스',nc_notes:'메모',nc_username:'사용자명',nc_password:'비밀번호',nc_add:'➕ 추가',news_title:'뉴스',no_news:'뉴스 없음',expert_reqs:'전문가 요청',no_exp_reqs:'요청 없음',my_profile:'내 프로필',my_avail:'📅 가용성 업데이트',avail_status:'상태',avail_save:'💾 업데이트',edit_client:'✏️ 고객 편집',stage:'단계',service_type:'서비스 유형',update_note:'메모',show_client:'고객에게 표시',save_update:'💾 저장',cancel:'취소',priority_high:'🔴 높음',priority_med:'🟡 중간',priority_low:'🟢 낮음',loading:'로딩 중...',no_selection:'고객 선택'},
+pt:{
+  brand_team:'INTERSECT PartnerOS · Portal da Equipe',logout:'→ Sair',
+  tab_clients:'🏢 Meus Clientes',tab_tasks:'📌 Minhas Tarefas',tab_reqs:'📋 Pedidos',
+  tab_workflow:'🔄 Adicionar Atualização',tab_meetings:'📅 Reuniões',tab_projects:'📁 Projetos',
+  tab_inbox:'🔔 Caixa de Entrada',tab_add_client:'➕ Adicionar Cliente',tab_news:'📰 Notícias',
+  tab_expert_reqs:'📋 Pedidos',tab_profile:'👤 Meu Perfil',tab_avail:'📅 Disponibilidade',
+  tab_exp_projects:'📁 Projetos',tab_exp_inbox:'🔔 Caixa de Entrada',tab_exp_news:'📰 Notícias',
+  my_clients:'Meus Clientes',no_clients:'Sem clientes atribuídos',
+  my_tasks:'Minhas Tarefas',no_tasks:'Sem tarefas',
+  requests:'Pedidos',no_requests:'Sem pedidos',
+  add_update:'Adicionar Atualização',update_title:'Título *',update_desc:'Descrição',
+  update_status:'Status',update_show:'Mostrar ao cliente',update_save:'💾 Salvar',
+  meetings:'Reuniões',log_meeting:'➕ Nova Reunião',recent_meetings:'📅 Reuniões Recentes',
+  mt_title:'Título *',mt_org:'Organização *',mt_date:'Data *',mt_type:'Tipo',
+  mt_att:'Participantes',mt_sum:'Resumo',mt_acts:'Ações',mt_notes:'Notas',mt_save:'💾 Salvar',
+  projects:'Meus Projetos',project_tasks:'Tarefas do Projeto',
+  assign_task:'📋 Atribuir Tarefa',task_title:'Título *',task_context:'Contexto',
+  task_proj:'Projeto',task_client:'Cliente',task_internal:'Interno',task_other:'Outro',
+  task_assign:'Atribuir a *',task_pri:'Prioridade',task_deadline:'Prazo',
+  task_desc:'Descrição *',task_attach:'Anexo',task_notes:'Notas',task_send:'📤 Enviar Tarefa',
+  build_team:'🏗️ Criar Equipe',team_for_client:'Para Cliente *',team_for_proj:'Para Projeto',
+  team_notes:'Notas',team_add:'+ Adicionar membro',team_submit:'📤 Enviar para aprovação',
+  inbox_incoming:'🔔 Entradas',inbox_sent:'📤 Enviados',inbox_none:'Sem pedidos',inbox_sent_none:'Sem enviados',
+  accept:'✅ Aceitar',decline:'✕ Recusar',
+  add_client:'➕ Novo Cliente',clients_added:'🏢 Clientes adicionados',
+  nc_name:'Nome *',nc_industry:'Setor',nc_country:'País',nc_svc:'Serviço',nc_notes:'Notas',
+  nc_username:'Usuário',nc_password:'Senha',nc_add:'➕ Adicionar',
+  news_title:'Notícias',no_news:'Sem notícias',
+  expert_reqs:'Pedidos de especialistas',no_exp_reqs:'Sem pedidos',
+  my_profile:'Meu Perfil',my_avail:'📅 Atualizar Disponibilidade',avail_status:'Status',avail_save:'💾 Atualizar',
+  edit_client:'✏️ Editar Cliente',stage:'Fase',service_type:'Tipo de Serviço',update_note:'Nota',
+  show_client:'Mostrar ao cliente',save_update:'💾 Salvar',cancel:'Cancelar',
+  priority_high:'🔴 Alta',priority_med:'🟡 Média',priority_low:'🟢 Baixa',
+  loading:'Carregando...',no_selection:'Selecione um cliente'
+},
 zh:{brand_team:'INTERSECT PartnerOS · 团队门户',logout:'→ 退出',tab_clients:'🏢 我的客户',tab_tasks:'📌 我的任务',tab_reqs:'📋 请求',tab_workflow:'🔄 添加更新',tab_meetings:'📅 会议',tab_projects:'📁 项目',tab_inbox:'🔔 收件箱',tab_add_client:'➕ 添加客户',tab_news:'📰 新闻',tab_expert_reqs:'📋 请求',tab_profile:'👤 我的资料',tab_avail:'📅 可用性',tab_exp_projects:'📁 项目',tab_exp_inbox:'🔔 收件箱',tab_exp_news:'📰 新闻',my_clients:'我的客户',no_clients:'暂无分配客户',my_tasks:'我的任务',no_tasks:'暂无任务',requests:'请求',no_requests:'暂无请求',add_update:'添加更新',update_title:'标题 *',update_desc:'描述',update_status:'状态',update_show:'向客户显示',update_save:'💾 保存',meetings:'会议',log_meeting:'➕ 新建会议',recent_meetings:'📅 最近会议',mt_title:'标题 *',mt_org:'组织 *',mt_date:'日期 *',mt_type:'会议类型',mt_att:'参与者',mt_sum:'摘要',mt_acts:'行动项',mt_notes:'备注',mt_save:'💾 保存',projects:'我的项目',project_tasks:'任务',assign_task:'📋 分配任务',task_title:'标题 *',task_context:'上下文',task_proj:'项目',task_client:'客户',task_internal:'内部',task_other:'其他',task_assign:'分配给 *',task_pri:'优先级',task_deadline:'截止日期',task_desc:'描述 *',task_attach:'附件',task_notes:'备注',task_send:'📤 发送',build_team:'🏗️ 建立团队',team_for_client:'客户 *',team_for_proj:'项目',team_notes:'备注',team_add:'+ 添加成员',team_submit:'📤 提交审批',inbox_incoming:'🔔 收到',inbox_sent:'📤 已发送',inbox_none:'无收到请求',inbox_sent_none:'无发送请求',accept:'✅ 接受',decline:'✕ 拒绝',add_client:'➕ 新客户',clients_added:'🏢 已添加客户',nc_name:'名称 *',nc_industry:'行业',nc_country:'国家',nc_svc:'服务',nc_notes:'备注',nc_username:'用户名',nc_password:'密码',nc_add:'➕ 添加',news_title:'新闻',no_news:'暂无新闻',expert_reqs:'专家请求',no_exp_reqs:'暂无请求',my_profile:'我的资料',my_avail:'📅 更新可用性',avail_status:'状态',avail_save:'💾 更新',edit_client:'✏️ 编辑客户',stage:'阶段',service_type:'服务类型',update_note:'备注',show_client:'向客户显示',save_update:'💾 保存',cancel:'取消',priority_high:'🔴 高',priority_med:'🟡 中',priority_low:'🟢 低',loading:'加载中...',no_selection:'选择客户'}
 };
 var currentLang='en';
@@ -1210,6 +1313,118 @@ async function checkTeamNotifs(memberName){
   }catch(e){}
 }
 
+var _tmServices=[], _tmMpFilter='';
+
+async function loadTeamMarketplace(){
+  var el=document.getElementById('tm-mp-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_services_catalog?is_active=eq.true&order=category.asc,name.asc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var svcs=await r.json();
+    if(!Array.isArray(svcs)||!svcs.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No services available</div>';
+      return;
+    }
+    _tmServices=svcs;
+    // Filter bar
+    var cats=['All',...new Set(svcs.map(function(s){return s.category;}))];
+    var fb=document.getElementById('tm-mp-filter');
+    if(fb){
+      fb.innerHTML=cats.map(function(c){
+        var isAll=c==='All';
+        return '<button data-cat="'+c+'" onclick="tmFilterMP(this.dataset.cat,this)" style="padding:5px 12px;border-radius:20px;border:1px solid '+(isAll?'rgba(124,58,237,.3)':'var(--border)')+';background:'+(isAll?'rgba(124,58,237,.1)':'var(--card2)')+';color:'+(isAll?'#a78bfa':'var(--ink2)')+';font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;">'+c+'</button>';
+      }).join('');
+    }
+    // Populate client dropdown
+    var clSel=document.getElementById('tm-inq-client');
+    if(clSel&&myClients.length){
+      clSel.innerHTML='<option value="">— Personal / Internal —</option>'+myClients.map(function(c){return '<option value="'+c.name+'">'+c.name+'</option>';}).join('');
+    }
+    tmRenderMP(svcs);
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error loading</div>';}
+}
+
+function tmFilterMP(cat, btn){
+  _tmMpFilter=cat==='All'?'':cat;
+  document.querySelectorAll('#tm-mp-filter button').forEach(function(b){
+    b.style.background='var(--card2)';b.style.color='var(--ink2)';b.style.borderColor='var(--border)';
+  });
+  btn.style.background='rgba(124,58,237,.1)';btn.style.color='#a78bfa';btn.style.borderColor='rgba(124,58,237,.3)';
+  tmRenderMP(_tmMpFilter?_tmServices.filter(function(s){return s.category===_tmMpFilter;}):_tmServices);
+}
+
+function tmRenderMP(svcs){
+  var el=document.getElementById('tm-mp-list');if(!el)return;
+  var catColors={Print:'#06b6d4',Logistics:'#f59e0b',Travel:'#22c55e',Services:'#a78bfa',Events:'#f97316',General:'#6b7280'};
+  var grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;';
+  svcs.forEach(function(s,i){
+    var cc=catColors[s.category]||'#6b7280';
+    var card=document.createElement('div');
+    card.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:12px;cursor:pointer;text-align:center;';
+    card.dataset.idx=i;
+    card.innerHTML='<div style="font-size:28px;margin-bottom:6px;">'+s.icon+'</div>'
+      +'<div style="font-size:12px;font-weight:700;margin-bottom:3px;">'+s.name+'</div>'
+      +(s.description?'<div style="font-size:10px;color:var(--ink3);line-height:1.3;margin-bottom:7px;">'+s.description.slice(0,50)+'</div>':'')
+      +'<div style="background:var(--grad);border-radius:6px;padding:6px;font-size:10px;font-weight:700;color:#fff;">📋 Request</div>';
+    card.onclick=function(){
+      var svc=_tmServices[parseInt(this.dataset.idx)];
+      if(svc)openTMInquiry(svc.id,svc.name,svc.icon,svc.category);
+    };
+    grid.appendChild(card);
+  });
+  el.innerHTML='';
+  el.appendChild(grid);
+}
+
+function openTMInquiry(id, name, icon, category){
+  document.getElementById('tm-inq-id').value=id;
+  var info=document.getElementById('tm-inq-info');
+  if(info)info.innerHTML='<div style="display:flex;align-items:center;gap:10px;"><div style="font-size:26px;">'+icon+'</div><div><div style="font-size:14px;font-weight:700;">'+name+'</div><div style="font-size:11px;color:var(--ink3);">'+category+'</div></div></div>';
+  document.getElementById('tm-inq-desc').value='';
+  document.getElementById('tm-inq-file').value='';
+  openModal('m-tm-inquiry');
+}
+
+async function submitTMInquiry(){
+  var svcId=document.getElementById('tm-inq-id').value;
+  var desc=document.getElementById('tm-inq-desc').value.trim();
+  if(!desc){toast('Describe your requirements','te');return;}
+  var timeline=document.getElementById('tm-inq-timeline').value;
+  var file=document.getElementById('tm-inq-file').value.trim();
+  var client=document.getElementById('tm-inq-client').value;
+  var svc=_tmServices.find(function(s){return s.id===svcId;});
+  var svcName=svc?svc.name:'Service';
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:'[Team Request] '+svcName+' — '+(memberData?memberData.name:''),
+    description:desc+(file?'\n\nReference: '+file:''),
+    client_name:client||null,
+    requested_by:memberData?memberData.name:null,
+    priority:timeline==='ASAP'?'high':'medium',
+    status:'Pending',
+    show_to_client:false,
+    context_type:'team_service_request',
+    context_value:svcId
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      closeModal('m-tm-inquiry');
+      sendTG('🛒 *Team Service Request*\n\n*From:* '+(memberData?memberData.name:'—')+'\n*Service:* '+svcName+(client?'\n*For Client:* '+client:'')+'\n*Timeline:* '+timeline+'\n\n'+desc.slice(0,100));
+      toast('✅ Request submitted!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
+}
+
 function toggleHelpType(){
   var isPrj=document.getElementById('help-type-proj').checked;
   document.getElementById('help-proj-sel').style.display=isPrj?'block':'none';
@@ -1551,6 +1766,118 @@ async function checkTeamNotifs(memberName){
   }catch(e){}
 }
 
+var _tmServices=[], _tmMpFilter='';
+
+async function loadTeamMarketplace(){
+  var el=document.getElementById('tm-mp-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_services_catalog?is_active=eq.true&order=category.asc,name.asc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var svcs=await r.json();
+    if(!Array.isArray(svcs)||!svcs.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No services available</div>';
+      return;
+    }
+    _tmServices=svcs;
+    // Filter bar
+    var cats=['All',...new Set(svcs.map(function(s){return s.category;}))];
+    var fb=document.getElementById('tm-mp-filter');
+    if(fb){
+      fb.innerHTML=cats.map(function(c){
+        var isAll=c==='All';
+        return '<button data-cat="'+c+'" onclick="tmFilterMP(this.dataset.cat,this)" style="padding:5px 12px;border-radius:20px;border:1px solid '+(isAll?'rgba(124,58,237,.3)':'var(--border)')+';background:'+(isAll?'rgba(124,58,237,.1)':'var(--card2)')+';color:'+(isAll?'#a78bfa':'var(--ink2)')+';font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;">'+c+'</button>';
+      }).join('');
+    }
+    // Populate client dropdown
+    var clSel=document.getElementById('tm-inq-client');
+    if(clSel&&myClients.length){
+      clSel.innerHTML='<option value="">— Personal / Internal —</option>'+myClients.map(function(c){return '<option value="'+c.name+'">'+c.name+'</option>';}).join('');
+    }
+    tmRenderMP(svcs);
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error loading</div>';}
+}
+
+function tmFilterMP(cat, btn){
+  _tmMpFilter=cat==='All'?'':cat;
+  document.querySelectorAll('#tm-mp-filter button').forEach(function(b){
+    b.style.background='var(--card2)';b.style.color='var(--ink2)';b.style.borderColor='var(--border)';
+  });
+  btn.style.background='rgba(124,58,237,.1)';btn.style.color='#a78bfa';btn.style.borderColor='rgba(124,58,237,.3)';
+  tmRenderMP(_tmMpFilter?_tmServices.filter(function(s){return s.category===_tmMpFilter;}):_tmServices);
+}
+
+function tmRenderMP(svcs){
+  var el=document.getElementById('tm-mp-list');if(!el)return;
+  var catColors={Print:'#06b6d4',Logistics:'#f59e0b',Travel:'#22c55e',Services:'#a78bfa',Events:'#f97316',General:'#6b7280'};
+  var grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;';
+  svcs.forEach(function(s,i){
+    var cc=catColors[s.category]||'#6b7280';
+    var card=document.createElement('div');
+    card.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:12px;cursor:pointer;text-align:center;';
+    card.dataset.idx=i;
+    card.innerHTML='<div style="font-size:28px;margin-bottom:6px;">'+s.icon+'</div>'
+      +'<div style="font-size:12px;font-weight:700;margin-bottom:3px;">'+s.name+'</div>'
+      +(s.description?'<div style="font-size:10px;color:var(--ink3);line-height:1.3;margin-bottom:7px;">'+s.description.slice(0,50)+'</div>':'')
+      +'<div style="background:var(--grad);border-radius:6px;padding:6px;font-size:10px;font-weight:700;color:#fff;">📋 Request</div>';
+    card.onclick=function(){
+      var svc=_tmServices[parseInt(this.dataset.idx)];
+      if(svc)openTMInquiry(svc.id,svc.name,svc.icon,svc.category);
+    };
+    grid.appendChild(card);
+  });
+  el.innerHTML='';
+  el.appendChild(grid);
+}
+
+function openTMInquiry(id, name, icon, category){
+  document.getElementById('tm-inq-id').value=id;
+  var info=document.getElementById('tm-inq-info');
+  if(info)info.innerHTML='<div style="display:flex;align-items:center;gap:10px;"><div style="font-size:26px;">'+icon+'</div><div><div style="font-size:14px;font-weight:700;">'+name+'</div><div style="font-size:11px;color:var(--ink3);">'+category+'</div></div></div>';
+  document.getElementById('tm-inq-desc').value='';
+  document.getElementById('tm-inq-file').value='';
+  openModal('m-tm-inquiry');
+}
+
+async function submitTMInquiry(){
+  var svcId=document.getElementById('tm-inq-id').value;
+  var desc=document.getElementById('tm-inq-desc').value.trim();
+  if(!desc){toast('Describe your requirements','te');return;}
+  var timeline=document.getElementById('tm-inq-timeline').value;
+  var file=document.getElementById('tm-inq-file').value.trim();
+  var client=document.getElementById('tm-inq-client').value;
+  var svc=_tmServices.find(function(s){return s.id===svcId;});
+  var svcName=svc?svc.name:'Service';
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:'[Team Request] '+svcName+' — '+(memberData?memberData.name:''),
+    description:desc+(file?'\n\nReference: '+file:''),
+    client_name:client||null,
+    requested_by:memberData?memberData.name:null,
+    priority:timeline==='ASAP'?'high':'medium',
+    status:'Pending',
+    show_to_client:false,
+    context_type:'team_service_request',
+    context_value:svcId
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      closeModal('m-tm-inquiry');
+      sendTG('🛒 *Team Service Request*\n\n*From:* '+(memberData?memberData.name:'—')+'\n*Service:* '+svcName+(client?'\n*For Client:* '+client:'')+'\n*Timeline:* '+timeline+'\n\n'+desc.slice(0,100));
+      toast('✅ Request submitted!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
+}
+
 function toggleHelpType(){
   var isPrj=document.getElementById('help-type-proj').checked;
   document.getElementById('help-proj-sel').style.display=isPrj?'block':'none';
@@ -1697,6 +2024,7 @@ function showTab(n,el){
   if(n==='add-client')loadMyAddedClients();
   if(n==='my-projects')loadMyProjects();
   if(n==='inbox')loadInbox();
+  if(n==='team-marketplace')loadTeamMarketplace();
   if(n==='meetings'){var d=document.getElementById('mt-date-new');if(d&&!d.value)d.value=new Date().toISOString().split('T')[0];}
 }
 async function sendExpTaskRequest(){

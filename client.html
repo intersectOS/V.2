@@ -75,24 +75,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 .ticket-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;}
 @media(max-width:480px){.ct{padding:12px 13px;}.kgrid{grid-template-columns:repeat(2,1fr);}.rg{grid-template-columns:1fr;}.modal{width:100%;padding:16px 13px;border-radius:12px;}}
 @media(max-width:768px){
-  .tabs{gap:4px;}
-  .tab{padding:6px 10px;font-size:11px;}
-  .mo{padding:8px;align-items:flex-end;}
-  .modal{width:100%;border-radius:14px 14px 0 0;max-height:85vh;padding:18px 14px;}
-  .mft{flex-direction:column;}
-  .mft .btn{width:100%;}
+  .tabs{gap:3px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;flex-wrap:nowrap;}
+  .tab{padding:6px 10px;font-size:11px;flex-shrink:0;}
+  .mo{padding:0;align-items:flex-end;}
+  .modal{width:100%;border-radius:16px 16px 0 0;max-height:90vh;padding:20px 16px;margin:0;}
+  .mft{flex-direction:column;gap:8px;}
+  .mft .btn{width:100%;padding:12px!important;}
   .rg{grid-template-columns:1fr 1fr;}
   .ph{flex-wrap:wrap;gap:5px;}
+  .btn.bbg.bw{padding:13px!important;font-size:14px;}
+  .fi,.fs,.fta{font-size:16px!important;}/* prevents iOS zoom */
+  .pb{padding:12px;}
+  .panel{border-radius:11px;}
 }
 @media(max-width:480px){
-  .ct{padding:12px 13px;}
-  .kgrid{grid-template-columns:1fr 1fr;}
+  .ct{padding:10px;}
+  .kgrid{grid-template-columns:repeat(2,1fr);gap:6px;}
+  .kpi{padding:9px;}
+  .kv{font-size:16px;}
+  .kl{font-size:8px;}
   .rg{grid-template-columns:1fr;}
-  .lang-bar{max-width:140px;}
+  .lang-bar{top:6px;right:6px;max-width:160px;gap:3px;}
   .lb{padding:2px 5px;font-size:9px;}
-  .hero{padding:16px 14px 12px;}
-  .c-name,.mn{font-size:17px;}
-  .ec{padding:11px;}
+  .hero{padding:14px 12px 10px;}
+  .c-name{font-size:16px;}
+  .c-sub{font-size:11px;}
+  .client-avatar{width:44px;height:44px;font-size:15px;}
+  .ec{padding:10px;}
+  .ec .rg{grid-template-columns:1fr;}
+  .brand{font-size:9px;letter-spacing:1px;}
+  input[type=date]{font-size:16px!important;}
 }
 </style>
 </head>
@@ -108,6 +120,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   <button class="lb" data-l="ja" onclick="setL('ja')">JA</button>
   <button class="lb" data-l="ko" onclick="setL('ko')">KO</button>
   <button class="lb" data-l="zh" onclick="setL('zh')">ZH</button>
+  <button class="lb" data-l="pt" onclick="setL('pt')">PT</button>
 </div>
 
 <div id="loading"><div class="spin"></div><div style="font-size:13px;color:var(--ink3);">Loading your portal...</div></div>
@@ -153,6 +166,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('services',this)">🛠️ My Services</button>
       <button class="tab partner-only" onclick="showTab('my-companies',this)" style="display:none;">🏭 My Companies</button>
       <button class="tab strategic-only" onclick="showTab('my-projects-sp',this)" style="display:none;">⚙️ My Assignments</button>
+      <button class="tab jv-only" onclick="showTab('jv-overview',this)" style="display:none;">🏦 JV Overview</button>
       <button class="tab" onclick="showTab('updates',this)">🔄 Updates</button>
       <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
       <button class="tab" onclick="showTab('experts',this)">🌟 Experts</button>
@@ -160,6 +174,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('requests',this)">📋 My Requests</button>
       <button class="tab" onclick="showTab('invoices',this)">🧾 Invoices</button>
       <button class="tab" onclick="showTab('files',this)">📁 My Files</button>
+      <button class="tab" onclick="showTab('marketplace',this)">🛒 Services</button>
       <button class="tab" onclick="showTab('news',this)">📰 News</button>
     </div>
 
@@ -220,6 +235,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         </div>
         <div class="pb" id="my-companies-list">
           <div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JV PARTNER OVERVIEW -->
+    <div class="tp" id="tp-jv-overview">
+      <!-- JV Details Card -->
+      <div class="panel">
+        <div class="ph"><div class="pt">🏦 Joint Venture Details</div></div>
+        <div class="pb" id="jv-details-body">
+          <div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div>
+        </div>
+      </div>
+      <!-- JV Projects -->
+      <div class="panel">
+        <div class="ph"><div class="pt">📁 JV Projects</div></div>
+        <div class="pb" id="jv-projects-body">
+          <div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div>
+        </div>
+      </div>
+      <!-- Submit Update -->
+      <div class="panel">
+        <div class="ph"><div class="pt">📤 Submit Update</div></div>
+        <div class="pb">
+          <div class="fg"><label class="fl">Update *</label>
+            <textarea class="fta" id="jv-upd-text" placeholder="Progress, deliverables, financials..."></textarea>
+          </div>
+          <div class="fg"><label class="fl">Attachment (Drive link)</label>
+            <input class="fi" type="url" id="jv-upd-file" dir="ltr" placeholder="https://drive.google.com/...">
+          </div>
+          <button class="btn bbg bw" onclick="submitJVUpdate()">📤 Submit Update</button>
+          <div id="jv-upd-sent" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Update submitted!</div>
         </div>
       </div>
     </div>
@@ -351,6 +398,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       </div>
     </div>
 
+    <!-- MARKETPLACE -->
+    <div class="tp" id="tp-marketplace">
+      <div style="font-size:13px;color:var(--ink2);margin-bottom:14px;line-height:1.6;background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:10px;padding:13px;">
+        🛒 Browse our additional services and submit an inquiry. Our team will get back to you with pricing and availability.
+      </div>
+      <div id="mp-filter-bar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
+      <div id="mp-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading services...</div></div>
+    </div>
+
     <!-- NEWS -->
     <div class="tp" id="tp-news">
       <div class="panel">
@@ -377,6 +433,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   </div>
   <div class="ftr"><strong style="color:var(--teal);">INTERSECT</strong> PartnerOS · Confidential Client Portal</div>
 </div>
+
+<!-- SERVICE INQUIRY MODAL -->
+<div class="mo" id="m-inquiry"><div class="modal">
+  <div class="mti">📋 Service Inquiry</div>
+  <input type="hidden" id="inq-svc-id">
+  <div id="inq-svc-info" style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:14px;"></div>
+  <div class="fg"><label class="fl">What do you need? *</label>
+    <textarea class="fta" id="inq-desc" placeholder="Describe your requirements in detail — quantity, specifications, timeline, destination, etc..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">Preferred Timeline</label>
+    <select class="fs" id="inq-timeline">
+      <option value="ASAP">🔴 ASAP</option>
+      <option value="This week" selected>🟡 This week</option>
+      <option value="This month">🟢 This month</option>
+      <option value="Flexible">📅 Flexible</option>
+    </select>
+  </div>
+  <div class="fg"><label class="fl">Attachment / Reference (optional)</label>
+    <input class="fi" type="url" id="inq-file" dir="ltr" placeholder="https://drive.google.com/...">
+  </div>
+  <div class="fg"><label class="fl">Notes</label>
+    <textarea class="fta" id="inq-notes" placeholder="Any additional information..."></textarea>
+  </div>
+  <div class="mft">
+    <button class="btn bbo" onclick="closeModal('m-inquiry')" style="padding:8px 14px;">Cancel</button>
+    <button class="btn bbg" onclick="submitInquiry()" style="padding:8px 20px;">📤 Submit Inquiry</button>
+  </div>
+</div></div>
 
 <!-- REQUEST EXPERT MODAL -->
 <div class="mo" id="m-req">
@@ -433,8 +517,10 @@ en:{
   req_title:'My Expert Requests',
   inv_title:'My Invoices',inv_none:'No invoices yet',
   news_title:'News & Announcements',news_none:'No news yet',
+  tab_marketplace:'🛒 Services',mp_title:'Additional Services',mp_inquiry:'📋 Inquire',mp_desc:'Browse our services and submit an inquiry.',
   files_title:'My Files',files_folder:'Client Files Folder',files_roadmap:'Partnership Roadmap',
   files_none:'No files shared yet. Your Account Manager will share documents here.',
+  tab_services:'🛠️ My Services',tab_companies:'🏭 My Companies',tab_assignments:'⚙️ My Assignments',tab_jv:'🏦 JV Overview',
   req_expert:'🌟 Request Expert',req_svc:'Service Type',req_date:'Preferred Date',
   req_msg:'Message / Requirements *',req_msg_ph:'Describe what you need from this expert...',
   req_notes:'Notes',cancel:'Cancel',submit:'📤 Submit',
@@ -461,8 +547,10 @@ ar:{
   req_title:'طلبات الخبراء',
   inv_title:'فواتيري',inv_none:'لا توجد فواتير بعد',
   news_title:'الأخبار والإعلانات',news_none:'لا توجد أخبار بعد',
+  tab_marketplace:'🛒 الخدمات',mp_title:'خدمات إضافية',mp_inquiry:'📋 استفسار',mp_desc:'تصفح خدماتنا وأرسل استفساراً.',
   files_title:'ملفاتي',files_folder:'مجلد ملفات العميل',files_roadmap:'خارطة طريق الشراكة',
   files_none:'لا توجد ملفات مشتركة بعد. سيشارك مدير حسابك المستندات هنا.',
+  tab_services:'🛠️ خدماتي',tab_companies:'🏭 شركاتي',tab_assignments:'⚙️ مهامي',tab_jv:'🏦 نظرة JV',
   req_expert:'🌟 طلب خبير',req_svc:'نوع الخدمة',req_date:'التاريخ المفضل',
   req_msg:'الرسالة / المتطلبات *',req_msg_ph:'اشرح ما تحتاجه من هذا الخبير...',
   req_notes:'ملاحظات',cancel:'إلغاء',submit:'📤 إرسال',
@@ -521,6 +609,32 @@ de:{brand:'INTERSECT PartnerOS · Kundenportal',logout:'→ Abmelden',tab_overvi
 it:{brand:'INTERSECT PartnerOS · Portale Cliente',logout:'→ Esci',tab_overview:'📊 Panoramica',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Aggiornamenti',tab_meetings:'📅 Riunioni',tab_experts:'🌟 Esperti',tab_tickets:'🎫 Ticket',tab_requests:'📋 Le mie richieste',tab_invoices:'🧾 Fatture',tab_news:'📰 Notizie',tab_files:'📁 I miei file',ov_title:'Panoramica Partnership',ov_stage:'Fase',ov_am:'Responsabile',ov_latest:'Ultimi aggiornamenti',no_updates:'Nessun aggiornamento',no_meetings:'Nessuna riunione',roadmap_title:'Roadmap',roadmap_current:'Corrente',roadmap_done:'Completato',roadmap_doc:'📄 Documento completo',upd_title:'Aggiornamenti',mt_title:'Riunioni',exp_title:'Mercato esperti',exp_filter:'🔍 Filtra...',exp_request:'📤 Richiedi esperto',exp_rate:'Tariffa',exp_hr:'Ora',exp_mo:'Mese',exp_yr:'Anno',exp_on_req:'Su richiesta',tkt_title:'Invia ticket',tkt_list:'I miei ticket',tkt_send_to:'Invia a',tkt_am:'👤 Responsabile',tkt_am_desc:'Risposta più rapida.',tkt_mgmt:'🏛️ Direzione',tkt_mgmt_desc:'Per decisioni strategiche.',tkt_recommended:'Consigliato',tkt_category:'Categoria',tkt_subject:'Oggetto *',tkt_details:'Dettagli *',tkt_priority:'Priorità',tkt_attachment:'Allegato',tkt_submit:'🎫 Invia',req_title:'Mie richieste',inv_title:'Mie fatture',inv_none:'Nessuna fattura',news_title:'Notizie',news_none:'Nessuna notizia',files_title:'I miei file',files_folder:'Cartella cliente',files_roadmap:'Roadmap',files_none:'Nessun file condiviso.',req_expert:'🌟 Richiedi esperto',req_svc:'Tipo servizio',req_date:'Data preferita',req_msg:'Messaggio *',req_msg_ph:'Descrivi le tue esigenze...',req_notes:'Note',cancel:'Annulla',submit:'📤 Invia',urgent:'🔴 Urgente',this_week:'🟡 Questa settimana',this_month:'🟢 Questo mese',loading:'Caricamento...',access_denied:'Accesso negato',login_first:'Effettua il login.'},
 ja:{brand:'INTERSECT PartnerOS · クライアントポータル',logout:'→ ログアウト',tab_overview:'📊 概要',tab_roadmap:'🗺️ ロードマップ',tab_updates:'🔄 更新',tab_meetings:'📅 会議',tab_experts:'🌟 専門家',tab_tickets:'🎫 チケット',tab_requests:'📋 マイリクエスト',tab_invoices:'🧾 請求書',tab_news:'📰 ニュース',tab_files:'📁 マイファイル',ov_title:'パートナーシップ概要',ov_stage:'ステージ',ov_am:'アカウントマネージャー',ov_latest:'最新の更新',no_updates:'更新なし',no_meetings:'会議なし',roadmap_title:'ロードマップ',roadmap_current:'現在',roadmap_done:'完了',roadmap_doc:'📄 完全なドキュメントを見る',upd_title:'プロジェクト更新',mt_title:'会議',exp_title:'専門家マーケット',exp_filter:'🔍 専門分野でフィルター...',exp_request:'📤 この専門家をリクエスト',exp_rate:'料金',exp_hr:'時間',exp_mo:'月',exp_yr:'年',exp_on_req:'要相談',tkt_title:'チケット送信',tkt_list:'マイチケット',tkt_send_to:'送信先',tkt_am:'👤 アカウントマネージャー',tkt_am_desc:'最速の対応。',tkt_mgmt:'🏛️ 上級管理職',tkt_mgmt_desc:'戦略的決定のため。',tkt_recommended:'推奨',tkt_category:'カテゴリ',tkt_subject:'件名 *',tkt_details:'詳細 *',tkt_priority:'優先度',tkt_attachment:'添付',tkt_submit:'🎫 送信',req_title:'マイリクエスト',inv_title:'請求書',inv_none:'請求書なし',news_title:'ニュース',news_none:'ニュースなし',files_title:'マイファイル',files_folder:'クライアントフォルダ',files_roadmap:'ロードマップ',files_none:'共有ファイルなし。',req_expert:'🌟 専門家をリクエスト',req_svc:'サービスタイプ',req_date:'希望日',req_msg:'メッセージ *',req_msg_ph:'必要なことを説明してください...',req_notes:'メモ',cancel:'キャンセル',submit:'📤 送信',urgent:'🔴 緊急',this_week:'🟡 今週',this_month:'🟢 今月',loading:'読み込み中...',access_denied:'アクセス拒否',login_first:'ログインしてください。'},
 ko:{brand:'INTERSECT PartnerOS · 고객 포털',logout:'→ 로그아웃',tab_overview:'📊 개요',tab_roadmap:'🗺️ 로드맵',tab_updates:'🔄 업데이트',tab_meetings:'📅 회의',tab_experts:'🌟 전문가',tab_tickets:'🎫 티켓',tab_requests:'📋 내 요청',tab_invoices:'🧾 청구서',tab_news:'📰 뉴스',tab_files:'📁 내 파일',ov_title:'파트너십 개요',ov_stage:'단계',ov_am:'계정 관리자',ov_latest:'최신 업데이트',no_updates:'업데이트 없음',no_meetings:'회의 없음',roadmap_title:'로드맵',roadmap_current:'현재',roadmap_done:'완료',roadmap_doc:'📄 전체 문서 보기',upd_title:'프로젝트 업데이트',mt_title:'회의',exp_title:'전문가 마켓',exp_filter:'🔍 전문 분야 필터...',exp_request:'📤 이 전문가 요청',exp_rate:'요금',exp_hr:'시간당',exp_mo:'월별',exp_yr:'연간',exp_on_req:'요청시',tkt_title:'티켓 제출',tkt_list:'내 티켓',tkt_send_to:'보내기',tkt_am:'👤 계정 관리자',tkt_am_desc:'가장 빠른 응답.',tkt_mgmt:'🏛️ 고위 경영진',tkt_mgmt_desc:'전략적 결정을 위해.',tkt_recommended:'권장',tkt_category:'카테고리',tkt_subject:'제목 *',tkt_details:'세부 사항 *',tkt_priority:'우선순위',tkt_attachment:'첨부',tkt_submit:'🎫 제출',req_title:'내 요청',inv_title:'청구서',inv_none:'청구서 없음',news_title:'뉴스',news_none:'뉴스 없음',files_title:'내 파일',files_folder:'고객 폴더',files_roadmap:'로드맵',files_none:'공유된 파일 없음.',req_expert:'🌟 전문가 요청',req_svc:'서비스 유형',req_date:'선호 날짜',req_msg:'메시지 *',req_msg_ph:'필요한 사항을 설명하세요...',req_notes:'메모',cancel:'취소',submit:'📤 제출',urgent:'🔴 긴급',this_week:'🟡 이번 주',this_month:'🟢 이번 달',loading:'로딩 중...',access_denied:'접근 거부',login_first:'로그인하세요.'},
+pt:{
+  brand:'INTERSECT PartnerOS · Portal do Cliente',logout:'→ Sair',
+  tab_overview:'📊 Visão Geral',tab_roadmap:'🗺️ Roteiro',tab_updates:'🔄 Atualizações',
+  tab_meetings:'📅 Reuniões',tab_experts:'🌟 Especialistas',tab_tickets:'🎫 Tickets',
+  tab_requests:'📋 Meus Pedidos',tab_invoices:'🧾 Faturas',tab_news:'📰 Notícias',tab_files:'📁 Meus Arquivos',
+  tab_services:'🛠️ Meus Serviços',tab_companies:'🏭 Minhas Empresas',tab_assignments:'⚙️ Atribuições',tab_jv:'🏦 Visão JV',
+  ov_title:'Visão Geral da Parceria',ov_stage:'Fase',ov_am:'Gerente de Conta',
+  ov_latest:'Últimas Atualizações',no_updates:'Sem atualizações',no_meetings:'Sem reuniões',
+  roadmap_title:'Roteiro da Parceria',roadmap_current:'Atual',roadmap_done:'Concluído',roadmap_doc:'📄 Ver Documento Completo',
+  upd_title:'Atualizações do Projeto',mt_title:'Reuniões',
+  exp_title:'Mercado de Especialistas',exp_filter:'🔍 Filtrar por especialização...',exp_request:'📤 Solicitar Especialista',
+  exp_rate:'Taxa',exp_hr:'Por Hora',exp_mo:'Por Mês',exp_yr:'Por Ano',exp_on_req:'A combinar',
+  tkt_title:'Enviar Ticket',tkt_list:'Meus Tickets',tkt_send_to:'Enviar para',
+  tkt_am:'👤 Gerente de Conta',tkt_am_desc:'Resposta mais rápida. Seu GM cuida dos pedidos do dia a dia.',
+  tkt_mgmt:'🏛️ Alta Direção',tkt_mgmt_desc:'Para decisões estratégicas ou escalações.',
+  tkt_recommended:'Recomendado',tkt_category:'Categoria',tkt_subject:'Assunto *',tkt_details:'Detalhes *',
+  tkt_priority:'Prioridade',tkt_attachment:'Anexo / Link',tkt_submit:'🎫 Enviar Ticket',
+  req_title:'Meus Pedidos',inv_title:'Minhas Faturas',inv_none:'Sem faturas',
+  news_title:'Notícias e Avisos',news_none:'Sem notícias',
+  files_title:'Meus Arquivos',files_folder:'Pasta do Cliente',files_roadmap:'Roteiro',
+  files_none:'Nenhum arquivo compartilhado ainda.',
+  req_expert:'🌟 Solicitar Especialista',req_svc:'Tipo de Serviço',req_date:'Data Preferida',
+  req_msg:'Mensagem *',req_msg_ph:'Descreva o que você precisa...',req_notes:'Notas',
+  cancel:'Cancelar',submit:'📤 Enviar',urgent:'🔴 Urgente',this_week:'🟡 Esta semana',this_month:'🟢 Este mês',
+  loading:'Carregando...',access_denied:'Acesso Negado',login_first:'Por favor faça login.'
+},
 zh:{brand:'INTERSECT PartnerOS · 客户门户',logout:'→ 退出',tab_overview:'📊 概览',tab_roadmap:'🗺️ 路线图',tab_updates:'🔄 更新',tab_meetings:'📅 会议',tab_experts:'🌟 专家',tab_tickets:'🎫 工单',tab_requests:'📋 我的请求',tab_invoices:'🧾 发票',tab_news:'📰 新闻',tab_files:'📁 我的文件',ov_title:'合作伙伴概览',ov_stage:'阶段',ov_am:'客户经理',ov_latest:'最新更新',no_updates:'暂无更新',no_meetings:'暂无会议',roadmap_title:'路线图',roadmap_current:'当前',roadmap_done:'已完成',roadmap_doc:'📄 查看完整文档',upd_title:'项目更新',mt_title:'会议',exp_title:'专家市场',exp_filter:'🔍 按专业过滤...',exp_request:'📤 申请此专家',exp_rate:'费率',exp_hr:'每小时',exp_mo:'每月',exp_yr:'每年',exp_on_req:'按需定价',tkt_title:'提交工单',tkt_list:'我的工单',tkt_send_to:'发送至',tkt_am:'👤 客户经理',tkt_am_desc:'响应最快。',tkt_mgmt:'🏛️ 高级管理层',tkt_mgmt_desc:'用于战略决策。',tkt_recommended:'推荐',tkt_category:'类别',tkt_subject:'主题 *',tkt_details:'详情 *',tkt_priority:'优先级',tkt_attachment:'附件',tkt_submit:'🎫 提交工单',req_title:'我的请求',inv_title:'我的发票',inv_none:'暂无发票',news_title:'新闻',news_none:'暂无新闻',files_title:'我的文件',files_folder:'客户文件夹',files_roadmap:'路线图',files_none:'尚无共享文件。',req_expert:'🌟 申请专家',req_svc:'服务类型',req_date:'首选日期',req_msg:'消息 *',req_msg_ph:'描述您的需求...',req_notes:'备注',cancel:'取消',submit:'📤 提交',urgent:'🔴 紧急',this_week:'🟡 本周',this_month:'🟢 本月',loading:'加载中...',access_denied:'访问被拒绝',login_first:'请先登录。'}
 };
 var curL='en';
@@ -661,6 +775,69 @@ function renderOvUpdates(wf){
 }
 
 function renderRoadmap(c){
+  var el=document.getElementById('roadmap-body');if(!el)return;
+
+  // If client has services from ix_client_services, show per-service roadmap
+  fetch(SB_URL+'/rest/v1/ix_client_services?client_id=eq.'+c.id+'&order=created_at.asc',{
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+  }).then(function(r){return r.json();}).then(function(svcs){
+    if(Array.isArray(svcs)&&svcs.length){
+      renderServicesRoadmap(c, svcs);
+    } else {
+      renderSingleRoadmap(c);
+    }
+  }).catch(function(){renderSingleRoadmap(c);});
+}
+
+function renderServicesRoadmap(c, svcs){
+  var el=document.getElementById('roadmap-body');if(!el)return;
+  var stgOrder=['RELATIONSHIP BUILDING','PROPOSAL','NEGOTIATION','AGREEMENT','LEGAL','EXECUTION','COMPLETED','ON HOLD'];
+  var stgIcons={'RELATIONSHIP BUILDING':'🤝','PROPOSAL':'📋','NEGOTIATION':'💬','AGREEMENT':'📝','LEGAL':'⚖️','EXECUTION':'🚀','COMPLETED':'✅','ON HOLD':'⏸️'};
+  var stgC={'RELATIONSHIP BUILDING':'#06b6d4','PROPOSAL':'#a78bfa','NEGOTIATION':'#f59e0b','AGREEMENT':'#3b82f6','LEGAL':'#8b5cf6','EXECUTION':'#22c55e','COMPLETED':'#10b981','ON HOLD':'#6b7280'};
+
+  var html='<div style="font-size:12px;color:var(--ink3);margin-bottom:16px;">Partnership since: '+(svcs[0]?new Date(svcs[0].created_at).toLocaleDateString():'—')+'</div>';
+
+  svcs.forEach(function(s){
+    var curIdx=stgOrder.indexOf(s.stage);
+    var sc=stgC[s.stage]||'#06b6d4';
+    html+='<div style="background:var(--card2);border:1px solid var(--border);border-left:4px solid '+sc+';border-radius:11px;padding:14px;margin-bottom:14px;">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+    html+='<div style="font-size:15px;font-weight:800;font-family:Syne;">'+s.service_type+'</div>';
+    html+='<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:'+sc+'22;color:'+sc+';">'+s.stage+'</span>';
+    html+='</div>';
+    // Mini timeline
+    html+='<div style="display:flex;gap:0;align-items:center;overflow-x:auto;padding-bottom:6px;">';
+    stgOrder.forEach(function(st,idx){
+      if(st==='ON HOLD')return;
+      var isDone=idx<curIdx;
+      var isActive=idx===curIdx;
+      var isPending=idx>curIdx;
+      var c2=stgC[st]||'#6b7280';
+      html+='<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:50px;">';
+      html+='<div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;'
+        +(isDone?'background:'+c2+'33;color:'+c2+';border:2px solid '+c2+';':isActive?'background:linear-gradient(135deg,'+c2+','+c2+'99);color:#fff;box-shadow:0 0 8px '+c2+'44;':' background:var(--card);border:2px solid rgba(74,82,112,.3);color:var(--ink3);')
+        +'">'+(isDone?'✓':stgIcons[st]||'·')+'</div>';
+      html+='<div style="font-size:8px;color:'+(isActive?c2:isDone?c2:'var(--ink3)')+';margin-top:3px;text-align:center;max-width:45px;line-height:1.2;">'+st.split(' ')[0]+'</div>';
+      html+='</div>';
+      if(idx<stgOrder.length-2){
+        html+='<div style="height:2px;flex:1;min-width:8px;background:'+(isDone?c2:'rgba(74,82,112,.2)')+';margin-bottom:14px;"></div>';
+      }
+    });
+    html+='</div>';
+    if(s.notes)html+='<div style="font-size:11px;color:var(--ink2);margin-top:8px;line-height:1.5;">'+s.notes+'</div>';
+    html+='<div style="font-size:10px;color:var(--ink3);margin-top:5px;">Started: '+(s.start_date||new Date(s.created_at).toLocaleDateString())+'</div>';
+    html+='</div>';
+  });
+
+  // Add roadmap link if exists
+  if(c.roadmap_url){
+    html+='<a href="'+c.roadmap_url+'" target="_blank" class="btn bbg bw" style="display:flex;text-decoration:none;margin-top:4px;">📄 View Full Roadmap Document</a>';
+  }
+  el.innerHTML=html;
+}
+
+function renderSingleRoadmap(c){
+  var el=document.getElementById('roadmap-body');if(!el)return;
   var stgOrder=['OPEN','INITIATION','ACTIVE NEGOTIATIONS','MOU','LEGAL','PLANNING','EXECUTION','FINALIZATION','COMPLETED'];
   var stages=[
     {key:'INITIATION',label:'Initial Meeting',icon:'🤝',desc:'First contact and understanding of partnership goals'},
@@ -673,21 +850,19 @@ function renderRoadmap(c){
     {key:'COMPLETED',label:'Completed',icon:'🏆',desc:'Partnership successfully delivered'}
   ];
   var curIdx=stgOrder.indexOf(c.stage||'OPEN');
-  var el=document.getElementById('roadmap-body');if(!el)return;
-  var html='<div style="margin-bottom:14px;font-size:12px;color:var(--ink3);">Your current stage: <strong style="color:var(--teal);">'+c.stage+'</strong></div>';
+  var html='<div style="font-size:12px;color:var(--ink3);margin-bottom:14px;">Current stage: <strong style="color:var(--teal);">'+c.stage+'</strong></div>';
   stages.forEach(function(s,i){
     var stgIdx=stgOrder.indexOf(s.key);
     var isDone=stgIdx<curIdx;
     var isActive=stgIdx===curIdx;
-    var isPending=stgIdx>curIdx;
-    var dotClass=isDone?'rm-done':isActive?'rm-active':'rm-pending';
-    var dotContent=isDone?'✓':(i+1).toString();
-    html+='<div class="rm-step">'
-      +'<div class="rm-dot '+dotClass+'">'+dotContent+'</div>'
+    html+='<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(26,31,56,.4);">'
+      +'<div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-family:Syne;flex-shrink:0;'
+        +(isDone?'background:rgba(34,197,94,.15);color:#22c55e;border:2px solid #22c55e;':isActive?'background:linear-gradient(135deg,#06b6d4,#7c3aed);color:#fff;':'background:var(--card2);color:var(--ink3);border:2px solid var(--border);')
+      +'">'+(isDone?'✓':(i+1))+'</div>'
       +'<div style="flex:1;">'
         +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">'
           +'<span style="font-size:16px;">'+s.icon+'</span>'
-          +'<span style="font-size:13px;font-weight:700;'+(isActive?'color:var(--teal);':isPending?'color:var(--ink3);':'')+'">'+s.label+'</span>'
+          +'<span style="font-size:13px;font-weight:700;'+(isActive?'color:var(--teal);':!isDone?'color:var(--ink3);':'')+'">'+s.label+'</span>'
           +(isActive?'<span style="font-size:10px;background:rgba(6,182,212,.1);color:var(--teal);padding:2px 8px;border-radius:20px;font-weight:700;">Current</span>':'')
           +(isDone?'<span style="font-size:10px;background:rgba(34,197,94,.1);color:#22c55e;padding:2px 8px;border-radius:20px;font-weight:700;">Done</span>':'')
         +'</div>'
@@ -695,9 +870,8 @@ function renderRoadmap(c){
       +'</div>'
     +'</div>';
   });
-  // Add roadmap link if exists
   if(c.roadmap_url){
-    html+='<div style="margin-top:14px;"><a href="'+c.roadmap_url+'" target="_blank" class="btn bbg bw" style="display:flex;">📄 View Full Roadmap Document</a></div>';
+    html+='<div style="margin-top:14px;"><a href="'+c.roadmap_url+'" target="_blank" class="btn bbg bw" style="display:flex;text-decoration:none;">📄 View Full Roadmap Document</a></div>';
   }
   el.innerHTML=html;
 }
@@ -895,6 +1069,84 @@ async function saveTelegramIdClient(){
   }catch(e){toast('Error saving','te');}
 }
 
+function loadJVOverview(){
+  var c=clientData;if(!c)return;
+  // JV Details
+  var detEl=document.getElementById('jv-details-body');
+  if(detEl){
+    var jvType=c.jv_type==='project_specific'?'📁 Project-Specific':'🏢 Company-Wide';
+    detEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'
+      +'<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:9px;padding:14px;text-align:center;">'
+        +'<div style="font-size:32px;font-weight:800;color:var(--gold);font-family:Syne;">'+(c.jv_equity||'—')+'%</div>'
+        +'<div style="font-size:11px;color:var(--ink3);margin-top:4px;">Equity Share</div>'
+      +'</div>'
+      +'<div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:14px;text-align:center;">'
+        +'<div style="font-size:14px;font-weight:700;color:var(--teal);">'+jvType+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);margin-top:4px;">JV Type</div>'
+      +'</div>'
+    +'</div>'
+    +(c.jv_notes?'<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px;font-size:12px;color:var(--ink2);line-height:1.6;">'+c.jv_notes+'</div>':'')
+    +(c.jv_link?'<div style="margin-top:10px;"><a href="'+c.jv_link+'" target="_blank" class="btn bbg bw" style="display:flex;text-decoration:none;">📎 View JV Agreement</a></div>':'');
+  }
+  // Load JV Projects from partner_projects
+  loadJVProjects();
+}
+
+async function loadJVProjects(){
+  var el=document.getElementById('jv-projects-body');if(!el)return;
+  if(!clientData)return;
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_partner_projects?partner_id=eq.'+clientData.id+'&order=created_at.desc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var items=await r.json();
+    if(!Array.isArray(items)||!items.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:16px;">No JV projects assigned yet</div>';
+      return;
+    }
+    var sColors={Active:'#22c55e',Completed:'#6b7280','On Hold':'#f59e0b'};
+    el.innerHTML=items.map(function(p){
+      var sc=sColors[p.status]||'#22c55e';
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+sc+';border-radius:9px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
+          +'<div><div style="font-size:13px;font-weight:700;">'+(p.project_name||p.client_name||'JV Project')+'</div>'
+          +'<div style="font-size:11px;color:var(--gold);">Role: '+p.role+'</div></div>'
+          +'<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:'+sc+'22;color:'+sc+';font-weight:700;">'+p.status+'</span>'
+        +'</div>'
+        +(p.notes?'<div style="font-size:11px;color:var(--ink2);">'+p.notes.slice(0,100)+'</div>':'')
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:12px;">Unable to load projects</div>';}
+}
+
+async function submitJVUpdate(){
+  var text=document.getElementById('jv-upd-text').value.trim();
+  if(!text){toast('Write an update first','te');return;}
+  var file=document.getElementById('jv-upd-file').value.trim();
+  var body={
+    requested_by:clientData?clientData.name:null,
+    title:'[JV Update] '+clientData.name,
+    description:text+(file?'\n\nAttachment: '+file:''),
+    context_type:'jv_update',
+    status:'Pending',show_to_client:false,priority:'medium'
+  };
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('jv-upd-text').value='';
+      document.getElementById('jv-upd-file').value='';
+      var sent=document.getElementById('jv-upd-sent');
+      sent.style.display='block';
+      setTimeout(function(){sent.style.display='none';},4000);
+      toast('✅ Update submitted!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
+}
+
 async function loadSPAssignments(){
   var el=document.getElementById('sp-assignments-list');if(!el)return;
   if(!clientData)return;
@@ -1072,6 +1324,127 @@ async function loadServices(){
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:16px;">Unable to load services</div>';}
 }
 
+var allServices=[], mpFilter='';
+
+async function loadMarketplace(){
+  var el=document.getElementById('mp-list');if(!el)return;
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_services_catalog?is_active=eq.true&order=category.asc,name.asc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var svcs=await r.json();
+    if(!Array.isArray(svcs)||!svcs.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:24px;">No services available yet</div>';
+      return;
+    }
+    allServices=svcs;
+    // Build category filters
+    var cats=['All',...new Set(svcs.map(function(s){return s.category;}))];
+    var filterBar=document.getElementById('mp-filter-bar');
+    if(filterBar){
+      filterBar.innerHTML=cats.map(function(c){
+        var isAll=c==='All';
+        return '<button data-cat="'+c+'" onclick="filterMP(this.dataset.cat,this)" style="padding:5px 12px;border-radius:20px;border:1px solid '+(isAll?'rgba(6,182,212,.3)':'var(--border)')+';background:'+(isAll?'rgba(6,182,212,.1)':'var(--card2)')+';color:'+(isAll?'var(--teal)':'var(--ink2)')+';font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;">'+c+'</button>';
+      }).join('');
+    }
+    renderMarketplace(svcs);
+  }catch(e){
+    el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Unable to load services</div>';
+  }
+}
+
+function filterMP(cat, btn){
+  mpFilter=cat==='All'?'':cat;
+  document.querySelectorAll('#mp-filter-bar button').forEach(function(b){
+    b.style.background='var(--card2)';b.style.color='var(--ink2)';b.style.borderColor='var(--border)';
+  });
+  btn.style.background='rgba(6,182,212,.1)';btn.style.color='var(--teal)';btn.style.borderColor='rgba(6,182,212,.3)';
+  renderMarketplace(mpFilter?allServices.filter(function(s){return s.category===mpFilter;}):allServices);
+}
+
+var _mpServices=[];
+function renderMarketplace(svcs){
+  _mpServices=svcs;
+  var el=document.getElementById('mp-list');if(!el)return;
+  var catColors={Print:'#06b6d4',Logistics:'#f59e0b',Travel:'#22c55e',Services:'#a78bfa',Events:'#f97316',General:'#6b7280'};
+  var grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;';
+  svcs.forEach(function(s,i){
+    var cc=catColors[s.category]||'#6b7280';
+    var card=document.createElement('div');
+    card.style.cssText='background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;';
+    card.dataset.idx=i;
+    card.innerHTML='<div style="font-size:32px;margin-bottom:8px;">'+s.icon+'</div>'
+      +'<div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+s.name+'</div>'
+      +(s.description?'<div style="font-size:11px;color:var(--ink3);line-height:1.4;margin-bottom:8px;">'+s.description+'</div>':'')
+      +'<span style="font-size:9px;background:'+cc+'22;color:'+cc+';border:1px solid '+cc+'44;padding:2px 8px;border-radius:10px;font-weight:700;">'+s.category+'</span>'
+      +'<div style="margin-top:10px;background:var(--grad);border-radius:7px;padding:7px;font-size:11px;font-weight:700;color:#fff;">📋 Inquire</div>';
+    card.onclick=function(){
+      var svc=_mpServices[parseInt(this.dataset.idx)];
+      if(svc)openInquiry(svc.id,svc.name,svc.icon,svc.category);
+    };
+    card.onmouseover=function(){this.style.borderColor=cc;this.style.background=cc+'11';};
+    card.onmouseout=function(){this.style.borderColor='var(--border)';this.style.background='var(--card)';};
+    grid.appendChild(card);
+  });
+  el.innerHTML='';
+  el.appendChild(grid);
+}
+
+function openInquiry(id, name, icon, category){
+  document.getElementById('inq-svc-id').value=id;
+  var infoEl=document.getElementById('inq-svc-info');
+  if(infoEl){
+    infoEl.innerHTML='<div style="display:flex;align-items:center;gap:10px;">'
+      +'<div style="font-size:28px;">'+icon+'</div>'
+      +'<div><div style="font-size:14px;font-weight:700;">'+name+'</div>'
+      +'<div style="font-size:11px;color:var(--ink3);">'+category+'</div></div>'
+    +'</div>';
+  }
+  document.getElementById('inq-desc').value='';
+  document.getElementById('inq-notes').value='';
+  document.getElementById('inq-file').value='';
+  document.getElementById('inq-timeline').value='This week';
+  openModal('m-inquiry');
+}
+
+async function submitInquiry(){
+  var svcId=document.getElementById('inq-svc-id').value;
+  var desc=document.getElementById('inq-desc').value.trim();
+  if(!desc){toast('Please describe your requirements','te');return;}
+  var timeline=document.getElementById('inq-timeline').value;
+  var file=document.getElementById('inq-file').value.trim();
+  var notes=document.getElementById('inq-notes').value.trim();
+  // Find service name
+  var svc=allServices.find(function(s){return s.id===svcId;});
+  var svcName=svc?svc.name:'Service';
+  var body={
+    title:'[Service Inquiry] '+svcName+' — '+(clientData?clientData.name:''),
+    description:desc+(notes?'\n\nNotes: '+notes:'')+(file?'\n\nReference: '+file:''),
+    client_id:clientData?clientData.id:null,
+    client_name:clientData?clientData.name:null,
+    requested_by:clientData?clientData.name:'Client',
+    priority:timeline==='ASAP'?'high':'medium',
+    status:'Pending',
+    assignee_type:'am',
+    show_to_client:true,
+    context_type:'service_inquiry',
+    context_value:svcId
+  };
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      closeModal('m-inquiry');
+      sendTG('🛒 *Service Inquiry*\n\n*Client:* '+(clientData?clientData.name:'—')+'\n*Service:* '+svcName+'\n*Timeline:* '+timeline+'\n\n'+desc.slice(0,100));
+      toast('✅ Inquiry submitted! We will get back to you shortly.','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error submitting','te');}
+}
+
 function showTab(n,el){
   document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
@@ -1080,8 +1453,10 @@ function showTab(n,el){
   if(n==='tickets')loadExtraData(clientData);
   if(n==='files')renderFiles(clientData);
   if(n==='services')loadServices();
+  if(n==='marketplace')loadMarketplace();
   if(n==='my-companies')loadMyCompanies();
   if(n==='my-projects-sp')loadSPAssignments();
+  if(n==='jv-overview')loadJVOverview();
 }
 </script>
 </body>
