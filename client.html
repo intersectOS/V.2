@@ -297,6 +297,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 
     <!-- NEWS -->
     <div class="tp" id="tp-news">
+      <div class="panel">
+        <div class="ph"><div class="pt">📱 Telegram Notifications</div></div>
+        <div class="pb">
+          <div id="tg-status-cl" style="margin-bottom:12px;"></div>
+          <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--ink2);line-height:1.7;">
+            <div style="font-weight:700;color:var(--teal);margin-bottom:6px;">📱 Get instant notifications on Telegram</div>
+            1. Open Telegram → search <strong style="color:var(--teal);">@intersect_notif_bot</strong><br>
+            2. Press <strong>Start</strong><br>
+            3. Open: <a href="https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/getUpdates" target="_blank" style="color:var(--teal);">Get my Chat ID →</a><br>
+            4. Copy the number from <code>"chat":{"id":XXXXXXX</code><br>
+            5. Paste below and save
+          </div>
+          <div class="fg"><label class="fl">Your Telegram Chat ID</label>
+            <input class="fi" id="tg-chat-id-cl" placeholder="e.g. 851323429" dir="ltr" type="number">
+          </div>
+          <button class="btn bbg bw" onclick="saveTelegramIdClient()">💾 Link Telegram</button>
+        </div>
+      </div>
       <div class="panel"><div class="ph"><div class="pt">📰 News & Announcements</div></div>
       <div class="pb" id="news-feed-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div></div>
     </div>
@@ -338,12 +356,61 @@ var sb=null, clientData=null, allExperts=[], myReqs=[], currentRates={};
 
 try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
 
-function setL(l){var h=document.getElementById('ch');h.setAttribute('lang',l);h.setAttribute('dir',l==='ar'?'rtl':'ltr');try{localStorage.setItem('ix_lang',l);}catch(e){}document.querySelectorAll('.lb').forEach(function(b){b.classList.remove('on');});var a=document.querySelector('.lb[data-l="'+l+'"]');if(a)a.classList.add('on');}
+var T={
+  en:{brand:'INTERSECT PartnerOS · Client Portal',logout:'→ Logout',tab_overview:'📊 Overview',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Updates',tab_meetings:'📅 Meetings',tab_experts:'🌟 Experts',tab_tickets:'🎫 Tickets',tab_requests:'📋 My Requests',tab_invoices:'🧾 Invoices',tab_news:'📰 News',tab_files:'📁 My Files',stage:'Stage',am:'Account Manager',no_updates:'No updates yet',no_meetings:'No meetings yet',ticket_am:'👤 Account Manager',ticket_mgmt:'🏛️ Senior Management',submit:'📤 Submit',cancel:'Cancel',loading:'Loading...'},
+  ar:{brand:'إنترسيكت PartnerOS · بوابة العميل',logout:'→ خروج',tab_overview:'📊 نظرة عامة',tab_roadmap:'🗺️ خارطة الطريق',tab_updates:'🔄 التحديثات',tab_meetings:'📅 الاجتماعات',tab_experts:'🌟 الخبراء',tab_tickets:'🎫 التذاكر',tab_requests:'📋 طلباتي',tab_invoices:'🧾 الفواتير',tab_news:'📰 الأخبار',tab_files:'📁 ملفاتي',stage:'المرحلة',am:'مدير الحساب',no_updates:'لا توجد تحديثات بعد',no_meetings:'لا توجد اجتماعات بعد',ticket_am:'👤 مدير الحساب',ticket_mgmt:'🏛️ الإدارة العليا',submit:'📤 إرسال',cancel:'إلغاء',loading:'جارٍ التحميل...'},
+  es:{brand:'INTERSECT PartnerOS · Portal Cliente',logout:'→ Salir',tab_overview:'📊 Resumen',tab_roadmap:'🗺️ Hoja de ruta',tab_updates:'🔄 Actualizaciones',tab_meetings:'📅 Reuniones',tab_experts:'🌟 Expertos',tab_tickets:'🎫 Tickets',tab_requests:'📋 Mis Solicitudes',tab_invoices:'🧾 Facturas',tab_news:'📰 Noticias',tab_files:'📁 Mis Archivos',stage:'Etapa',am:'Gestor de Cuenta',no_updates:'Sin actualizaciones',no_meetings:'Sin reuniones',ticket_am:'👤 Gestor de Cuenta',ticket_mgmt:'🏛️ Alta Dirección',submit:'📤 Enviar',cancel:'Cancelar',loading:'Cargando...'},
+  fr:{brand:'INTERSECT PartnerOS · Portail Client',logout:'→ Déconnexion',tab_overview:'📊 Aperçu',tab_roadmap:'🗺️ Feuille de route',tab_updates:'🔄 Mises à jour',tab_meetings:'📅 Réunions',tab_experts:'🌟 Experts',tab_tickets:'🎫 Tickets',tab_requests:'📋 Mes demandes',tab_invoices:'🧾 Factures',tab_news:'📰 Actualités',tab_files:'📁 Mes fichiers',stage:'Étape',am:'Gestionnaire',no_updates:'Pas de mises à jour',no_meetings:'Pas de réunions',ticket_am:'👤 Gestionnaire',ticket_mgmt:'🏛️ Direction',submit:'📤 Envoyer',cancel:'Annuler',loading:'Chargement...'},
+  de:{brand:'INTERSECT PartnerOS · Kundenportal',logout:'→ Abmelden',tab_overview:'📊 Übersicht',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Updates',tab_meetings:'📅 Meetings',tab_experts:'🌟 Experten',tab_tickets:'🎫 Tickets',tab_requests:'📋 Meine Anfragen',tab_invoices:'🧾 Rechnungen',tab_news:'📰 Nachrichten',tab_files:'📁 Meine Dateien',stage:'Phase',am:'Kundenbetreuer',no_updates:'Keine Updates',no_meetings:'Keine Meetings',ticket_am:'👤 Kundenbetreuer',ticket_mgmt:'🏛️ Geschäftsleitung',submit:'📤 Senden',cancel:'Abbrechen',loading:'Laden...'},
+  it:{brand:'INTERSECT PartnerOS · Portale Cliente',logout:'→ Esci',tab_overview:'📊 Panoramica',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Aggiornamenti',tab_meetings:'📅 Riunioni',tab_experts:'🌟 Esperti',tab_tickets:'🎫 Ticket',tab_requests:'📋 Le mie richieste',tab_invoices:'🧾 Fatture',tab_news:'📰 Notizie',tab_files:'📁 I miei file',stage:'Fase',am:'Responsabile',no_updates:'Nessun aggiornamento',no_meetings:'Nessuna riunione',ticket_am:'👤 Responsabile',ticket_mgmt:'🏛️ Direzione',submit:'📤 Invia',cancel:'Annulla',loading:'Caricamento...'},
+  ja:{brand:'INTERSECT PartnerOS · クライアントポータル',logout:'→ ログアウト',tab_overview:'📊 概要',tab_roadmap:'🗺️ ロードマップ',tab_updates:'🔄 更新',tab_meetings:'📅 会議',tab_experts:'🌟 専門家',tab_tickets:'🎫 チケット',tab_requests:'📋 マイリクエスト',tab_invoices:'🧾 請求書',tab_news:'📰 ニュース',tab_files:'📁 マイファイル',stage:'ステージ',am:'アカウントマネージャー',no_updates:'更新なし',no_meetings:'会議なし',ticket_am:'👤 アカウントマネージャー',ticket_mgmt:'🏛️ 上級管理職',submit:'📤 送信',cancel:'キャンセル',loading:'読み込み中...'},
+  ko:{brand:'INTERSECT PartnerOS · 고객 포털',logout:'→ 로그아웃',tab_overview:'📊 개요',tab_roadmap:'🗺️ 로드맵',tab_updates:'🔄 업데이트',tab_meetings:'📅 회의',tab_experts:'🌟 전문가',tab_tickets:'🎫 티켓',tab_requests:'📋 내 요청',tab_invoices:'🧾 청구서',tab_news:'📰 뉴스',tab_files:'📁 내 파일',stage:'단계',am:'계정 관리자',no_updates:'업데이트 없음',no_meetings:'회의 없음',ticket_am:'👤 계정 관리자',ticket_mgmt:'🏛️ 고위 경영진',submit:'📤 제출',cancel:'취소',loading:'로딩 중...'},
+  zh:{brand:'INTERSECT PartnerOS · 客户门户',logout:'→ 退出',tab_overview:'📊 概览',tab_roadmap:'🗺️ 路线图',tab_updates:'🔄 更新',tab_meetings:'📅 会议',tab_experts:'🌟 专家',tab_tickets:'🎫 工单',tab_requests:'📋 我的请求',tab_invoices:'🧾 发票',tab_news:'📰 新闻',tab_files:'📁 我的文件',stage:'阶段',am:'客户经理',no_updates:'暂无更新',no_meetings:'暂无会议',ticket_am:'👤 客户经理',ticket_mgmt:'🏛️ 高级管理层',submit:'📤 提交',cancel:'取消',loading:'加载中...'}
+};
+
+var curL='en';
+function t(k){return (T[curL]&&T[curL][k])||T.en[k]||k;}
+
+function applyTranslations(){
+  var l=curL;
+  // Brand
+  var b=document.querySelector('.brand');if(b)b.textContent=t('brand');
+  // Logout
+  var lo=document.querySelector('.logout-btn');if(lo)lo.textContent=t('logout');
+  // Tabs
+  var tabMap={overview:'tab_overview',roadmap:'tab_roadmap',updates:'tab_updates',meetings:'tab_meetings',experts:'tab_experts',tickets:'tab_tickets',requests:'tab_requests',invoices:'tab_invoices',news:'tab_news',files:'tab_files'};
+  document.querySelectorAll('.tab').forEach(function(tab){
+    var fn=tab.getAttribute('onclick');
+    if(!fn)return;
+    var m=fn.match(/showTab\('([^']+)'/);
+    if(m&&tabMap[m[1]])tab.textContent=t(tabMap[m[1]]);
+  });
+}
+
+function setL(l){
+  curL=l;
+  var h=document.getElementById('ch');
+  h.setAttribute('lang',l);
+  h.setAttribute('dir',l==='ar'?'rtl':'ltr');
+  try{localStorage.setItem('ix_lang',l);}catch(e){}
+  document.querySelectorAll('.lb').forEach(function(b){b.classList.remove('on');});
+  var a=document.querySelector('.lb[data-l="'+l+'"]');if(a)a.classList.add('on');
+  applyTranslations();
+}
 function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
 function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
 var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
 function openModal(id){document.getElementById(id).style.display='flex';}
 function closeModal(id){document.getElementById(id).style.display='none';}
+async function sendTG(msg){
+  try{
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:'851323429',text:msg,parse_mode:'Markdown'})
+    });
+  }catch(e){}
+}
+
 function doLogout(){try{localStorage.removeItem('ix_portal_data');localStorage.removeItem('ix_portal_type');}catch(e){}window.location.href='portal.html';}
 
 window.addEventListener('DOMContentLoaded',function(){
@@ -378,6 +445,10 @@ function renderMain(c){
   document.getElementById('loading').style.display='none';
   document.getElementById('main').style.display='block';
   renderFiles(c);
+  if(c.telegram_chat_id){
+    var tgF=document.getElementById('tg-chat-id-cl');if(tgF)tgF.value=c.telegram_chat_id;
+    var tgSt=document.getElementById('tg-status-cl');if(tgSt)tgSt.innerHTML='<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:8px;font-size:12px;color:#22c55e;text-align:center;">✅ Telegram linked</div>';
+  }
 }
 
 function fetchSB(table,params){
@@ -570,6 +641,7 @@ async function submitTicket(){
       setTimeout(function(){sentEl.style.display='none';},5000);
       document.getElementById('k-tk').textContent=parseInt(document.getElementById('k-tk').textContent)+1;
       loadExtraData(clientData);
+      sendTG('🎫 *New Client Ticket*\n\n*Client:* '+(clientData?clientData.name:'—')+'\n*Category:* '+category+'\n*Subject:* '+subject+'\n*Priority:* '+priority+'\n*To:* '+(toMgmt?'🏛️ Senior Management':'👤 Account Manager'));
       toast('✅ Ticket submitted!','ts');
     }else{toast('Error submitting','te');}
   }catch(e){toast('Error submitting','te');}
@@ -592,7 +664,9 @@ async function submitReq(){
   var body={expert_id:document.getElementById('req-eid').value,expert_name:document.getElementById('req-ename').value,client_id:clientData?clientData.id:null,client_name:clientData?clientData.name:null,service_type:document.getElementById('req-svc').value,requested_date:document.getElementById('req-date').value,message:msg+(notes?'\n\nNotes: '+notes:''),status:'Pending'};
   try{
     var r=await fetch(SB_URL+'/rest/v1/ix_expert_requests',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
-    if(r.ok){closeModal('m-req');document.getElementById('req-msg').value='';document.getElementById('req-notes').value='';toast('✅ Request submitted!','ts');loadExtraData(clientData);showTab('requests',document.querySelectorAll('.tab')[6]);}
+    if(r.ok){closeModal('m-req');document.getElementById('req-msg').value='';document.getElementById('req-notes').value='';
+      sendTG('🌟 *Expert Request*\n\n*Client:* '+(clientData?clientData.name:'—')+'\n*Expert:* '+document.getElementById('req-ename').value+'\n*Service:* '+document.getElementById('req-svc').value);
+      toast('✅ Request submitted!','ts');loadExtraData(clientData);showTab('requests',document.querySelectorAll('.tab')[6]);}
     else toast('Error submitting','te');
   }catch(e){toast('Error submitting','te');}
 }
@@ -621,6 +695,26 @@ function renderFiles(c){
     +'</div>';
   }
   el.innerHTML=html;
+}
+
+async function saveTelegramIdClient(){
+  var chatId=document.getElementById('tg-chat-id-cl').value.trim();
+  if(!chatId){toast('Enter your Telegram Chat ID','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_clients_v2?id=eq.'+clientData.id,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({telegram_chat_id:chatId})
+    });
+    clientData.telegram_chat_id=chatId;
+    try{localStorage.setItem('ix_portal_data',JSON.stringify(clientData));}catch(e){}
+    await sendTG('✅ *INTERSECT PartnerOS*\n\nHi '+clientData.name+'! Your Telegram is now linked.\nYou will receive updates and notifications here.');
+    var st=document.getElementById('tg-status-cl');
+    if(st)st.innerHTML='<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Telegram linked! Check your messages.</div>';
+    toast('✅ Telegram linked!','ts');
+  }catch(e){toast('Error saving','te');}
 }
 
 function showTab(n,el){

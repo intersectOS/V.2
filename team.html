@@ -405,6 +405,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       </div>
 
       <div class="tp" id="tp-team-news">
+        <div class="panel">
+          <div class="ph"><div class="pt">📱 Telegram Notifications</div></div>
+          <div class="pb">
+            <div id="tg-status-tm" style="margin-bottom:12px;"></div>
+            <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--ink2);line-height:1.6;">
+              <div style="font-weight:700;color:var(--teal);margin-bottom:6px;">📱 Link your Telegram</div>
+              1. Open Telegram and search <strong style="color:var(--teal);">@intersect_notif_bot</strong><br>
+              2. Press <strong>Start</strong><br>
+              3. Open this link: <a href="https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/getUpdates" target="_blank" style="color:var(--teal);">Get my Chat ID</a><br>
+              4. Copy the <strong>id</strong> number from <code>"chat":{"id":XXXXXXX</code><br>
+              5. Paste it below and save
+            </div>
+            <div class="fg"><label class="fl">Your Telegram Chat ID</label>
+              <input class="fi" id="tg-chat-id-tm" placeholder="e.g. 851323429" dir="ltr" type="number">
+            </div>
+            <button class="btn bbg bw" onclick="saveTelegramId()">💾 Save & Link Telegram</button>
+          </div>
+        </div>
         <div class="panel"><div class="ph"><div class="pt">📰 News & Announcements</div></div>
         <div class="pb" id="team-news-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div></div>
       </div>
@@ -502,8 +520,31 @@ function applyTeamTranslations(){
   if(brand)brand.textContent=t('brand_team');
   var logoutBtn=document.getElementById('tm-logout');
   if(logoutBtn)logoutBtn.textContent=t('logout');
-  var loadingText=document.getElementById('tm-loading-text');
-  if(loadingText)loadingText.textContent=t('loading');
+  // Update all team tabs
+  var tabMap={
+    'clients':'tab_clients','tasks':'tab_tasks','requests':'tab_reqs',
+    'workflow':'tab_workflow','meetings':'tab_meetings',
+    'my-projects':'📁 Projects','inbox':'🔔 Inbox',
+    'add-client':'➕ Add Client','team-news':'tab_team_news'
+  };
+  document.querySelectorAll('#team-tabs .tab').forEach(function(tab){
+    var fn=tab.getAttribute('onclick');
+    if(!fn)return;
+    var m=fn.match(/showTab\('([^']+)'/);
+    if(!m)return;
+    var key=tabMap[m[1]];
+    if(!key)return;
+    if(key.startsWith('📁')||key.startsWith('🔔')||key.startsWith('➕')){tab.textContent=key;}
+    else{tab.textContent=t(key)||tab.textContent;}
+  });
+  // Expert tabs
+  var expMap={'requests':'tab_expert_reqs','profile':'tab_profile','availability':'tab_avail'};
+  document.querySelectorAll('#expert-tabs .tab').forEach(function(tab){
+    var fn=tab.getAttribute('onclick');if(!fn)return;
+    var m=fn.match(/showTabE\('([^']+)'/);if(!m)return;
+    var key=expMap[m[1]];
+    if(key)tab.textContent=t(key)||tab.textContent;
+  });
 }
 function initLang(){var l;try{l=localStorage.getItem('ix_lang')||'en';}catch(e){l='en';}setL(l);}
 function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
@@ -567,6 +608,15 @@ async function saveClientEditPortal(){
     toast('✅ Client updated!','ts');
     loadTeamData(memberData);
   }catch(e){toast('Error saving','te');}
+}
+
+async function sendTG(msg){
+  try{
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:'851323429',text:msg,parse_mode:'Markdown'})
+    });
+  }catch(e){}
 }
 
 function doLogout(){try{localStorage.removeItem('ix_portal_data');localStorage.removeItem('ix_portal_type');}catch(e){}window.location.href='portal.html';}
@@ -1098,6 +1148,19 @@ async function respondReq(id,status){
       body:JSON.stringify({status:status,accepted_at:status==='Accepted'?new Date().toISOString():null})
     });
     toast(status==='Accepted'?'✅ Accepted!':'Declined','ts');
+    // Notify requester via Telegram
+    try{
+      var rr=await fetch(SB+'/rest/v1/ix_requests?id=eq.'+id,{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+      var rdata=await rr.json();
+      if(Array.isArray(rdata)&&rdata[0]&&rdata[0].requested_by){
+        var rp=await fetch(SB+'/rest/v1/ix_people?name=eq.'+encodeURIComponent(rdata[0].requested_by)+'&select=telegram_chat_id',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+        var rpdata=await rp.json();
+        if(Array.isArray(rpdata)&&rpdata[0]&&rpdata[0].telegram_chat_id){
+          var icon=status==='Accepted'?'✅':'❌';
+          await sendTG(icon+' *Request '+status+'*\n\n*"'+rdata[0].title+'"*\nBy: '+(memberData?memberData.name:'-'));
+        }
+      }
+    }catch(e){}
     loadInbox();
   }catch(e){toast('Error','te');}
 }
@@ -1131,6 +1194,29 @@ async function saveMeetingFromPortal(){
       toast('✅ Meeting saved!','ts');
     }else{toast('Error saving','te');}
   }catch(e){toast('Error','te');}
+}
+
+async function saveTelegramId(){
+  var chatId=document.getElementById('tg-chat-id-tm').value.trim();
+  if(!chatId){toast('Enter your Telegram Chat ID','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_people?id=eq.'+memberData.id,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({telegram_chat_id:chatId})
+    });
+    memberData.telegram_chat_id=chatId;
+    try{localStorage.setItem('ix_portal_data',JSON.stringify(memberData));}catch(e){}
+    // Send test message
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text:'✅ *INTERSECT PartnerOS*\n\nYour Telegram is now linked! You will receive notifications here.',parse_mode:'Markdown'})
+    });
+    document.getElementById('tg-status-tm').innerHTML='<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Telegram linked! Check your messages.</div>';
+    toast('✅ Telegram linked!','ts');
+  }catch(e){toast('Error saving','te');}
 }
 
 async function loadTeamNews(){
@@ -1208,6 +1294,7 @@ async function sendTaskRequest(){
       document.getElementById('at-notes').value='';
       document.getElementById('at-file').value='';
       setTimeout(function(){document.getElementById('at-sent').style.display='none';},4000);
+      sendTG('📋 *Task Request*\n\n*From:* '+(memberData?memberData.name:'-')+'\n*To:* '+(parts[1]||'-')+'\n*Task:* '+title);
       toast('✅ Task request sent!','ts');
     }else{toast('Error sending','te');}
   }catch(e){toast('Error','te');}
