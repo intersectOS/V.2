@@ -310,6 +310,8 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 .svc-opt{display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--ink2);}
 .svc-opt:hover{border-color:var(--teal);color:var(--teal);}
 .svc-opt input:checked+*{color:var(--teal);}
+.lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.lb.on{background:rgba(6,182,212,.2);border-color:#06b6d4;color:var(--teal);}
 </style>
 </head>
 <body>
@@ -725,52 +727,64 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 <!-- CLIENT ADD -->
 <div class="mo" id="m-cl"><div class="modal modal-lg">
   <div class="mtit" id="client-modal-title">🏢 Add New Client</div>
-  <div class="fgrid"><div class="fg"><label class="fl">Company Name *</label><input class="fi" id="cl-name"></div><div class="fg"><label class="fl">Industry</label><input class="fi" id="cl-ind"></div></div>
-  <div class="fgrid"><div class="fg"><label class="fl">Country</label><input class="fi" id="cl-country"></div><div class="fg"><label class="fl">Access Code (auto)</label><input class="fi" id="cl-code" dir="ltr" placeholder="Auto-generated"></div></div>
-  <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:11px;">
-    <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:9px;">🔐 Portal Login Credentials</div>
-    <div class="fgrid"><div class="fg"><label class="fl">Username *</label><input class="fi" id="cl-username" placeholder="e.g. aramco" dir="ltr"></div><div class="fg"><label class="fl">Password *</label><input class="fi" id="cl-pass" type="text" placeholder="e.g. Aramco@2026" dir="ltr"></div></div>
-    <div style="font-size:11px;color:var(--ink3);">Share these with the client to access their portal at <strong style="color:var(--teal);">portal.html</strong></div>
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Company Name *</label><input class="fi" id="cl-name" placeholder="e.g. Aramco"></div>
+    <div class="fg"><label class="fl">Industry</label><input class="fi" id="cl-ind" placeholder="e.g. Energy"></div>
   </div>
-  <div class="fgrid"><div class="fg"><label class="fl">Service Type * (select all that apply)</label>
-  <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:6px;" id="svc-checks">
-    <label class="svc-opt"><input type="checkbox" value="Soft Landing"> Soft Landing</label>
-    <label class="svc-opt"><input type="checkbox" value="Strategic Partnership"> Strategic Partnership</label>
-    <label class="svc-opt"><input type="checkbox" value="Market Entry"> Market Entry</label>
-    <label class="svc-opt"><input type="checkbox" value="Investment"> Investment</label>
-    <label class="svc-opt"><input type="checkbox" value="Joint Venture"> Joint Venture</label>
-    <label class="svc-opt"><input type="checkbox" value="Consulting"> Consulting</label>
-    <label class="svc-opt"><input type="checkbox" value="Other" onchange="document.getElementById('svc-other-wrap').style.display=this.checked?'block':'none'"> Other</label>
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Country</label><input class="fi" id="cl-country" placeholder="e.g. Saudi Arabia"></div>
+    <div class="fg"><label class="fl">Client Code</label><input class="fi" id="cl-code" placeholder="Auto-generated" dir="ltr"></div>
   </div>
-  <div id="svc-other-wrap" style="display:none;margin-top:6px;"><input class="fi" id="svc-other-text" placeholder="Describe other service..."></div>
-</div><div class="fg"><label class="fl">Stage</label>
-  <select class="fs" id="cl-stage">
-    <option value="OPEN">OPEN</option>
-    <option value="INITIATION">INITIATION</option>
-    <option value="ACTIVE NEGOTIATIONS">ACTIVE NEGOTIATIONS</option>
-    <option value="MOU">MOU</option>
-    <option value="LEGAL">LEGAL</option>
-    <option value="PLANNING">PLANNING</option>
-    <option value="EXECUTION">EXECUTION</option>
-    <option value="FINALIZATION">FINALIZATION</option>
-    <option value="COMPLETED">COMPLETED</option>
-    <option value="ON HOLD">ON HOLD</option>
-  </select>
-</div></div>
-  <div class="fg"><label class="fl">Main Account Manager</label><select class="fs" id="cl-am"></select></div>
-  <div class="fg"><label class="fl">Assistant Account Managers (select multiple)</label>
-    <div id="assistant-am-checks" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;min-height:32px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;">
-      <span style="font-size:12px;color:var(--ink3);">Loading team...</span>
+  <div class="fg"><label class="fl">Service Type (select all that apply)</label>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;" id="svc-checks">
+      <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Soft Landing" style="width:14px;height:14px;"> Soft Landing</label>
+      <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Strategic Partnership" style="width:14px;height:14px;"> Strategic Partnership</label>
+      <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Market Entry" style="width:14px;height:14px;"> Market Entry</label>
+      <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Investment" style="width:14px;height:14px;"> Investment</label>
+      <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Joint Venture" style="width:14px;height:14px;"> Joint Venture</label>
+      <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Consulting" style="width:14px;height:14px;"> Consulting</label>
+      <label style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Other" id="svc-other-cb" onchange="var w=document.getElementById('svc-other-wrap');if(w)w.style.display=this.checked?'block':'none';" style="width:14px;height:14px;"> Other</label>
+    </div>
+    <div id="svc-other-wrap" style="display:none;margin-top:6px;"><input class="fi" id="svc-other-text" placeholder="Describe other service..."></div>
+  </div>
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Stage</label>
+      <select class="fs" id="cl-stage">
+        <option value="OPEN">OPEN</option>
+        <option value="INITIATION">INITIATION</option>
+        <option value="ACTIVE NEGOTIATIONS">ACTIVE NEGOTIATIONS</option>
+        <option value="MOU">MOU</option>
+        <option value="LEGAL">LEGAL</option>
+        <option value="PLANNING">PLANNING</option>
+        <option value="EXECUTION">EXECUTION</option>
+        <option value="FINALIZATION">FINALIZATION</option>
+        <option value="COMPLETED">COMPLETED</option>
+        <option value="ON HOLD">ON HOLD</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Added by</label><input class="fi" id="cl-addedby" placeholder="Who introduced this client?"></div>
+  </div>
+  <div class="fg"><label class="fl">Main Account Manager</label><select class="fs" id="cl-am"><option value="">— No AM —</option></select></div>
+  <div class="fg"><label class="fl">Assistant Account Managers</label>
+    <div id="assistant-am-checks" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;min-height:36px;">
+      <span style="font-size:12px;color:var(--ink3);">Loading...</span>
     </div>
   </div>
   <div class="fg"><label class="fl">Referred by (internal note)</label><input class="fi" id="cl-ref" placeholder="Name of person who referred this client"></div>
-  <div class="fgrid">
-    <div class="fg"><label class="fl">🔒 Internal Notes (founders only)</label><textarea class="fta" id="cl-notes-i" style="min-height:55px;"></textarea></div>
-    <div class="fg"><label class="fl">📋 Client Notes (visible in portal)</label><textarea class="fta" id="cl-notes-c" style="min-height:55px;"></textarea></div>
+  <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
+    <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:9px;">🔐 Client Portal Login</div>
+    <div class="fgrid">
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="cl-username" dir="ltr" placeholder="e.g. aramco"></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="cl-pass" dir="ltr" placeholder="e.g. Aramco@2026"></div>
+    </div>
   </div>
+  <div class="fg"><label class="fl">Notes (Internal)</label><textarea class="fta" id="cl-notes-i" placeholder="Internal notes..."></textarea></div>
+  <div class="fg"><label class="fl">Notes (Visible to Client)</label><textarea class="fta" id="cl-notes-c" placeholder="Notes visible to client in their portal..."></textarea></div>
+  <div class="fg"><label class="fl">📁 Client Files (Google Drive link)</label><input class="fi" id="cl-drive" type="url" dir="ltr" placeholder="https://drive.google.com/drive/folders/..."></div>
+  <div class="fg"><label class="fl">🗺️ Roadmap Document (Google Drive link)</label><input class="fi" id="cl-roadmap" type="url" dir="ltr" placeholder="https://drive.google.com/file/..."></div>
   <div id="cl-update-section" style="display:none;background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
     <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:8px;">📝 Update Note (optional)</div>
-    <div class="fg"><textarea class="fta" id="cl-update-note" placeholder="What changed? Add a note about this update..." style="min-height:60px;"></textarea></div>
+    <div class="fg"><textarea class="fta" id="cl-update-note" placeholder="What changed? Add a note about this update..."></textarea></div>
     <div style="display:flex;align-items:center;gap:8px;">
       <input type="checkbox" id="cl-update-show" style="width:15px;height:15px;">
       <label for="cl-update-show" style="font-size:12px;color:var(--ink2);">Show this update to client in their portal</label>
@@ -998,6 +1012,108 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 <script>
 // INTERSECT PartnerOS — Complete Clean JS
 // No duplicates, fully tested
+
+// ── DASHBOARD LANGUAGE SYSTEM ──
+var DT={
+  en:{
+    nav_overview:'Overview',nav_clients:'Clients',nav_people:'People',nav_projects:'Projects',
+    nav_tasks:'Tasks',nav_requests:'Requests',nav_pipeline:'Pipeline',nav_invoices:'Invoices',
+    nav_news:'News',nav_settings:'Settings',
+    btn_add_client:'+ Add Client',btn_add_person:'+ Add Person',btn_add_project:'+ Add Project',
+    btn_add_task:'+ Add Task',btn_add_request:'+ New Request',
+    recent_activity:'⚡ Recent Activity',client_sources:'📊 Client Sources',
+    from_management:'From Management',from_team:'From Team Members',by_member:'By Team Member',
+    stage:'Stage',am:'Account Manager',service:'Service Type',industry:'Industry',country:'Country',
+    save:'💾 Save & Generate Portal',cancel:'Cancel',edit:'✏️',delete:'✕',
+    health:'Health Score',notes_internal:'Notes (Internal)',notes_client:'Notes (Visible to Client)',
+    update_note:'📝 Update Note (optional)',show_client:'Show this update to client in their portal',
+    pending:'Pending',accepted:'Accepted',rejected:'Rejected',completed:'Completed'
+  },
+  ar:{
+    nav_overview:'نظرة عامة',nav_clients:'العملاء',nav_people:'الأشخاص',nav_projects:'المشاريع',
+    nav_tasks:'المهام',nav_requests:'الطلبات',nav_pipeline:'الفرص',nav_invoices:'الفواتير',
+    nav_news:'الأخبار',nav_settings:'الإعدادات',
+    btn_add_client:'+ إضافة عميل',btn_add_person:'+ إضافة شخص',btn_add_project:'+ إضافة مشروع',
+    btn_add_task:'+ إضافة مهمة',btn_add_request:'+ طلب جديد',
+    recent_activity:'⚡ النشاط الأخير',client_sources:'📊 مصادر العملاء',
+    from_management:'من الإدارة',from_team:'من أعضاء الفريق',by_member:'حسب العضو',
+    stage:'المرحلة',am:'مدير الحساب',service:'نوع الخدمة',industry:'القطاع',country:'الدولة',
+    save:'💾 حفظ وإنشاء البوابة',cancel:'إلغاء',edit:'✏️',delete:'✕',
+    health:'مؤشر الصحة',notes_internal:'ملاحظات داخلية',notes_client:'ملاحظات للعميل',
+    update_note:'📝 ملاحظة التحديث (اختياري)',show_client:'إظهار هذا التحديث للعميل',
+    pending:'معلق',accepted:'مقبول',rejected:'مرفوض',completed:'مكتمل'
+  },
+  es:{
+    nav_overview:'Resumen',nav_clients:'Clientes',nav_people:'Personas',nav_projects:'Proyectos',
+    nav_tasks:'Tareas',nav_requests:'Solicitudes',nav_pipeline:'Pipeline',nav_invoices:'Facturas',
+    nav_news:'Noticias',nav_settings:'Configuración',
+    btn_add_client:'+ Añadir Cliente',btn_add_person:'+ Añadir Persona',btn_add_project:'+ Añadir Proyecto',
+    btn_add_task:'+ Añadir Tarea',btn_add_request:'+ Nueva Solicitud',
+    recent_activity:'⚡ Actividad Reciente',client_sources:'📊 Fuentes de Clientes',
+    from_management:'De Gestión',from_team:'Del Equipo',by_member:'Por miembro',
+    stage:'Etapa',am:'Gestor',service:'Servicio',industry:'Industria',country:'País',
+    save:'💾 Guardar y Generar Portal',cancel:'Cancelar',edit:'✏️',delete:'✕',
+    health:'Salud',notes_internal:'Notas internas',notes_client:'Notas al cliente',
+    update_note:'📝 Nota de actualización',show_client:'Mostrar al cliente',
+    pending:'Pendiente',accepted:'Aceptado',rejected:'Rechazado',completed:'Completado'
+  },
+  fr:{
+    nav_overview:'Aperçu',nav_clients:'Clients',nav_people:'Personnes',nav_projects:'Projets',
+    nav_tasks:'Tâches',nav_requests:'Demandes',nav_pipeline:'Pipeline',nav_invoices:'Factures',
+    nav_news:'Actualités',nav_settings:'Paramètres',
+    btn_add_client:'+ Ajouter Client',btn_add_person:'+ Ajouter Personne',btn_add_project:'+ Ajouter Projet',
+    btn_add_task:'+ Ajouter Tâche',btn_add_request:'+ Nouvelle Demande',
+    recent_activity:'⚡ Activité Récente',client_sources:'📊 Sources Clients',
+    from_management:'De la Direction',from_team:'De l\'Équipe',by_member:'Par membre',
+    stage:'Étape',am:'Gestionnaire',service:'Service',industry:'Industrie',country:'Pays',
+    save:'💾 Sauvegarder et Générer',cancel:'Annuler',edit:'✏️',delete:'✕',
+    health:'Santé',notes_internal:'Notes internes',notes_client:'Notes client',
+    update_note:'📝 Note de mise à jour',show_client:'Montrer au client',
+    pending:'En attente',accepted:'Accepté',rejected:'Rejeté',completed:'Terminé'
+  }
+};
+
+var dashL='en';
+function dt(k){return (DT[dashL]&&DT[dashL][k])||DT.en[k]||k;}
+
+function setDashL(l){
+  dashL=l;
+  document.querySelectorAll('.lb').forEach(function(b){b.classList.remove('on');});
+  var a=document.querySelector('.lb[data-l="'+l+'"]');if(a)a.classList.add('on');
+  try{localStorage.setItem('ix_dash_lang',l);}catch(e){}
+  // Apply direction
+  var isRTL=l==='ar';
+  document.body.style.direction=isRTL?'rtl':'ltr';
+  // Apply nav labels
+  applyDashTranslations();
+}
+
+function applyDashTranslations(){
+  // Nav items
+  var navMap={
+    'ov':'nav_overview','clients':'nav_clients','people':'nav_people',
+    'projects':'nav_projects','tasks':'nav_tasks','requests':'nav_requests',
+    'pipeline':'nav_pipeline','invoices':'nav_invoices','news':'nav_news','settings':'nav_settings'
+  };
+  document.querySelectorAll('.nav-item,.ni').forEach(function(ni){
+    var fn=ni.getAttribute('onclick')||'';
+    Object.keys(navMap).forEach(function(k){
+      if(fn.includes("'"+k+"'")||fn.includes('"'+k+'"')){
+        // Keep icon, update text
+        var icon=ni.querySelector('.ni-ic,.nav-icon');
+        var txt=ni.querySelector('.ni-lb,.nav-label');
+        if(txt)txt.textContent=dt(navMap[k]);
+        else if(!icon)ni.textContent=dt(navMap[k]);
+      }
+    });
+  });
+  // Recent activity title
+  var raTitle=document.querySelector('#actfeed')&&document.querySelector('#actfeed').closest('.panel')&&document.querySelector('#actfeed').closest('.panel').querySelector('.ptit');
+  if(raTitle&&raTitle.textContent.includes('Recent'))raTitle.textContent=dt('recent_activity');
+  // Source stats title
+  var ssTitle=document.getElementById('source-stats')&&document.getElementById('source-stats').closest('.panel')&&document.getElementById('source-stats').closest('.panel').querySelector('.ptit');
+  if(ssTitle)ssTitle.textContent=dt('client_sources');
+}
 
 var SB_URL_HC = 'https://rppwppxyhmuicgemmecu.supabase.co';
 var SB_KEY_HC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwcHdwcHh5aG11aWNnZW1tZWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NjgxMzksImV4cCI6MjA5NDQ0NDEzOX0.QCbXlBlZ3C4uXEfM1xA0O8zBxoIz24sXrg4Sj9vx8t8';
@@ -2603,23 +2719,27 @@ function populateAssistantAMs(selectedAMs){
 
 // Open add client helper
 function openAddClient(editId){
-  var amSel=document.getElementById('cl-am');
-  if(amSel)amSel.innerHTML='<option value="">— No AM yet —</option>'+APeople.filter(function(p){return p.person_type==='employee';}).map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
-  var stageSel=document.getElementById('cl-stage');
-  if(stageSel)stageSel.innerHTML=STAGES.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('');
-  var svcSel=document.getElementById('cl-svc');
-  if(svcSel)svcSel.innerHTML=SVC_TYPES.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('');
-  var codeEl=document.getElementById('cl-code');
-  var titleEl=document.getElementById('client-modal-title');
   document.getElementById('m-cl').dataset.editId=editId||'';
+  var titleEl=document.getElementById('client-modal-title');
+  var codeEl=document.getElementById('cl-code');
+  // Populate AM dropdown
+  var amSel=document.getElementById('cl-am');
+  if(amSel)amSel.innerHTML='<option value="">— No AM —</option>'+APeople.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+  // Reset service checkboxes
+  document.querySelectorAll('#svc-checks input[type=checkbox]').forEach(function(cb){cb.checked=false;});
+  var ow=document.getElementById('svc-other-wrap');if(ow)ow.style.display='none';
+  var ot=document.getElementById('svc-other-text');if(ot)ot.value='';
+  var updateSec=document.getElementById('cl-update-section');
   if(!editId){
-    // Auto-generate client code
-    if(codeEl)codeEl.value='CL-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substr(2,4).toUpperCase();
     if(titleEl)titleEl.textContent='🏢 Add New Client';
-    ['cl-name','cl-ind','cl-country','cl-ref','cl-notes-i','cl-notes-c'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    if(codeEl)codeEl.value='CL-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substr(2,4).toUpperCase();
+    ['cl-name','cl-ind','cl-country','cl-ref','cl-notes-i','cl-notes-c','cl-drive','cl-roadmap','cl-addedby','cl-username','cl-pass'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('cl-stage').value='OPEN';
+    if(updateSec)updateSec.style.display='none';
+    populateAssistantAMs([]);
   } else {
     var cl=AC.find(function(x){return x.id===editId;});if(!cl)return;
-    if(titleEl)titleEl.textContent='✏️ Edit Client';
+    if(titleEl)titleEl.textContent='✏️ Edit: '+cl.name;
     if(codeEl)codeEl.value=cl.code||'';
     document.getElementById('cl-name').value=cl.name||'';
     document.getElementById('cl-ind').value=cl.industry||'';
@@ -2627,15 +2747,27 @@ function openAddClient(editId){
     document.getElementById('cl-ref').value=cl.referred_by||'';
     document.getElementById('cl-notes-i').value=cl.notes_internal||'';
     document.getElementById('cl-notes-c').value=cl.notes_client||'';
-    if(stageSel)stageSel.value=cl.stage||'OPEN';
-    if(svcSel)svcSel.value=cl.service_type||'';
-    if(amSel&&cl.main_am_name){
-      var opt=amSel.querySelector('option[value="'+cl.main_am_id+'|'+cl.main_am_name+'"]');
-      if(opt)amSel.value=cl.main_am_id+'|'+cl.main_am_name;
-    }
+    document.getElementById('cl-drive').value=cl.drive_url||'';
+    document.getElementById('cl-roadmap').value=cl.roadmap_url||'';
+    document.getElementById('cl-addedby').value=cl.added_by||'';
+    document.getElementById('cl-username').value=cl.username||'';
+    document.getElementById('cl-pass').value=cl.portal_password||'';
+    document.getElementById('cl-stage').value=cl.stage||'OPEN';
+    // Set service checkboxes
+    var svcs=cl.service_type?cl.service_type.split(',').map(function(s){return s.trim();}):[];
+    document.querySelectorAll('#svc-checks input[type=checkbox]').forEach(function(cb){cb.checked=svcs.includes(cb.value);});
+    var knownSvcs=['Soft Landing','Strategic Partnership','Market Entry','Investment','Joint Venture','Consulting','Other'];
+    var otherSvc=svcs.find(function(s){return !knownSvcs.includes(s);});
+    if(otherSvc){var otw=document.getElementById('svc-other-wrap');var otext=document.getElementById('svc-other-text');if(otw)otw.style.display='block';if(otext)otext.value=otherSvc;}
+    // Set AM
+    if(amSel&&cl.main_am_name){amSel.value=(cl.main_am_id||'')+'|'+cl.main_am_name;}
+    if(updateSec)updateSec.style.display='block';
+    var noteField=document.getElementById('cl-update-note');if(noteField)noteField.value='';
+    // Set assistant AMs
+    var selAMs=[];try{selAMs=JSON.parse(cl.assistant_ams||'[]');}catch(e){}
+    populateAssistantAMs(selAMs);
   }
   om('m-cl');
-  populateAssistantAMs([]);
 }
 
 
