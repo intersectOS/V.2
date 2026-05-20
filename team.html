@@ -473,6 +473,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   </div>
 </div>
 
+<!-- CLIENT SERVICES MODAL (Team Portal) -->
+<div class="mo" id="m-team-svc"><div class="modal modal-lg">
+  <div class="mti">🛠️ Services — <span id="team-svc-cname"></span></div>
+  <input type="hidden" id="team-svc-cid">
+  <div id="team-svc-list" style="margin-bottom:14px;"></div>
+  <div class="mft">
+    <button class="btn bbo" onclick="closeModal('m-team-svc')" style="padding:8px 20px;">Close</button>
+  </div>
+</div></div>
+
 <!-- REQUEST MODAL -->
 <div class="mo" id="m-req">
   <div class="modal">
@@ -702,6 +712,123 @@ async function saveClientEditPortal(){
   }catch(e){toast('Error saving','te');}
 }
 
+async function openClientServices(cid, cname){
+  document.getElementById('team-svc-cid').value=cid;
+  document.getElementById('team-svc-cname').textContent=cname;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var el=document.getElementById('team-svc-list');
+  el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:12px;">Loading...</div>';
+  openModal('m-team-svc');
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_client_services?client_id=eq.'+cid+'&order=created_at.asc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var svcs=await r.json();
+    if(!Array.isArray(svcs)||!svcs.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No services added yet for this client.<br>Contact management to add services.</div>';
+      return;
+    }
+    var stgC={'RELATIONSHIP BUILDING':'#06b6d4','PROPOSAL':'#a78bfa','NEGOTIATION':'#f59e0b','AGREEMENT':'#3b82f6','LEGAL':'#8b5cf6','EXECUTION':'#22c55e','COMPLETED':'#10b981','ON HOLD':'#6b7280'};
+    var stages=['RELATIONSHIP BUILDING','PROPOSAL','NEGOTIATION','AGREEMENT','LEGAL','EXECUTION','COMPLETED','ON HOLD'];
+    var html='';
+    // Show JV banner if applicable and allowed
+    if(Array.isArray(svcs)&&svcs.length===0){
+      // Load client JV info
+      var rc=await fetch(SB+'/rest/v1/ix_clients_v2?id=eq.'+cid+'&select=client_type,jv_equity,jv_type,jv_link,jv_notes,jv_show_am',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+      var clData=await rc.json();
+      if(Array.isArray(clData)&&clData[0]&&clData[0].client_type==='jv'&&clData[0].jv_show_am){
+        html='<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:9px;padding:12px;margin-bottom:12px;">'
+          +'<div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px;">🏦 JV Partner Details</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+            +'<div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--gold);">'+(clData[0].jv_equity||'—')+'%</div><div style="font-size:10px;color:var(--ink3);">Equity</div></div>'
+            +'<div style="text-align:center;"><div style="font-size:12px;font-weight:600;color:var(--teal);">'+(clData[0].jv_type==='project_specific'?'Project-Specific':'Company-Wide')+'</div><div style="font-size:10px;color:var(--ink3);">JV Type</div></div>'
+          +'</div>'
+          +(clData[0].jv_notes?'<div style="font-size:11px;color:var(--ink2);margin-top:6px;">'+clData[0].jv_notes.slice(0,100)+'</div>':'')
+          +(clData[0].jv_link?'<div style="margin-top:6px;"><a href="'+clData[0].jv_link+'" target="_blank" style="font-size:11px;color:var(--teal);">📎 JV Agreement →</a></div>':'')
+        +'</div>';
+      }
+    }
+    svcs.forEach(function(s){
+      var sc=stgC[s.stage]||'#06b6d4';
+      html+='<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+sc+';border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+          +'<div><div style="font-size:14px;font-weight:700;">'+s.service_type+'</div>'
+          +'<div style="font-size:11px;color:var(--ink3);">Started: '+(s.start_date||'—')+'</div></div>'
+          +'<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:'+sc+'22;color:'+sc+';">'+s.stage+'</span>'
+        +'</div>'
+        +(s.notes?'<div style="font-size:12px;color:var(--ink2);margin-bottom:9px;">'+s.notes+'</div>':'')
+        +'<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;">'
+          +'<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:7px;">📊 Update Stage</div>'
+          +'<select class="fs" id="team-stage-'+s.id+'" style="margin-bottom:6px;font-size:12px;">'
+            +stages.map(function(st){return '<option value="'+st+'"'+(st===s.stage?' selected':'')+'>'+st+'</option>';}).join('')
+          +'</select>'
+          +'<textarea class="fta" id="team-stage-note-'+s.id+'" placeholder="Note about this update (visible to client)..." style="min-height:55px;font-size:12px;margin-bottom:6px;"></textarea>'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">'
+            +'<input type="checkbox" id="team-show-'+s.id+'" checked style="width:13px;height:13px;">'
+            +'<label for="team-show-'+s.id+'" style="font-size:11px;color:var(--ink2);">Show to client in their portal</label>'
+          +'</div>'
+          +'<button class="btn bbg" style="width:100%;font-size:12px;" data-sid="'+s.id+'" data-cid="'+cid+'" data-cname="'+cname+'" data-stype="'+s.service_type+'" data-oldstage="'+s.stage+'" onclick="updateTeamServiceStage(this)">💾 Update Stage</button>'
+        +'</div>'
+      +'</div>';
+    });
+    // Check JV visibility
+    try{
+      var rcj=await fetch(SB+'/rest/v1/ix_clients_v2?id=eq.'+cid+'&select=client_type,jv_equity,jv_type,jv_link,jv_notes,jv_show_am',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+      var clJ=await rcj.json();
+      if(Array.isArray(clJ)&&clJ[0]&&clJ[0].client_type==='jv'&&clJ[0].jv_show_am){
+        var jvBanner='<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:9px;padding:12px;margin-bottom:12px;">'
+          +'<div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px;">🏦 JV Partner — '+(clJ[0].jv_equity||'—')+'% Equity</div>'
+          +(clJ[0].jv_notes?'<div style="font-size:11px;color:var(--ink2);">'+clJ[0].jv_notes.slice(0,80)+'</div>':'')
+          +(clJ[0].jv_link?'<a href="'+clJ[0].jv_link+'" target="_blank" style="font-size:11px;color:var(--teal);">📎 Agreement →</a>':'')
+        +'</div>';
+        html=jvBanner+html;
+      }
+    }catch(e){}
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--red);font-size:12px;padding:12px;">Error loading services</div>';}
+}
+
+async function updateTeamServiceStage(btn){
+  var sid=btn.dataset.sid;
+  var cid=btn.dataset.cid;
+  var cname=btn.dataset.cname;
+  var stype=btn.dataset.stype;
+  var oldStage=btn.dataset.oldstage;
+  var newStage=document.getElementById('team-stage-'+sid).value;
+  var note=document.getElementById('team-stage-note-'+sid).value.trim();
+  var showClient=document.getElementById('team-show-'+sid).checked;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Update service stage
+    await fetch(SB+'/rest/v1/ix_client_services?id=eq.'+sid,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({stage:newStage,updated_at:new Date().toISOString()})
+    });
+    // Add history
+    await fetch(SB+'/rest/v1/ix_service_history',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({service_id:sid,client_name:cname,service_type:stype,from_stage:oldStage,to_stage:newStage,note:note||null,show_to_client:showClient,changed_by:memberData?memberData.name:'AM'})
+    });
+    // Add workflow update if note
+    if(note){
+      await fetch(SB+'/rest/v1/ix_workflow',{
+        method:'POST',
+        headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({client_id:cid,client_name:cname,title:stype+': '+newStage,description:note,status:newStage,show_to_client:showClient,created_by:memberData?memberData.name:'AM'})
+      });
+    }
+    btn.dataset.oldstage=newStage;
+    toast('✅ Stage updated!','ts');
+    sendTG('📊 *Service Stage Updated*\n\n*Client:* '+cname+'\n*Service:* '+stype+'\n*'+oldStage+' → '+newStage+'*'+(note?'\n'+note:''));
+    // Refresh
+    openClientServices(cid,cname);
+  }catch(e){toast('Error updating','te');}
+}
+
 async function sendTG(msg){
   try{
     await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
@@ -768,6 +895,8 @@ function render(){
   applyTeamTranslations();
   // Check inbox for badge
   setTimeout(function(){loadInbox();},1000);
+  // Check for recent notifications
+  setTimeout(function(){checkTeamNotifs(m.name);},1500);
 }
 
 // ── TEAM DATA ──
@@ -804,13 +933,17 @@ function renderClients(clients){
   var stgC={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':'#8b5cf6','MOU':'#06b6d4','LEGAL':'#f59e0b','PLANNING':'#f97316','EXECUTION':'#22c55e','FINALIZATION':'#10b981','COMPLETED':'#22c55e','ON HOLD':'#6b7280'};
   el.innerHTML=clients.map(function(c){
     var sc=stgC[c.stage]||'#6b7280';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(26,31,56,.4);">'
-      +'<div style="font-size:20px;">🏢</div>'
-      +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;">'+c.name+'</div>'
-      +'<div style="font-size:11px;color:var(--ink3);">'+(c.service_type||c.industry||'—')+'</div></div>'
-      +'<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+sc+'22;color:'+sc+';">'+c.stage+'</span>'
-      +'<button class="btn" style="font-size:11px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);padding:4px 8px;margin-left:4px;" data-cid="'+c.id+'" onclick="openEditClientPortal(this.dataset.cid)">✏️</button>'
-      +'</div>';
+    return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+        +'<div style="font-size:20px;">🏢</div>'
+        +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;">'+c.name+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">'+(c.industry||'—')+'</div></div>'
+        +'<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+sc+'22;color:'+sc+';">'+c.stage+'</span>'
+        +'<button class="btn" style="font-size:11px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);padding:4px 8px;margin-left:4px;" data-cid="'+c.id+'" onclick="openEditClientPortal(this.dataset.cid)">✏️</button>'
+        +'<button class="btn" style="font-size:11px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;padding:4px 8px;" data-cid="'+c.id+'" data-cname="'+c.name+'" onclick="openClientServices(this.dataset.cid,this.dataset.cname)">🛠️</button>'
+      +'</div>'
+      +'<div id="svc-preview-'+c.id+'" style="display:none;"></div>'
+    +'</div>';
   }).join('');
 }
 
@@ -1019,6 +1152,25 @@ async function loadMyAddedClients(){
       +'</div>';
     }).join('');
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error loading</div>';}
+}
+
+async function checkTeamNotifs(memberName){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Check for unread notifications
+    var r=await fetch(SB+'/rest/v1/ix_notifications?is_read=eq.false&order=created_at.desc&limit=3',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var notifs=await r.json();
+    if(Array.isArray(notifs)&&notifs.length){
+      notifs.forEach(function(n,i){
+        setTimeout(function(){
+          toast(n.title+(n.body?' — '+n.body.slice(0,50):''),'ts');
+        },i*2000);
+      });
+    }
+  }catch(e){}
 }
 
 function toggleHelpType(){
@@ -1341,6 +1493,25 @@ function toggleATType(){
   document.getElementById('at-proj-sel').style.display=v==='project'?'block':'none';
   document.getElementById('at-cl-sel').style.display=v==='client'?'block':'none';
   document.getElementById('at-other-text').style.display=v==='other'?'block':'none';
+}
+
+async function checkTeamNotifs(memberName){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Check for unread notifications
+    var r=await fetch(SB+'/rest/v1/ix_notifications?is_read=eq.false&order=created_at.desc&limit=3',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var notifs=await r.json();
+    if(Array.isArray(notifs)&&notifs.length){
+      notifs.forEach(function(n,i){
+        setTimeout(function(){
+          toast(n.title+(n.body?' — '+n.body.slice(0,50):''),'ts');
+        },i*2000);
+      });
+    }
+  }catch(e){}
 }
 
 function toggleHelpType(){

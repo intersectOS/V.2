@@ -477,10 +477,18 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
       <div class="sh">
         <div class="st" data-i="n_clients">Clients</div>
         <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
-          <select id="cf-stage" class="fs" style="width:140px;font-size:11px;" onchange="renderClients()"><option value="">All Stages</option></select>
-          <select id="cf-svc" class="fs" style="width:160px;font-size:11px;" onchange="renderClients()"><option value="">All Services</option></select>
-          <button class="btn bg" onclick="openAddClient()">+ Add Client</button>
+          <select id="cf-stage" class="fs" style="width:130px;font-size:11px;" onchange="renderClients()"><option value="">All Stages</option></select>
+          <select id="cf-svc" class="fs" style="width:140px;font-size:11px;" onchange="renderClients()"><option value="">All Services</option></select>
+          <button class="btn bg" onclick="openAddClient()">+ Add</button>
         </div>
+      </div>
+      <!-- Type tabs -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+        <button class="cl-type-tab on" data-type="" onclick="setCLType('',this)" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.3);color:var(--teal);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">All</button>
+        <button class="cl-type-tab" data-type="client" onclick="setCLType('client',this)" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">🏢 Clients</button>
+        <button class="cl-type-tab" data-type="partner" onclick="setCLType('partner',this)" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">🤝 Success Partners</button>
+        <button class="cl-type-tab" data-type="strategic" onclick="setCLType('strategic',this)" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">⚙️ Strategic Partners</button>
+        <button class="cl-type-tab" data-type="jv" onclick="setCLType('jv',this)" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">🏦 JV Partners</button>
       </div>
       <div id="clients-grid" class="client-grid"></div>
     </div>
@@ -755,6 +763,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
         <option value="client">🏢 Client</option>
         <option value="partner">🤝 Success Partner</option>
         <option value="strategic">⚙️ Strategic Partner</option>
+        <option value="jv">🏦 JV Partner</option>
       </select>
     </div>
     <div class="fg"><label class="fl">Stage</label>
@@ -778,6 +787,30 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
     <select class="fs" id="cl-partner-ref">
       <option value="">— None / Direct —</option>
     </select>
+  </div>
+  <div id="jv-fields-wrap" style="display:none;background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:9px;padding:12px;margin-bottom:10px;">
+    <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:9px;">🏦 JV Details</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+      <div class="fg"><label class="fl">Equity Share (%)</label><input class="fi" type="number" id="cl-jv-equity" placeholder="e.g. 30" min="1" max="99"></div>
+      <div class="fg"><label class="fl">JV Type</label>
+        <select class="fs" id="cl-jv-type">
+          <option value="company_wide">🏢 Company-Wide</option>
+          <option value="project_specific">📁 Project-Specific</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">JV Agreement (Drive link)</label><input class="fi" type="url" id="cl-jv-link" dir="ltr" placeholder="https://drive.google.com/..."></div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="cl-jv-notes" placeholder="JV terms, profit sharing details..."></textarea></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.2);border-radius:8px;padding:10px;margin-top:4px;">
+      <div>
+        <div style="font-size:12px;font-weight:600;">👁️ Show JV details to Account Manager</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:2px;">AM will see equity %, JV type and agreement in their portal</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0;">
+        <input type="checkbox" id="cl-jv-show-am" style="opacity:0;width:0;height:0;">
+        <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked;this.style.background=this.previousElementSibling.checked?'var(--teal)':'rgba(74,82,112,.3)';" style="position:absolute;cursor:pointer;inset:0;background:rgba(74,82,112,.3);border-radius:22px;transition:.3s;"></span>
+      </label>
+    </div>
   </div>
   <div class="fg"><label class="fl">Main Account Manager</label><select class="fs" id="cl-am"><option value="">— No AM —</option></select></div>
   <div class="fg"><label class="fl">Assistant Account Managers</label>
@@ -1445,6 +1478,21 @@ var STAGE_COLORS={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':
 var SVC_TYPES=['Soft Landing','Business Development Services','Joint Venture','Advisory / Consultation','Expert Marketplace','Other'];
 var SVC_CLASS={'Soft Landing':'pt','Business Development Services':'pp','Joint Venture':'pg','Advisory / Consultation':'pgo','Expert Marketplace':'pt','Other':'pgr'};
 
+var currentCLType='';
+
+function setCLType(type, el){
+  currentCLType=type;
+  document.querySelectorAll('.cl-type-tab').forEach(function(b){
+    b.style.background='var(--card2)';
+    b.style.color='var(--ink2)';
+    b.style.borderColor='var(--border)';
+  });
+  var colors={'':{bg:'rgba(6,182,212,.1)',tx:'var(--teal)',bd:'rgba(6,182,212,.3)'},client:{bg:'rgba(34,197,94,.1)',tx:'#22c55e',bd:'rgba(34,197,94,.3)'},partner:{bg:'rgba(245,158,11,.1)',tx:'var(--gold)',bd:'rgba(245,158,11,.3)'},strategic:{bg:'rgba(124,58,237,.1)',tx:'#a78bfa',bd:'rgba(124,58,237,.3)'},jv:{bg:'rgba(245,158,11,.08)',tx:'var(--gold)',bd:'rgba(245,158,11,.3)'}};
+  var c2=colors[type]||colors[''];
+  el.style.background=c2.bg;el.style.color=c2.tx;el.style.borderColor=c2.bd;
+  renderClients();
+}
+
 function renderClients(){
   var grid=document.getElementById('clients-grid');if(!grid)return;
   var sf=document.getElementById('cf-stage')&&document.getElementById('cf-stage').value;
@@ -1542,6 +1590,17 @@ function editClient(id){
     if(stageSel)stageSel.value=c.stage||'OPEN';
     var driveF=document.getElementById('cl-drive');if(driveF)driveF.value=c.drive_url||'';
     var roadmapF=document.getElementById('cl-roadmap');if(roadmapF)roadmapF.value=c.roadmap_url||'';
+    var typeEl=document.getElementById('cl-type');if(typeEl){typeEl.value=c.client_type||'client';togglePartnerField();}
+    var jvEq=document.getElementById('cl-jv-equity');if(jvEq)jvEq.value=c.jv_equity||'';
+    var jvTy=document.getElementById('cl-jv-type');if(jvTy)jvTy.value=c.jv_type||'company_wide';
+    var jvLk=document.getElementById('cl-jv-link');if(jvLk)jvLk.value=c.jv_link||'';
+    var jvNt=document.getElementById('cl-jv-notes');if(jvNt)jvNt.value=c.jv_notes||'';
+    var jvSh=document.getElementById('cl-jv-show-am');
+    if(jvSh){
+      jvSh.checked=c.jv_show_am||false;
+      var tog=jvSh.nextElementSibling;
+      if(tog)tog.style.background=c.jv_show_am?'var(--teal)':'rgba(74,82,112,.3)';
+    }
     // Show update note section when editing
     var updateSec=document.getElementById('cl-update-section');
     if(updateSec)updateSec.style.display='block';
@@ -1599,6 +1658,11 @@ async function saveClient(){
     added_by:document.getElementById('cl-addedby')&&document.getElementById('cl-addedby').value||null,
     partner_ref_id:(function(){var v=document.getElementById('cl-partner-ref')&&document.getElementById('cl-partner-ref').value;return v?v.split('|')[0]:null;})(),
     partner_ref_name:(function(){var v=document.getElementById('cl-partner-ref')&&document.getElementById('cl-partner-ref').value;return v?v.split('|')[1]:null;})(),
+    jv_equity:document.getElementById('cl-jv-equity')&&document.getElementById('cl-jv-equity').value?parseFloat(document.getElementById('cl-jv-equity').value):null,
+    jv_type:document.getElementById('cl-jv-type')&&document.getElementById('cl-jv-type').value||null,
+    jv_link:document.getElementById('cl-jv-link')&&document.getElementById('cl-jv-link').value.trim()||null,
+    jv_notes:document.getElementById('cl-jv-notes')&&document.getElementById('cl-jv-notes').value.trim()||null,
+    jv_show_am:document.getElementById('cl-jv-show-am')&&document.getElementById('cl-jv-show-am').checked||false,
     industry:document.getElementById('cl-ind').value.trim(),
     country:document.getElementById('cl-country').value.trim(),
     service_type:(function(){var svcs=[];document.querySelectorAll('#svc-checks input[type=checkbox]:checked').forEach(function(cb){var v=cb.value==='Other'?(document.getElementById('svc-other-text')&&document.getElementById('svc-other-text').value.trim()||'Other'):cb.value;svcs.push(v);});return svcs.join(', ')||document.getElementById('cl-svc')&&document.getElementById('cl-svc').value||null;})(),
@@ -2832,6 +2896,67 @@ async function sendReply(){
   }catch(e){toast('Error sending reply','error');}
 }
 
+function openConvertJV(cid, cname){
+  document.getElementById('conv-jv-id').value=cid;
+  document.getElementById('conv-jv-name').textContent=cname;
+  document.getElementById('conv-jv-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('conv-jv-equity').value='';
+  document.getElementById('conv-jv-link').value='';
+  document.getElementById('conv-jv-notes').value='';
+  om('m-conv-jv');
+}
+
+async function convertToJV(){
+  var cid=document.getElementById('conv-jv-id').value;
+  var equity=document.getElementById('conv-jv-equity').value;
+  var jvType=document.getElementById('conv-jv-type').value;
+  var date=document.getElementById('conv-jv-date').value;
+  var link=document.getElementById('conv-jv-link').value.trim();
+  var notes=document.getElementById('conv-jv-notes').value.trim();
+  if(!equity)return toast('Enter equity share %','error');
+  var cl=AC.find(function(c){return c.id===cid;});
+  if(!cl)return;
+  try{
+    var showAM=document.getElementById('conv-jv-show-am')&&document.getElementById('conv-jv-show-am').checked||false;
+    var updates={
+      client_type:'jv',
+      jv_equity:parseFloat(equity),
+      jv_type:jvType,
+      jv_link:link||null,
+      jv_notes:notes||null,
+      jv_show_am:showAM
+    };
+    var r=await sb.from('ix_clients_v2').update(updates).eq('id',cid).select().single();
+    if(r.error)return toast('Error: '+r.error.message,'error');
+    // Update local array
+    var i=AC.findIndex(function(c){return c.id===cid;});
+    if(i>=0)Object.assign(AC[i],updates);
+    // Add workflow update
+    await sb.from('ix_workflow').insert({
+      client_id:cid,
+      client_name:cl.name,
+      title:'🏦 Relationship upgraded to JV Partner',
+      description:'Equity share: '+equity+'%\nType: '+jvType+(notes?'\n'+notes:''),
+      status:'JV',
+      show_to_client:true,
+      created_by:'Management'
+    });
+    // Add service history note
+    await sb.from('ix_service_history').insert({
+      client_name:cl.name,
+      service_type:'Relationship',
+      to_stage:'JV Partner',
+      note:'Converted to JV Partner — '+equity+'% equity',
+      show_to_client:true,
+      changed_by:'Management'
+    });
+    cm('m-conv-jv');
+    renderClients();renderFeed();
+    tgNotif('🏦','Client Converted to JV Partner','*'+cl.name+'*\nEquity: '+equity+'%\nType: '+jvType);
+    toast('✅ '+cl.name+' is now a JV Partner!','success');
+  }catch(e){toast('Error converting','error');}
+}
+
 async function openPartnerProjects(pid, pname){
   document.getElementById('pp-pid').value=pid;
   document.getElementById('pp-pname').textContent=pname;
@@ -3208,6 +3333,8 @@ function togglePartnerField(){
   var type=document.getElementById('cl-type').value;
   var wrap=document.getElementById('partner-ref-wrap');
   if(wrap)wrap.style.display=type==='client'?'block':'none';
+  var jvWrap=document.getElementById('jv-fields-wrap');
+  if(jvWrap)jvWrap.style.display=type==='jv'?'block':'none';
 }
 
 function populatePartnerRef(){
