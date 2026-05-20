@@ -1495,6 +1495,7 @@ async function saveClient(){
     var portalLink=base+'/portal.html';
     cm('m-cl');renderClients();renderOV();renderFeed();
     showPortalLink(portalLink, c.name, c.username, c.portal_password);
+    createNotif('🏢 New Client Added', 'Client "'+c.name+'" has been added to the system', 'client', c.id||null);
     toast('✅ Client added','success');
   }
   }catch(err){console.error('saveClient error:',err);toast('Error: '+err.message,'error');}
@@ -1869,6 +1870,38 @@ async function saveMeeting(){
 // ── NOTIFICATIONS ──
 function addNotif(title,body,type,relId){var n={title:title,body:body,type:type,related_id:relId,is_read:false,created_at:new Date().toISOString()};ANotifs.unshift(n);if(sb){sb.from('ix_notifications').insert(n).then(function(){});}updateNotifBadge();}
 function updateNotifBadge(){var unread=ANotifs.filter(function(n){return !n.is_read;}).length;var b=document.getElementById('notif-badge');if(b){b.textContent=unread;b.style.display=unread?'flex':'none';}}
+// ── NOTIFICATION SYSTEM ──
+async function createNotif(title, body, type, relatedId){
+  if(!sb)return;
+  try{
+    var n={title:title,body:body,type:type||'info',related_id:relatedId||null,is_read:false};
+    var r=await sb.from('ix_notifications').insert(n).select().single();
+    if(r.data){
+      ANotifs.unshift(r.data);
+      updateNotifBadge();
+    }
+  }catch(e){}
+}
+
+function updateNotifBadge(){
+  var unread=ANotifs.filter(function(n){return !n.is_read;}).length;
+  var badge=document.getElementById('notif-badge');
+  if(badge){
+    badge.textContent=unread>9?'9+':unread;
+    badge.style.display=unread?'flex':'none';
+  }
+}
+
+async function markAllRead(){
+  if(!sb)return;
+  try{
+    await sb.from('ix_notifications').update({is_read:true}).eq('is_read',false);
+    ANotifs.forEach(function(n){n.is_read=true;});
+    updateNotifBadge();
+    renderNotifs();
+  }catch(e){}
+}
+
 function renderNotifs(){
   var list=document.getElementById('notif-list');if(!list)return;
   if(!ANotifs.length){list.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:24px;">No notifications</div>';return;}

@@ -121,7 +121,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   <div class="hero">
     <div class="hero-top">
       <div class="brand">INTERSECT PartnerOS · Client Portal</div>
-      <button class="logout-btn" onclick="doLogout()">→ Logout</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="showTab('tickets',document.querySelectorAll('.tab')[5])" style="position:relative;background:var(--card2);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;" title="My Tickets">
+          🎫
+          <span id="cl-ticket-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;"></span>
+        </button>
+        <button class="logout-btn" onclick="doLogout()">→ Logout</button>
+      </div>
     </div>
     <div class="client-info">
       <div class="client-avatar" id="c-avatar">CL</div>
@@ -506,6 +512,10 @@ function renderNews(news){
 }
 
 function renderTickets(tickets){
+  // Update badge for pending tickets
+  var pending=tickets.filter(function(t){return t.status==='Pending';}).length;
+  var badge=document.getElementById('cl-ticket-badge');
+  if(badge){badge.textContent=pending;badge.style.display=pending?'flex':'none';}
   var el=document.getElementById('tkt-list');if(!el)return;
   if(!tickets.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No tickets yet</div>';return;}
   var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',Completed:'pgr',Rejected:'pr'};
