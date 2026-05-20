@@ -357,34 +357,156 @@ var sb=null, clientData=null, allExperts=[], myReqs=[], currentRates={};
 try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
 
 var T={
-  en:{brand:'INTERSECT PartnerOS · Client Portal',logout:'→ Logout',tab_overview:'📊 Overview',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Updates',tab_meetings:'📅 Meetings',tab_experts:'🌟 Experts',tab_tickets:'🎫 Tickets',tab_requests:'📋 My Requests',tab_invoices:'🧾 Invoices',tab_news:'📰 News',tab_files:'📁 My Files',stage:'Stage',am:'Account Manager',no_updates:'No updates yet',no_meetings:'No meetings yet',ticket_am:'👤 Account Manager',ticket_mgmt:'🏛️ Senior Management',submit:'📤 Submit',cancel:'Cancel',loading:'Loading...'},
-  ar:{brand:'إنترسيكت PartnerOS · بوابة العميل',logout:'→ خروج',tab_overview:'📊 نظرة عامة',tab_roadmap:'🗺️ خارطة الطريق',tab_updates:'🔄 التحديثات',tab_meetings:'📅 الاجتماعات',tab_experts:'🌟 الخبراء',tab_tickets:'🎫 التذاكر',tab_requests:'📋 طلباتي',tab_invoices:'🧾 الفواتير',tab_news:'📰 الأخبار',tab_files:'📁 ملفاتي',stage:'المرحلة',am:'مدير الحساب',no_updates:'لا توجد تحديثات بعد',no_meetings:'لا توجد اجتماعات بعد',ticket_am:'👤 مدير الحساب',ticket_mgmt:'🏛️ الإدارة العليا',submit:'📤 إرسال',cancel:'إلغاء',loading:'جارٍ التحميل...'},
-  es:{brand:'INTERSECT PartnerOS · Portal Cliente',logout:'→ Salir',tab_overview:'📊 Resumen',tab_roadmap:'🗺️ Hoja de ruta',tab_updates:'🔄 Actualizaciones',tab_meetings:'📅 Reuniones',tab_experts:'🌟 Expertos',tab_tickets:'🎫 Tickets',tab_requests:'📋 Mis Solicitudes',tab_invoices:'🧾 Facturas',tab_news:'📰 Noticias',tab_files:'📁 Mis Archivos',stage:'Etapa',am:'Gestor de Cuenta',no_updates:'Sin actualizaciones',no_meetings:'Sin reuniones',ticket_am:'👤 Gestor de Cuenta',ticket_mgmt:'🏛️ Alta Dirección',submit:'📤 Enviar',cancel:'Cancelar',loading:'Cargando...'},
-  fr:{brand:'INTERSECT PartnerOS · Portail Client',logout:'→ Déconnexion',tab_overview:'📊 Aperçu',tab_roadmap:'🗺️ Feuille de route',tab_updates:'🔄 Mises à jour',tab_meetings:'📅 Réunions',tab_experts:'🌟 Experts',tab_tickets:'🎫 Tickets',tab_requests:'📋 Mes demandes',tab_invoices:'🧾 Factures',tab_news:'📰 Actualités',tab_files:'📁 Mes fichiers',stage:'Étape',am:'Gestionnaire',no_updates:'Pas de mises à jour',no_meetings:'Pas de réunions',ticket_am:'👤 Gestionnaire',ticket_mgmt:'🏛️ Direction',submit:'📤 Envoyer',cancel:'Annuler',loading:'Chargement...'},
-  de:{brand:'INTERSECT PartnerOS · Kundenportal',logout:'→ Abmelden',tab_overview:'📊 Übersicht',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Updates',tab_meetings:'📅 Meetings',tab_experts:'🌟 Experten',tab_tickets:'🎫 Tickets',tab_requests:'📋 Meine Anfragen',tab_invoices:'🧾 Rechnungen',tab_news:'📰 Nachrichten',tab_files:'📁 Meine Dateien',stage:'Phase',am:'Kundenbetreuer',no_updates:'Keine Updates',no_meetings:'Keine Meetings',ticket_am:'👤 Kundenbetreuer',ticket_mgmt:'🏛️ Geschäftsleitung',submit:'📤 Senden',cancel:'Abbrechen',loading:'Laden...'},
-  it:{brand:'INTERSECT PartnerOS · Portale Cliente',logout:'→ Esci',tab_overview:'📊 Panoramica',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Aggiornamenti',tab_meetings:'📅 Riunioni',tab_experts:'🌟 Esperti',tab_tickets:'🎫 Ticket',tab_requests:'📋 Le mie richieste',tab_invoices:'🧾 Fatture',tab_news:'📰 Notizie',tab_files:'📁 I miei file',stage:'Fase',am:'Responsabile',no_updates:'Nessun aggiornamento',no_meetings:'Nessuna riunione',ticket_am:'👤 Responsabile',ticket_mgmt:'🏛️ Direzione',submit:'📤 Invia',cancel:'Annulla',loading:'Caricamento...'},
-  ja:{brand:'INTERSECT PartnerOS · クライアントポータル',logout:'→ ログアウト',tab_overview:'📊 概要',tab_roadmap:'🗺️ ロードマップ',tab_updates:'🔄 更新',tab_meetings:'📅 会議',tab_experts:'🌟 専門家',tab_tickets:'🎫 チケット',tab_requests:'📋 マイリクエスト',tab_invoices:'🧾 請求書',tab_news:'📰 ニュース',tab_files:'📁 マイファイル',stage:'ステージ',am:'アカウントマネージャー',no_updates:'更新なし',no_meetings:'会議なし',ticket_am:'👤 アカウントマネージャー',ticket_mgmt:'🏛️ 上級管理職',submit:'📤 送信',cancel:'キャンセル',loading:'読み込み中...'},
-  ko:{brand:'INTERSECT PartnerOS · 고객 포털',logout:'→ 로그아웃',tab_overview:'📊 개요',tab_roadmap:'🗺️ 로드맵',tab_updates:'🔄 업데이트',tab_meetings:'📅 회의',tab_experts:'🌟 전문가',tab_tickets:'🎫 티켓',tab_requests:'📋 내 요청',tab_invoices:'🧾 청구서',tab_news:'📰 뉴스',tab_files:'📁 내 파일',stage:'단계',am:'계정 관리자',no_updates:'업데이트 없음',no_meetings:'회의 없음',ticket_am:'👤 계정 관리자',ticket_mgmt:'🏛️ 고위 경영진',submit:'📤 제출',cancel:'취소',loading:'로딩 중...'},
-  zh:{brand:'INTERSECT PartnerOS · 客户门户',logout:'→ 退出',tab_overview:'📊 概览',tab_roadmap:'🗺️ 路线图',tab_updates:'🔄 更新',tab_meetings:'📅 会议',tab_experts:'🌟 专家',tab_tickets:'🎫 工单',tab_requests:'📋 我的请求',tab_invoices:'🧾 发票',tab_news:'📰 新闻',tab_files:'📁 我的文件',stage:'阶段',am:'客户经理',no_updates:'暂无更新',no_meetings:'暂无会议',ticket_am:'👤 客户经理',ticket_mgmt:'🏛️ 高级管理层',submit:'📤 提交',cancel:'取消',loading:'加载中...'}
+en:{
+  brand:'INTERSECT PartnerOS · Client Portal',logout:'→ Logout',
+  tab_overview:'📊 Overview',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Updates',
+  tab_meetings:'📅 Meetings',tab_experts:'🌟 Experts',tab_tickets:'🎫 Tickets',
+  tab_requests:'📋 My Requests',tab_invoices:'🧾 Invoices',tab_news:'📰 News',tab_files:'📁 My Files',
+  ov_title:'Partnership Overview',ov_stage:'Stage',ov_am:'Account Manager',
+  ov_latest:'Latest Updates',no_updates:'No updates yet',no_meetings:'No meetings yet',
+  roadmap_title:'Partnership Roadmap',roadmap_current:'Current',roadmap_done:'Done',roadmap_doc:'📄 View Full Roadmap Document',
+  upd_title:'Project Updates',
+  mt_title:'Meetings',
+  exp_title:'Expert Marketplace',exp_filter:'🔍 Filter by specialization...',exp_request:'📤 Request This Expert',
+  exp_rate:'Rate',exp_hr:'Per Hour',exp_mo:'Per Month',exp_yr:'Per Year',exp_on_req:'On Request',
+  tkt_title:'Submit a Ticket',tkt_list:'My Tickets',tkt_send_to:'Send to',
+  tkt_am:'👤 Account Manager',tkt_am_desc:'Fastest response. Your AM handles day-to-day requests.',
+  tkt_mgmt:'🏛️ Senior Management',tkt_mgmt_desc:'For strategic decisions or escalations.',
+  tkt_recommended:'Recommended',tkt_category:'Category',tkt_subject:'Subject *',tkt_details:'Details *',
+  tkt_priority:'Priority',tkt_attachment:'Attachment / Link (optional)',tkt_submit:'🎫 Submit Ticket',
+  req_title:'My Expert Requests',
+  inv_title:'My Invoices',inv_none:'No invoices yet',
+  news_title:'News & Announcements',news_none:'No news yet',
+  files_title:'My Files',files_folder:'Client Files Folder',files_roadmap:'Partnership Roadmap',
+  files_none:'No files shared yet. Your Account Manager will share documents here.',
+  req_expert:'🌟 Request Expert',req_svc:'Service Type',req_date:'Preferred Date',
+  req_msg:'Message / Requirements *',req_msg_ph:'Describe what you need from this expert...',
+  req_notes:'Notes',cancel:'Cancel',submit:'📤 Submit',
+  urgent:'🔴 Urgent (ASAP)',this_week:'🟡 This week',this_month:'🟢 This month',
+  loading:'Loading your portal...',access_denied:'Access Denied',login_first:'Please login first.'
+},
+ar:{
+  brand:'إنترسيكت PartnerOS · بوابة العميل',logout:'→ خروج',
+  tab_overview:'📊 نظرة عامة',tab_roadmap:'🗺️ خارطة الطريق',tab_updates:'🔄 التحديثات',
+  tab_meetings:'📅 الاجتماعات',tab_experts:'🌟 الخبراء',tab_tickets:'🎫 التذاكر',
+  tab_requests:'📋 طلباتي',tab_invoices:'🧾 الفواتير',tab_news:'📰 الأخبار',tab_files:'📁 ملفاتي',
+  ov_title:'نظرة عامة على الشراكة',ov_stage:'المرحلة',ov_am:'مدير الحساب',
+  ov_latest:'آخر التحديثات',no_updates:'لا توجد تحديثات بعد',no_meetings:'لا توجد اجتماعات بعد',
+  roadmap_title:'خارطة طريق الشراكة',roadmap_current:'الحالية',roadmap_done:'مكتملة',roadmap_doc:'📄 عرض وثيقة خارطة الطريق',
+  upd_title:'تحديثات المشروع',
+  mt_title:'الاجتماعات',
+  exp_title:'سوق الخبراء',exp_filter:'🔍 تصفية حسب التخصص...',exp_request:'📤 طلب هذا الخبير',
+  exp_rate:'السعر',exp_hr:'بالساعة',exp_mo:'بالشهر',exp_yr:'بالسنة',exp_on_req:'عند الطلب',
+  tkt_title:'رفع تذكرة',tkt_list:'تذاكري',tkt_send_to:'إرسال إلى',
+  tkt_am:'👤 مدير الحساب',tkt_am_desc:'الأسرع استجابة. مديرك يتعامل مع معظم الطلبات مباشرة.',
+  tkt_mgmt:'🏛️ الإدارة العليا',tkt_mgmt_desc:'للقرارات الاستراتيجية أو التصعيد.',
+  tkt_recommended:'موصى به',tkt_category:'الفئة',tkt_subject:'الموضوع *',tkt_details:'التفاصيل *',
+  tkt_priority:'الأولوية',tkt_attachment:'مرفق / رابط (اختياري)',tkt_submit:'🎫 إرسال التذكرة',
+  req_title:'طلبات الخبراء',
+  inv_title:'فواتيري',inv_none:'لا توجد فواتير بعد',
+  news_title:'الأخبار والإعلانات',news_none:'لا توجد أخبار بعد',
+  files_title:'ملفاتي',files_folder:'مجلد ملفات العميل',files_roadmap:'خارطة طريق الشراكة',
+  files_none:'لا توجد ملفات مشتركة بعد. سيشارك مدير حسابك المستندات هنا.',
+  req_expert:'🌟 طلب خبير',req_svc:'نوع الخدمة',req_date:'التاريخ المفضل',
+  req_msg:'الرسالة / المتطلبات *',req_msg_ph:'اشرح ما تحتاجه من هذا الخبير...',
+  req_notes:'ملاحظات',cancel:'إلغاء',submit:'📤 إرسال',
+  urgent:'🔴 عاجل (فوراً)',this_week:'🟡 هذا الأسبوع',this_month:'🟢 هذا الشهر',
+  loading:'جارٍ تحميل البوابة...',access_denied:'تم رفض الوصول',login_first:'يرجى تسجيل الدخول أولاً.'
+},
+es:{
+  brand:'INTERSECT PartnerOS · Portal Cliente',logout:'→ Salir',
+  tab_overview:'📊 Resumen',tab_roadmap:'🗺️ Hoja de ruta',tab_updates:'🔄 Actualizaciones',
+  tab_meetings:'📅 Reuniones',tab_experts:'🌟 Expertos',tab_tickets:'🎫 Tickets',
+  tab_requests:'📋 Mis Solicitudes',tab_invoices:'🧾 Facturas',tab_news:'📰 Noticias',tab_files:'📁 Mis Archivos',
+  ov_title:'Resumen de la Asociación',ov_stage:'Etapa',ov_am:'Gestor de Cuenta',
+  ov_latest:'Últimas actualizaciones',no_updates:'Sin actualizaciones',no_meetings:'Sin reuniones',
+  roadmap_title:'Hoja de ruta',roadmap_current:'Actual',roadmap_done:'Completado',roadmap_doc:'📄 Ver documento completo',
+  upd_title:'Actualizaciones del proyecto',mt_title:'Reuniones',
+  exp_title:'Mercado de Expertos',exp_filter:'🔍 Filtrar por especialización...',exp_request:'📤 Solicitar Experto',
+  exp_rate:'Tarifa',exp_hr:'Por Hora',exp_mo:'Por Mes',exp_yr:'Por Año',exp_on_req:'A consultar',
+  tkt_title:'Enviar Ticket',tkt_list:'Mis Tickets',tkt_send_to:'Enviar a',
+  tkt_am:'👤 Gestor de Cuenta',tkt_am_desc:'Respuesta más rápida.',tkt_mgmt:'🏛️ Alta Dirección',tkt_mgmt_desc:'Para decisiones estratégicas.',
+  tkt_recommended:'Recomendado',tkt_category:'Categoría',tkt_subject:'Asunto *',tkt_details:'Detalles *',
+  tkt_priority:'Prioridad',tkt_attachment:'Adjunto / Enlace',tkt_submit:'🎫 Enviar Ticket',
+  req_title:'Mis Solicitudes',inv_title:'Mis Facturas',inv_none:'Sin facturas',
+  news_title:'Noticias',news_none:'Sin noticias',
+  files_title:'Mis Archivos',files_folder:'Carpeta de Archivos',files_roadmap:'Hoja de Ruta',
+  files_none:'Sin archivos compartidos aún.',
+  req_expert:'🌟 Solicitar Experto',req_svc:'Tipo de Servicio',req_date:'Fecha Preferida',
+  req_msg:'Mensaje *',req_msg_ph:'Describa lo que necesita...',req_notes:'Notas',
+  cancel:'Cancelar',submit:'📤 Enviar',urgent:'🔴 Urgente',this_week:'🟡 Esta semana',this_month:'🟢 Este mes',
+  loading:'Cargando...',access_denied:'Acceso Denegado',login_first:'Por favor inicie sesión.'
+},
+fr:{
+  brand:'INTERSECT PartnerOS · Portail Client',logout:'→ Déconnexion',
+  tab_overview:'📊 Aperçu',tab_roadmap:'🗺️ Feuille de route',tab_updates:'🔄 Mises à jour',
+  tab_meetings:'📅 Réunions',tab_experts:'🌟 Experts',tab_tickets:'🎫 Tickets',
+  tab_requests:'📋 Mes demandes',tab_invoices:'🧾 Factures',tab_news:'📰 Actualités',tab_files:'📁 Mes fichiers',
+  ov_title:'Aperçu du Partenariat',ov_stage:'Étape',ov_am:'Gestionnaire de compte',
+  ov_latest:'Dernières mises à jour',no_updates:'Pas de mises à jour',no_meetings:'Pas de réunions',
+  roadmap_title:'Feuille de route',roadmap_current:'Actuel',roadmap_done:'Terminé',roadmap_doc:'📄 Voir le document complet',
+  upd_title:'Mises à jour du projet',mt_title:'Réunions',
+  exp_title:'Marché des experts',exp_filter:'🔍 Filtrer...',exp_request:'📤 Demander cet expert',
+  exp_rate:'Tarif',exp_hr:'Par heure',exp_mo:'Par mois',exp_yr:'Par an',exp_on_req:'Sur demande',
+  tkt_title:'Soumettre un ticket',tkt_list:'Mes tickets',tkt_send_to:'Envoyer à',
+  tkt_am:'👤 Gestionnaire',tkt_am_desc:'Réponse la plus rapide.',tkt_mgmt:'🏛️ Direction',tkt_mgmt_desc:'Pour les décisions stratégiques.',
+  tkt_recommended:'Recommandé',tkt_category:'Catégorie',tkt_subject:'Sujet *',tkt_details:'Détails *',
+  tkt_priority:'Priorité',tkt_attachment:'Pièce jointe',tkt_submit:'🎫 Envoyer',
+  req_title:'Mes demandes',inv_title:'Mes factures',inv_none:'Pas de factures',
+  news_title:'Actualités',news_none:'Pas de news',
+  files_title:'Mes fichiers',files_folder:'Dossier client',files_roadmap:'Feuille de route',
+  files_none:'Aucun fichier partagé pour le moment.',
+  req_expert:'🌟 Demander un expert',req_svc:'Type de service',req_date:'Date préférée',
+  req_msg:'Message *',req_msg_ph:'Décrivez vos besoins...',req_notes:'Notes',
+  cancel:'Annuler',submit:'📤 Envoyer',urgent:'🔴 Urgent',this_week:'🟡 Cette semaine',this_month:'🟢 Ce mois',
+  loading:'Chargement...',access_denied:'Accès refusé',login_first:'Veuillez vous connecter.'
+},
+de:{brand:'INTERSECT PartnerOS · Kundenportal',logout:'→ Abmelden',tab_overview:'📊 Übersicht',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Updates',tab_meetings:'📅 Meetings',tab_experts:'🌟 Experten',tab_tickets:'🎫 Tickets',tab_requests:'📋 Meine Anfragen',tab_invoices:'🧾 Rechnungen',tab_news:'📰 Nachrichten',tab_files:'📁 Meine Dateien',ov_title:'Partnerschaftsübersicht',ov_stage:'Phase',ov_am:'Kundenbetreuer',ov_latest:'Neueste Updates',no_updates:'Keine Updates',no_meetings:'Keine Meetings',roadmap_title:'Roadmap',roadmap_current:'Aktuell',roadmap_done:'Abgeschlossen',roadmap_doc:'📄 Dokument öffnen',upd_title:'Projektaktualisierungen',mt_title:'Meetings',exp_title:'Expertenmarkt',exp_filter:'🔍 Filtern...',exp_request:'📤 Experten anfragen',exp_rate:'Preis',exp_hr:'Pro Stunde',exp_mo:'Pro Monat',exp_yr:'Pro Jahr',exp_on_req:'Auf Anfrage',tkt_title:'Ticket einreichen',tkt_list:'Meine Tickets',tkt_send_to:'Senden an',tkt_am:'👤 Kundenbetreuer',tkt_am_desc:'Schnellste Antwort.',tkt_mgmt:'🏛️ Geschäftsleitung',tkt_mgmt_desc:'Für strategische Entscheidungen.',tkt_recommended:'Empfohlen',tkt_category:'Kategorie',tkt_subject:'Betreff *',tkt_details:'Details *',tkt_priority:'Priorität',tkt_attachment:'Anhang',tkt_submit:'🎫 Senden',req_title:'Meine Anfragen',inv_title:'Meine Rechnungen',inv_none:'Keine Rechnungen',news_title:'Nachrichten',news_none:'Keine Nachrichten',files_title:'Meine Dateien',files_folder:'Kundenordner',files_roadmap:'Roadmap',files_none:'Noch keine freigegebenen Dateien.',req_expert:'🌟 Experten anfragen',req_svc:'Serviceart',req_date:'Bevorzugtes Datum',req_msg:'Nachricht *',req_msg_ph:'Beschreiben Sie Ihre Anforderungen...',req_notes:'Notizen',cancel:'Abbrechen',submit:'📤 Senden',urgent:'🔴 Dringend',this_week:'🟡 Diese Woche',this_month:'🟢 Diesen Monat',loading:'Laden...',access_denied:'Zugang verweigert',login_first:'Bitte melden Sie sich an.'},
+it:{brand:'INTERSECT PartnerOS · Portale Cliente',logout:'→ Esci',tab_overview:'📊 Panoramica',tab_roadmap:'🗺️ Roadmap',tab_updates:'🔄 Aggiornamenti',tab_meetings:'📅 Riunioni',tab_experts:'🌟 Esperti',tab_tickets:'🎫 Ticket',tab_requests:'📋 Le mie richieste',tab_invoices:'🧾 Fatture',tab_news:'📰 Notizie',tab_files:'📁 I miei file',ov_title:'Panoramica Partnership',ov_stage:'Fase',ov_am:'Responsabile',ov_latest:'Ultimi aggiornamenti',no_updates:'Nessun aggiornamento',no_meetings:'Nessuna riunione',roadmap_title:'Roadmap',roadmap_current:'Corrente',roadmap_done:'Completato',roadmap_doc:'📄 Documento completo',upd_title:'Aggiornamenti',mt_title:'Riunioni',exp_title:'Mercato esperti',exp_filter:'🔍 Filtra...',exp_request:'📤 Richiedi esperto',exp_rate:'Tariffa',exp_hr:'Ora',exp_mo:'Mese',exp_yr:'Anno',exp_on_req:'Su richiesta',tkt_title:'Invia ticket',tkt_list:'I miei ticket',tkt_send_to:'Invia a',tkt_am:'👤 Responsabile',tkt_am_desc:'Risposta più rapida.',tkt_mgmt:'🏛️ Direzione',tkt_mgmt_desc:'Per decisioni strategiche.',tkt_recommended:'Consigliato',tkt_category:'Categoria',tkt_subject:'Oggetto *',tkt_details:'Dettagli *',tkt_priority:'Priorità',tkt_attachment:'Allegato',tkt_submit:'🎫 Invia',req_title:'Mie richieste',inv_title:'Mie fatture',inv_none:'Nessuna fattura',news_title:'Notizie',news_none:'Nessuna notizia',files_title:'I miei file',files_folder:'Cartella cliente',files_roadmap:'Roadmap',files_none:'Nessun file condiviso.',req_expert:'🌟 Richiedi esperto',req_svc:'Tipo servizio',req_date:'Data preferita',req_msg:'Messaggio *',req_msg_ph:'Descrivi le tue esigenze...',req_notes:'Note',cancel:'Annulla',submit:'📤 Invia',urgent:'🔴 Urgente',this_week:'🟡 Questa settimana',this_month:'🟢 Questo mese',loading:'Caricamento...',access_denied:'Accesso negato',login_first:'Effettua il login.'},
+ja:{brand:'INTERSECT PartnerOS · クライアントポータル',logout:'→ ログアウト',tab_overview:'📊 概要',tab_roadmap:'🗺️ ロードマップ',tab_updates:'🔄 更新',tab_meetings:'📅 会議',tab_experts:'🌟 専門家',tab_tickets:'🎫 チケット',tab_requests:'📋 マイリクエスト',tab_invoices:'🧾 請求書',tab_news:'📰 ニュース',tab_files:'📁 マイファイル',ov_title:'パートナーシップ概要',ov_stage:'ステージ',ov_am:'アカウントマネージャー',ov_latest:'最新の更新',no_updates:'更新なし',no_meetings:'会議なし',roadmap_title:'ロードマップ',roadmap_current:'現在',roadmap_done:'完了',roadmap_doc:'📄 完全なドキュメントを見る',upd_title:'プロジェクト更新',mt_title:'会議',exp_title:'専門家マーケット',exp_filter:'🔍 専門分野でフィルター...',exp_request:'📤 この専門家をリクエスト',exp_rate:'料金',exp_hr:'時間',exp_mo:'月',exp_yr:'年',exp_on_req:'要相談',tkt_title:'チケット送信',tkt_list:'マイチケット',tkt_send_to:'送信先',tkt_am:'👤 アカウントマネージャー',tkt_am_desc:'最速の対応。',tkt_mgmt:'🏛️ 上級管理職',tkt_mgmt_desc:'戦略的決定のため。',tkt_recommended:'推奨',tkt_category:'カテゴリ',tkt_subject:'件名 *',tkt_details:'詳細 *',tkt_priority:'優先度',tkt_attachment:'添付',tkt_submit:'🎫 送信',req_title:'マイリクエスト',inv_title:'請求書',inv_none:'請求書なし',news_title:'ニュース',news_none:'ニュースなし',files_title:'マイファイル',files_folder:'クライアントフォルダ',files_roadmap:'ロードマップ',files_none:'共有ファイルなし。',req_expert:'🌟 専門家をリクエスト',req_svc:'サービスタイプ',req_date:'希望日',req_msg:'メッセージ *',req_msg_ph:'必要なことを説明してください...',req_notes:'メモ',cancel:'キャンセル',submit:'📤 送信',urgent:'🔴 緊急',this_week:'🟡 今週',this_month:'🟢 今月',loading:'読み込み中...',access_denied:'アクセス拒否',login_first:'ログインしてください。'},
+ko:{brand:'INTERSECT PartnerOS · 고객 포털',logout:'→ 로그아웃',tab_overview:'📊 개요',tab_roadmap:'🗺️ 로드맵',tab_updates:'🔄 업데이트',tab_meetings:'📅 회의',tab_experts:'🌟 전문가',tab_tickets:'🎫 티켓',tab_requests:'📋 내 요청',tab_invoices:'🧾 청구서',tab_news:'📰 뉴스',tab_files:'📁 내 파일',ov_title:'파트너십 개요',ov_stage:'단계',ov_am:'계정 관리자',ov_latest:'최신 업데이트',no_updates:'업데이트 없음',no_meetings:'회의 없음',roadmap_title:'로드맵',roadmap_current:'현재',roadmap_done:'완료',roadmap_doc:'📄 전체 문서 보기',upd_title:'프로젝트 업데이트',mt_title:'회의',exp_title:'전문가 마켓',exp_filter:'🔍 전문 분야 필터...',exp_request:'📤 이 전문가 요청',exp_rate:'요금',exp_hr:'시간당',exp_mo:'월별',exp_yr:'연간',exp_on_req:'요청시',tkt_title:'티켓 제출',tkt_list:'내 티켓',tkt_send_to:'보내기',tkt_am:'👤 계정 관리자',tkt_am_desc:'가장 빠른 응답.',tkt_mgmt:'🏛️ 고위 경영진',tkt_mgmt_desc:'전략적 결정을 위해.',tkt_recommended:'권장',tkt_category:'카테고리',tkt_subject:'제목 *',tkt_details:'세부 사항 *',tkt_priority:'우선순위',tkt_attachment:'첨부',tkt_submit:'🎫 제출',req_title:'내 요청',inv_title:'청구서',inv_none:'청구서 없음',news_title:'뉴스',news_none:'뉴스 없음',files_title:'내 파일',files_folder:'고객 폴더',files_roadmap:'로드맵',files_none:'공유된 파일 없음.',req_expert:'🌟 전문가 요청',req_svc:'서비스 유형',req_date:'선호 날짜',req_msg:'메시지 *',req_msg_ph:'필요한 사항을 설명하세요...',req_notes:'메모',cancel:'취소',submit:'📤 제출',urgent:'🔴 긴급',this_week:'🟡 이번 주',this_month:'🟢 이번 달',loading:'로딩 중...',access_denied:'접근 거부',login_first:'로그인하세요.'},
+zh:{brand:'INTERSECT PartnerOS · 客户门户',logout:'→ 退出',tab_overview:'📊 概览',tab_roadmap:'🗺️ 路线图',tab_updates:'🔄 更新',tab_meetings:'📅 会议',tab_experts:'🌟 专家',tab_tickets:'🎫 工单',tab_requests:'📋 我的请求',tab_invoices:'🧾 发票',tab_news:'📰 新闻',tab_files:'📁 我的文件',ov_title:'合作伙伴概览',ov_stage:'阶段',ov_am:'客户经理',ov_latest:'最新更新',no_updates:'暂无更新',no_meetings:'暂无会议',roadmap_title:'路线图',roadmap_current:'当前',roadmap_done:'已完成',roadmap_doc:'📄 查看完整文档',upd_title:'项目更新',mt_title:'会议',exp_title:'专家市场',exp_filter:'🔍 按专业过滤...',exp_request:'📤 申请此专家',exp_rate:'费率',exp_hr:'每小时',exp_mo:'每月',exp_yr:'每年',exp_on_req:'按需定价',tkt_title:'提交工单',tkt_list:'我的工单',tkt_send_to:'发送至',tkt_am:'👤 客户经理',tkt_am_desc:'响应最快。',tkt_mgmt:'🏛️ 高级管理层',tkt_mgmt_desc:'用于战略决策。',tkt_recommended:'推荐',tkt_category:'类别',tkt_subject:'主题 *',tkt_details:'详情 *',tkt_priority:'优先级',tkt_attachment:'附件',tkt_submit:'🎫 提交工单',req_title:'我的请求',inv_title:'我的发票',inv_none:'暂无发票',news_title:'新闻',news_none:'暂无新闻',files_title:'我的文件',files_folder:'客户文件夹',files_roadmap:'路线图',files_none:'尚无共享文件。',req_expert:'🌟 申请专家',req_svc:'服务类型',req_date:'首选日期',req_msg:'消息 *',req_msg_ph:'描述您的需求...',req_notes:'备注',cancel:'取消',submit:'📤 提交',urgent:'🔴 紧急',this_week:'🟡 本周',this_month:'🟢 本月',loading:'加载中...',access_denied:'访问被拒绝',login_first:'请先登录。'}
 };
-
 var curL='en';
 function t(k){return (T[curL]&&T[curL][k])||T.en[k]||k;}
 
 function applyTranslations(){
-  var l=curL;
-  // Brand
+  // Header
   var b=document.querySelector('.brand');if(b)b.textContent=t('brand');
-  // Logout
-  var lo=document.querySelector('.logout-btn');if(lo)lo.textContent=t('logout');
+  document.querySelectorAll('.logout-btn').forEach(function(lo){lo.textContent=t('logout');});
   // Tabs
   var tabMap={overview:'tab_overview',roadmap:'tab_roadmap',updates:'tab_updates',meetings:'tab_meetings',experts:'tab_experts',tickets:'tab_tickets',requests:'tab_requests',invoices:'tab_invoices',news:'tab_news',files:'tab_files'};
   document.querySelectorAll('.tab').forEach(function(tab){
-    var fn=tab.getAttribute('onclick');
-    if(!fn)return;
+    var fn=tab.getAttribute('onclick');if(!fn)return;
     var m=fn.match(/showTab\('([^']+)'/);
-    if(m&&tabMap[m[1]])tab.textContent=t(tabMap[m[1]]);
+    if(m&&tabMap[m[1]]){var tr=t(tabMap[m[1]]);if(tr)tab.textContent=tr;}
   });
+  // Overview panel titles
+  var ov=document.querySelector('#tp-overview .ph .pt');if(ov)ov.textContent=t('ov_title');
+  var ovLatest=document.querySelector('#tp-overview .panel:last-child .ph .pt');if(ovLatest)ovLatest.textContent=t('ov_latest');
+  // Roadmap title
+  var rmTitle=document.querySelector('#tp-roadmap .ph .pt');if(rmTitle)rmTitle.textContent=t('roadmap_title');
+  // Updates title
+  var updTitle=document.querySelector('#tp-updates .ph .pt');if(updTitle)updTitle.textContent=t('upd_title');
+  // Meetings title
+  var mtTitle=document.querySelector('#tp-meetings .ph .pt');if(mtTitle)mtTitle.textContent=t('mt_title');
+  // Experts search placeholder
+  var expSearch=document.getElementById('exp-search');if(expSearch)expSearch.placeholder=t('exp_filter');
+  // Tickets
+  var tktTitle=document.querySelector('#tp-tickets .panel:first-child .ph .pt');if(tktTitle)tktTitle.textContent=t('tkt_title');
+  var tktList=document.querySelector('#tp-tickets .panel:last-child .ph .pt');if(tktList)tktList.textContent=t('tkt_list');
+  // Labels in ticket form
+  var sendTo=document.querySelector('label[for="tkt-category"]');if(!sendTo){var labels=document.querySelectorAll('#tp-tickets .fl');if(labels[0])labels[0].textContent=t('tkt_send_to');}
+  // Requests title
+  var reqTitle=document.querySelector('#tp-requests .ph .pt');if(reqTitle)reqTitle.textContent=t('req_title');
+  // Invoices
+  var invTitle=document.querySelector('#tp-invoices .ph .pt');if(invTitle)invTitle.textContent=t('inv_title');
+  // News
+  var newsTitle=document.querySelector('#tp-news .ph .pt');if(newsTitle)newsTitle.textContent=t('news_title');
+  // Files
+  var filesTitle=document.querySelector('#tp-files .ph .pt');if(filesTitle)filesTitle.textContent=t('files_title');
+  // Loading text
+  var ldg=document.querySelector('#loading div:last-child');if(ldg)ldg.textContent=t('loading');
 }
 
 function setL(l){
