@@ -1369,16 +1369,18 @@ function editClient(id){
 }
 
 async function saveClient(){
+  try{
   var n=document.getElementById('cl-name').value.trim();if(!n)return toast('Enter company name','error');
   var code=document.getElementById('cl-code').value.trim()||'CL-'+Date.now();
   var amSel=document.getElementById('cl-am');
   var amParts=amSel&&amSel.value?amSel.value.split('|'):['',''];
   var c={
-    name:n, added_by:document.getElementById('cl-addedby')&&document.getElementById('cl-addedby').value||null, industry:document.getElementById('cl-ind').value.trim(),
-    service_type:(function(){var svcs=[];document.querySelectorAll('#svc-checks input:checked').forEach(function(cb){svcs.push(cb.value==='Other'?document.getElementById('svc-other-text').value||'Other':cb.value);});return svcs.join(', ')||null;})(),
-    assistant_ams:(function(){var ams=[];document.querySelectorAll('#assistant-am-checks input:checked').forEach(function(cb){ams.push(cb.value);});return ams.length?JSON.stringify(ams):null;})(),
+    name:n,
+    added_by:document.getElementById('cl-addedby')&&document.getElementById('cl-addedby').value||null,
+    industry:document.getElementById('cl-ind').value.trim(),
     country:document.getElementById('cl-country').value.trim(),
-    service_type:document.getElementById('cl-svc').value,
+    service_type:(function(){var svcs=[];document.querySelectorAll('#svc-checks input[type=checkbox]:checked').forEach(function(cb){var v=cb.value==='Other'?(document.getElementById('svc-other-text')&&document.getElementById('svc-other-text').value.trim()||'Other'):cb.value;svcs.push(v);});return svcs.join(', ')||document.getElementById('cl-svc')&&document.getElementById('cl-svc').value||null;})(),
+    assistant_ams:(function(){var ams=[];document.querySelectorAll('#assistant-am-checks input[type=checkbox]:checked').forEach(function(cb){ams.push(cb.value);});return ams.length?JSON.stringify(ams):null;})(),
     stage:document.getElementById('cl-stage').value,
     code:code,
     username:document.getElementById('cl-username').value.trim()||null,
@@ -1414,6 +1416,7 @@ async function saveClient(){
     showPortalLink(portalLink, c.name, c.username, c.portal_password);
     toast('✅ Client added','success');
   }
+  }catch(err){console.error('saveClient error:',err);toast('Error: '+err.message,'error');}
 }
 
 async function delClient(id){if(!confirm('Delete client?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_clients_v2').delete().eq('id',id);AC=AC.filter(function(c){return c.id!==id;});renderClients();renderOV();toast('Deleted','success');}
