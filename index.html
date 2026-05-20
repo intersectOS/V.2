@@ -694,6 +694,15 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
         </div>
       </div>
       <div class="panel" style="margin-bottom:11px;">
+        <div class="ph"><div class="ptit">📱 Telegram Notifications</div></div>
+        <div class="pb">
+          <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#22c55e;">
+            ✅ Connected to @intersect_notif_bot
+          </div>
+          <button class="btn bg bsm" onclick="sendTelegram('🧪 Test from INTERSECT PartnerOS — notifications are working!')">📱 Send Test Message</button>
+        </div>
+      </div>
+      <div class="panel" style="margin-bottom:11px;">
         <div class="ph"><div class="ptit">🗄️ Supabase</div></div>
         <div class="pb">
           <div class="fg"><label class="fl">Project URL</label><input class="fi" id="sb-url" dir="ltr"></div>
@@ -1485,7 +1494,14 @@ async function saveClient(){
     if(stageChanged||note){
       var wfTitle=stageChanged?'Stage updated: '+c.stage:(note?note.slice(0,60):'Client updated');
       var wfDesc=(stageChanged?'Stage changed from '+(oldClient?oldClient.stage:'—')+' to '+c.stage:'')+(note?(stageChanged?'\n':'')+note:'');
-      if(sb)await sb.from('ix_workflow').insert({client_id:editId,client_name:c.name||oldClient.name,title:wfTitle,description:wfDesc,status:c.stage,show_to_client:showC||false,created_by:'Account Manager'});
+      if(sb){
+      await sb.from('ix_workflow').insert({client_id:editId,client_name:c.name||oldClient.name,title:wfTitle,description:wfDesc,status:c.stage,show_to_client:showC||false,created_by:'Account Manager'});
+      // Notify client via Telegram if they have it linked and update is visible
+      if(showC&&oldClient&&oldClient.telegram_chat_id){
+        var tgMsg='🔄 *Update from INTERSECT*\n\n*'+wfTitle+'*'+(wfDesc?'\n'+wfDesc.slice(0,200):'')+'\n\n_'+(c.name||oldClient.name)+'_';
+        await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:oldClient.telegram_chat_id,text:tgMsg,parse_mode:'Markdown'})});
+      }
+    }
     }
     cm('m-cl');renderClients();renderOV();renderFeed();toast('✅ Client updated','success');
   } else {
@@ -1496,6 +1512,7 @@ async function saveClient(){
     cm('m-cl');renderClients();renderOV();renderFeed();
     showPortalLink(portalLink, c.name, c.username, c.portal_password);
     createNotif('🏢 New Client Added', 'Client "'+c.name+'" has been added to the system', 'client', c.id||null);
+    tgNotif('🏢','New Client Added','*'+c.name+'*\nStage: '+(c.stage||'OPEN')+'\nAM: '+(c.main_am_name||'Unassigned'));
     toast('✅ Client added','success');
   }
   }catch(err){console.error('saveClient error:',err);toast('Error: '+err.message,'error');}
@@ -2107,7 +2124,13 @@ async function saveNews(){
   else{n.id='local-'+Date.now();n.created_at=new Date().toISOString();ANews.unshift(n);}
   cm('m-news');
   ['news-title','news-content','news-link'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
-  renderNews();toast('✅ Published','success');
+  renderNews();
+  // Send Telegram based on audience
+  var icons={announcement:'📢',alert:'⚠️',update:'🔄',opportunity:'🎯',event:'📅'};
+  var icon=icons[n.type]||'📢';
+  var audienceLabel=audience.includes('all')?'Everyone':audience.join(', ');
+  tgNotif(icon,'New Announcement Published','*'+title+'*\n\nAudience: '+audienceLabel+'\n\n'+content.slice(0,120)+(content.length>120?'...':''));
+  toast('✅ Published','success');
 }
 
 function renderNews(){
@@ -2403,6 +2426,26 @@ function saveClaudeKey(){
   try{localStorage.setItem('ix_claude_key',key);}catch(e){}
   document.getElementById('claude-key').value='';
   toast('✅ Claude API key saved','success');
+}
+
+// ── TELEGRAM NOTIFICATIONS ──
+var TG_TOKEN='8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0';
+var TG_CHAT='851323429';
+
+async function sendTelegram(msg){
+  try{
+    var url='https://api.telegram.org/bot'+TG_TOKEN+'/sendMessage';
+    await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:TG_CHAT,text:msg,parse_mode:'Markdown'})
+    });
+  }catch(e){console.log('Telegram error:',e);}
+}
+
+function tgNotif(emoji, title, body){
+  var msg=emoji+' *'+title+'*\n\n'+body+'\n\n_INTERSECT PartnerOS_';
+  sendTelegram(msg);
 }
 
 function saveBU(){
