@@ -210,38 +210,77 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
     </div>
       <!-- MY PROJECTS TAB -->
       <div class="tp" id="tp-my-projects">
+
+        <!-- My Projects List -->
         <div class="panel">
-          <div class="ph"><div class="pt">📁 My Projects</div></div>
+          <div class="ph"><div class="pt">📁 My Projects & Clients</div></div>
           <div class="pb" id="my-projs-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div></div>
         </div>
+
+        <!-- Tasks in project -->
         <div class="panel">
-          <div class="ph"><div class="pt">📌 My Project Tasks</div></div>
-          <div class="pb" id="my-proj-tasks-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Select a project</div></div>
+          <div class="ph"><div class="pt">📌 Project Tasks</div></div>
+          <div class="pb" id="my-proj-tasks-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Tap a project above to see tasks</div></div>
         </div>
+
+        <!-- Assign Task to Team Member -->
         <div class="panel">
-          <div class="ph"><div class="pt">🆘 Request Help on Project</div></div>
+          <div class="ph"><div class="pt">📋 Assign Task to Team Member</div></div>
           <div class="pb">
-            <div class="fg"><label class="fl">Project *</label>
-              <select class="fs" id="help-proj-sel">
-                <option value="">— Select Project —</option>
-              </select>
+            <div class="fg"><label class="fl">Task Title *</label><input class="fi" id="at-title" placeholder="e.g. Review legal contract"></div>
+            <div class="fg"><label class="fl">Context</label>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px;">
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;"><input type="radio" name="at-type" value="project" id="at-type-proj" checked onchange="toggleATType()"> Project</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;"><input type="radio" name="at-type" value="client" id="at-type-cl" onchange="toggleATType()"> Client</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;"><input type="radio" name="at-type" value="internal" id="at-type-int" onchange="toggleATType()"> Internal</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--card2);border:1px solid var(--border);padding:4px 9px;border-radius:6px;"><input type="radio" name="at-type" value="other" id="at-type-oth" onchange="toggleATType()"> Other</label>
+              </div>
+              <select class="fs" id="at-proj-sel" style="margin-bottom:6px;"><option value="">— Select Project —</option></select>
+              <select class="fs" id="at-cl-sel" style="display:none;margin-bottom:6px;"><option value="">— Select Client —</option></select>
+              <input class="fi" id="at-other-text" placeholder="Describe context..." style="display:none;">
             </div>
-            <div class="fg"><label class="fl">What do you need? *</label><textarea class="fta" id="help-proj-desc" placeholder="Describe the help you need..."></textarea></div>
-            <div class="fg"><label class="fl">Assign to (Internal)</label>
-              <select class="fs" id="help-proj-assignee">
-                <option value="">— Select Team Member —</option>
-              </select>
+            <div class="fg"><label class="fl">Assign to *</label>
+              <select class="fs" id="at-assignee"><option value="">— Select Team Member —</option></select>
             </div>
-            <div class="fg"><label class="fl">Priority</label>
-              <select class="fs" id="help-proj-pri">
-                <option value="high">🔴 High</option>
-                <option value="medium" selected>🟡 Medium</option>
-                <option value="low">🟢 Low</option>
-              </select>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+              <div class="fg"><label class="fl">Priority</label>
+                <select class="fs" id="at-pri">
+                  <option value="high">🔴 High</option>
+                  <option value="medium" selected>🟡 Medium</option>
+                  <option value="low">🟢 Low</option>
+                </select>
+              </div>
+              <div class="fg"><label class="fl">Deadline</label><input class="fi" type="date" id="at-deadline"></div>
             </div>
-            <button class="btn bbg bw" onclick="sendProjectHelp()">📤 Send Request</button>
+            <div class="fg"><label class="fl">Description *</label><textarea class="fta" id="at-desc" placeholder="Describe the task in detail..."></textarea></div>
+            <div class="fg"><label class="fl">Attachment (Drive link)</label><input class="fi" type="url" id="at-file" dir="ltr" placeholder="https://drive.google.com/..."></div>
+            <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="at-notes" placeholder="Any additional notes, links, or context..."></textarea></div>
+            <button class="btn bbg bw" onclick="sendTaskRequest()">📤 Send Task Request</button>
+            <div id="at-sent" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Task request sent!</div>
           </div>
         </div>
+
+        <!-- Build Team Structure -->
+        <div class="panel">
+          <div class="ph"><div class="pt">🏗️ Build Team Structure</div></div>
+          <div class="pb">
+            <div style="background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:9px;padding:11px;margin-bottom:12px;font-size:12px;color:var(--gold);">ℹ️ Team structure will be reviewed by management before being sent to team members.</div>
+            <div class="fg"><label class="fl">For Client *</label>
+              <select class="fs" id="ts-client"><option value="">— Select Client —</option></select>
+            </div>
+            <div class="fg"><label class="fl">For Project (optional)</label>
+              <select class="fs" id="ts-proj"><option value="">— Client Only —</option></select>
+            </div>
+            <div class="fg"><label class="fl">Structure Notes & Goals</label>
+              <textarea class="fta" id="ts-notes" placeholder="Describe the team goals, timeline, scope..."></textarea>
+            </div>
+            <div id="ts-members-list" style="margin-bottom:10px;"></div>
+            <button class="btn bbo bw" onclick="addTSMember()" style="margin-bottom:10px;">+ Add Team Member</button>
+            <button class="btn bbg bw" onclick="submitTeamStructure()">📤 Submit for Management Approval</button>
+            <div id="ts-sent" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Submitted! Management will review and approve.</div>
+          </div>
+        </div>
+
       </div>
 
       <!-- INBOX TAB -->
@@ -670,6 +709,12 @@ async function loadMyAddedClients(){
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error loading</div>';}
 }
 
+function toggleHelpType(){
+  var isPrj=document.getElementById('help-type-proj').checked;
+  document.getElementById('help-proj-sel').style.display=isPrj?'block':'none';
+  document.getElementById('help-client-sel').style.display=isPrj?'none':'block';
+}
+
 async function loadMyProjects(){
   if(!memberData)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
@@ -690,6 +735,11 @@ async function loadMyProjects(){
     if(Array.isArray(people)){
       var asel=document.getElementById('help-proj-assignee');
       if(asel)asel.innerHTML='<option value="">— Select Team Member —</option>'+people.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+    }
+    // Populate client dropdown
+    if(myClients&&myClients.length){
+      var csel=document.getElementById('help-client-sel');
+      if(csel)csel.innerHTML='<option value="">— Select Client —</option>'+myClients.map(function(c){return '<option value="'+c.name+'">'+c.name+'</option>';}).join('');
     }
   }catch(e){}
 }
@@ -753,15 +803,16 @@ async function showProjTasks(projName){
 }
 
 async function sendProjectHelp(){
-  var proj=document.getElementById('help-proj-sel').value;
+  var isPrj=document.getElementById('help-type-proj').checked;
+  var proj=isPrj?document.getElementById('help-proj-sel').value:document.getElementById('help-client-sel').value;
   var desc=document.getElementById('help-proj-desc').value.trim();
-  if(!proj||!desc){toast('Select project and describe what you need','te');return;}
+  if(!proj||!desc){toast('Select '+(isPrj?'project':'client')+' and describe what you need','te');return;}
   var aselVal=document.getElementById('help-proj-assignee').value;
   var parts=aselVal?aselVal.split('|'):['',''];
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   var body={
-    title:'[Project Help] '+proj+' — '+(memberData?memberData.name:'Team'),
+    title:'['+(isPrj?'Project':'Client')+' Help] '+proj+' — '+(memberData?memberData.name:'Team'),
     description:desc,
     requested_by:memberData?memberData.name:null,
     assignee_id:parts[0]||null,
@@ -918,6 +969,150 @@ async function loadTeamNews(){
       +'</div>';
     }).join('');
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No news</div>';}
+}
+
+// ── TASK ASSIGNMENT ──
+function toggleATType(){
+  var v=document.querySelector('input[name="at-type"]:checked').value;
+  document.getElementById('at-proj-sel').style.display=v==='project'?'block':'none';
+  document.getElementById('at-cl-sel').style.display=v==='client'?'block':'none';
+  document.getElementById('at-other-text').style.display=v==='other'?'block':'none';
+}
+
+function toggleHelpType(){
+  var isPrj=document.getElementById('help-type-proj').checked;
+  document.getElementById('help-proj-sel').style.display=isPrj?'block':'none';
+  document.getElementById('help-client-sel').style.display=isPrj?'none':'block';
+}
+
+async function sendTaskRequest(){
+  var title=document.getElementById('at-title').value.trim();
+  var desc=document.getElementById('at-desc').value.trim();
+  var assignee=document.getElementById('at-assignee').value;
+  if(!title||!desc||!assignee){toast('Fill title, description and assignee','te');return;}
+  var v=document.querySelector('input[name="at-type"]:checked').value;
+  var context=v==='project'?document.getElementById('at-proj-sel').value:v==='client'?document.getElementById('at-cl-sel').value:v==='other'?document.getElementById('at-other-text').value:'Intersect Internal';
+  var parts=assignee.split('|');
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:title,
+    description:desc+(document.getElementById('at-notes').value.trim()?'\n\nNotes: '+document.getElementById('at-notes').value.trim():''),
+    client_name:v==='client'?context:null,
+    assignee_id:parts[0]||null,
+    assignee_name:parts[1]||null,
+    requested_by:memberData?memberData.name:null,
+    priority:document.getElementById('at-pri').value,
+    file_url:document.getElementById('at-file').value.trim()||null,
+    status:'Pending',
+    show_to_client:false,
+    context_type:v,
+    context_value:context
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('at-sent').style.display='block';
+      document.getElementById('at-title').value='';
+      document.getElementById('at-desc').value='';
+      document.getElementById('at-notes').value='';
+      document.getElementById('at-file').value='';
+      setTimeout(function(){document.getElementById('at-sent').style.display='none';},4000);
+      toast('✅ Task request sent!','ts');
+    }else{toast('Error sending','te');}
+  }catch(e){toast('Error','te');}
+}
+
+// ── TEAM STRUCTURE ──
+var tsMembers=[];
+
+function addTSMember(){
+  var idx=tsMembers.length;
+  tsMembers.push({id:'',name:'',role:'',desc:''});
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var container=document.getElementById('ts-members-list');
+  var div=document.createElement('div');
+  div.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;';
+  div.id='ts-member-'+idx;
+  div.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:8px;">'
+    +'<div style="font-size:12px;font-weight:600;color:var(--teal);">Team Member '+(idx+1)+'</div>'
+    +'<button onclick="removeTSMember('+idx+')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:2px 8px;border-radius:5px;font-size:11px;cursor:pointer;">✕ Remove</button>'
+    +'</div>'
+    +'<div class="fg"><select class="fs" id="ts-person-'+idx+'" onchange="onTSPersonChange('+idx+',this)"><option value="">— Select Person —</option></select></div>'
+    +'<div class="fg"><input class="fi" id="ts-role-'+idx+'" placeholder="Role / Position (e.g. Legal Advisor)"></div>'
+    +'<div class="fg"><textarea class="fta" id="ts-desc-'+idx+'" placeholder="Role description & responsibilities..."></textarea></div>';
+  container.appendChild(div);
+  // Populate people dropdown
+  if(window._allPeople&&window._allPeople.length){
+    document.getElementById('ts-person-'+idx).innerHTML='<option value="">— Select Person —</option>'+window._allPeople.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+  } else {
+    fetch(SB+'/rest/v1/ix_people?select=id,name,role,person_type',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}}).then(function(r){return r.json();}).then(function(people){
+      if(Array.isArray(people)){
+        window._allPeople=people;
+        document.getElementById('ts-person-'+idx).innerHTML='<option value="">— Select Person —</option>'+people.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+      }
+    });
+  }
+}
+
+function removeTSMember(idx){
+  var el=document.getElementById('ts-member-'+idx);
+  if(el)el.remove();
+  tsMembers[idx]=null;
+}
+
+function onTSPersonChange(idx,sel){if(tsMembers[idx])tsMembers[idx].name=sel.value.split('|')[1]||'';}
+
+async function submitTeamStructure(){
+  var client=document.getElementById('ts-client').value;
+  if(!client){toast('Select a client','te');return;}
+  var members=[];
+  document.querySelectorAll('[id^="ts-member-"]').forEach(function(div){
+    var idx=parseInt(div.id.replace('ts-member-',''));
+    var personSel=document.getElementById('ts-person-'+idx);
+    var roleFld=document.getElementById('ts-role-'+idx);
+    var descFld=document.getElementById('ts-desc-'+idx);
+    if(personSel&&personSel.value){
+      var parts=personSel.value.split('|');
+      members.push({id:parts[0],name:parts[1],role:roleFld?roleFld.value:'',description:descFld?descFld.value:''});
+    }
+  });
+  if(!members.length){toast('Add at least one team member','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var notes=document.getElementById('ts-notes').value.trim();
+  var proj=document.getElementById('ts-proj').value;
+  var body={
+    title:'[Team Structure] '+client+(proj?' / '+proj:''),
+    description:'Team structure proposal\n\nClient: '+client+(proj?'\nProject: '+proj:'')+'\n\nMembers:\n'+members.map(function(m){return '• '+m.name+' — '+m.role+(m.description?'\n  '+m.description:'');}).join('\n')+(notes?'\n\nNotes: '+notes:''),
+    requested_by:memberData?memberData.name:null,
+    client_name:client,
+    status:'Pending',
+    show_to_client:false,
+    priority:'high',
+    context_type:'team_structure',
+    context_value:JSON.stringify(members)
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('ts-sent').style.display='block';
+      document.getElementById('ts-notes').value='';
+      document.getElementById('ts-members-list').innerHTML='';
+      tsMembers=[];
+      setTimeout(function(){document.getElementById('ts-sent').style.display='none';},5000);
+      toast('✅ Submitted for management approval!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
 }
 
 function showTab(n,el){

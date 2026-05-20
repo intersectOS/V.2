@@ -914,7 +914,13 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 <!-- PROJECT -->
 <div class="mo" id="m-proj"><div class="modal">
   <div class="mtit" id="prj-modal-title">📁 New Project</div>
-  <div class="fgrid"><div class="fg"><label class="fl">Name *</label><input class="fi" id="prj-name"></div><div class="fg"><label class="fl">Client</label><select class="fs" id="prj-client"></select></div></div>
+  <div class="fgrid"><div class="fg"><label class="fl">Name *</label><input class="fi" id="prj-name"></div><div class="fg"><label class="fl">Related to Client?</label>
+  <div style="display:flex;gap:8px;margin-bottom:7px;">
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="radio" name="prj-cl-type" value="client" id="prj-cl-yes" onchange="togglePrjClient()"> Yes — Client Related</label>
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="radio" name="prj-cl-type" value="none" id="prj-cl-no" checked onchange="togglePrjClient()"> N/A — Independent Project</label>
+  </div>
+  <select class="fs" id="prj-client" style="display:none;"></select>
+</div></div>
   <div class="fg"><label class="fl">Description</label><textarea class="fta" id="prj-desc" style="min-height:55px;"></textarea></div>
   <div class="fgrid"><div class="fg"><label class="fl">Status</label><select class="fs" id="prj-status"><option>Active</option><option>On Hold</option><option>Completed</option></select></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="prj-priority"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select></div></div>
   <div class="fgrid"><div class="fg"><label class="fl">Start</label><input class="fi" id="prj-start" type="date"></div><div class="fg"><label class="fl">End</label><input class="fi" id="prj-end" type="date"></div></div>
@@ -1665,6 +1671,33 @@ function renderRequests(){
   });
 }
 
+async function approveTeamStructure(id,cvEnc){
+  if(!confirm('Approve this team structure? It will be sent to all team members.'))return;
+  var members=[];try{members=JSON.parse(decodeURIComponent(cvEnc));}catch(e){}
+  // Update request status
+  if(sb)await sb.from('ix_requests').update({status:'Accepted',accepted_at:new Date().toISOString()}).eq('id',id);
+  // Create notification for each member
+  for(var i=0;i<members.length;i++){
+    var m=members[i];
+    if(sb)await sb.from('ix_notifications').insert({
+      title:'Team Structure Assignment',
+      body:'You have been assigned to '+m.role+'. Management has approved this request.',
+      type:'team_structure',
+      related_id:id,
+      is_read:false
+    });
+  }
+  toast('✅ Approved and sent to team members!','success');
+  lRequests();renderFeed();
+}
+
+async function rejectTeamStructure(id){
+  var reason=prompt('Reason for rejection (optional):');
+  if(sb)await sb.from('ix_requests').update({status:'Rejected'}).eq('id',id);
+  toast('Rejected','success');
+  lRequests();
+}
+
 async function saveReq(){
   var title=document.getElementById('req-t').value.trim();if(!title)return toast('Enter title','error');
   var asParts=document.getElementById('req-assignee').value.split('|');
@@ -2122,10 +2155,17 @@ function editProj(id){
 }
 
 function addProjMember(){var list=document.getElementById('prj-members-list');var row=document.createElement('div');row.style.cssText='display:flex;gap:5px;align-items:center;margin-bottom:4px;';var opts='<option value="">— Select —</option>'+APeople.map(function(x){return '<option value="'+x.name+'">'+x.name+(x.role?' · '+x.role:'')+'</option>';}).join('');row.innerHTML='<select class="fs pm-sel" style="flex:1;">'+opts+'</select><button type="button" class="btn bd bsm" onclick="this.parentElement.remove()">✕</button>';list.appendChild(row);}
+function togglePrjClient(){
+  var isClient=document.getElementById('prj-cl-yes').checked;
+  document.getElementById('prj-client').style.display=isClient?'block':'none';
+}
+
 function openProjModal(){
   document.getElementById('m-proj').dataset.editId='';
   document.getElementById('prj-modal-title').textContent='📁 New Project';
   ['prj-name','prj-desc','prj-start','prj-end'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  var noRad=document.getElementById('prj-cl-no');if(noRad){noRad.checked=true;togglePrjClient();}
+  var notesF=document.getElementById('prj-notes');if(notesF)notesF.value='';
   document.getElementById('prj-members-list').innerHTML='';addProjMember();
   var cs=document.getElementById('prj-client');if(cs)cs.innerHTML='<option value="">— Internal —</option>'+AC.map(function(c){return '<option value="'+c.name+'">'+c.name+'</option>';}).join('');
   om('m-proj');
