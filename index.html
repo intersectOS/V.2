@@ -1449,41 +1449,74 @@ function renderFeed(){
   var filterSearch=(document.getElementById('feed-filter-search')&&document.getElementById('feed-filter-search').value||'').toLowerCase();
   var items=[];
 
+  // ── WORKFLOW UPDATES ──
   if(!filterType||filterType==='workflow'){
-    AWorkflow.slice(0,8).forEach(function(w){
+    AWorkflow.slice(0,10).forEach(function(w){
       items.push({d:w.created_at,i:'🔄',x:w.title,sub:(w.client_name?'Client: '+w.client_name:'')+(w.created_by?' · by '+w.created_by:'')+(w.status?' · '+w.status:''),c:'var(--teal)',type:'workflow',ref:w.client_name});
     });
   }
+
+  // ── REQUESTS (all statuses) ──
   if(!filterType||filterType==='request'){
-    ARequests.slice(0,8).forEach(function(r){
-      var icon=r.status==='Accepted'?'✅':r.status==='Rejected'?'❌':r.assignee_type==='management'?'🏛️':'📋';
-      items.push({d:r.updated_at||r.created_at,i:icon,x:r.title,sub:'Request · '+r.status+(r.client_name?' · '+r.client_name:'')+(r.assignee_name?' → '+r.assignee_name:''),c:r.status==='Accepted'?'var(--green)':r.status==='Rejected'?'var(--red)':'var(--purple-light)',type:'request',ref:(r.client_name||'')+'|'+(r.assignee_name||'')});
+    ARequests.slice(0,15).forEach(function(r){
+      var icon=r.status==='Completed'?'🔒':r.status==='Done - Pending Confirmation'?'⏳':r.status==='Accepted'?'✅':r.status==='Rejected'?'❌':r.context_type==='service_inquiry'?'🛒':r.context_type==='team_service_request'?'🛒':r.assignee_type==='management'?'🏛️':'📋';
+      var statusColor=r.status==='Completed'?'#22c55e':r.status==='Done - Pending Confirmation'?'var(--gold)':r.status==='Accepted'?'#10b981':r.status==='Rejected'?'var(--red)':'#a78bfa';
+      var cleanTitle=r.title.replace('[Team Request] ','').replace('[Project Help] ','').replace('[Client Help] ','').replace('[Service Inquiry] ','').replace('[SP Update] ','').replace('[JV Update] ','');
+      items.push({d:r.updated_at||r.created_at,i:icon,x:cleanTitle,sub:r.status+(r.client_name?' · '+r.client_name:'')+(r.requested_by?' · by '+r.requested_by:'')+(r.replied_by?' → replied by '+r.replied_by:''),c:statusColor,type:'request',ref:(r.client_name||'')+'|'+(r.requested_by||'')});
     });
   }
+
+  // ── CLIENTS & PARTNERS ──
   if(!filterType||filterType==='client'){
     AExpertReq.slice(0,5).forEach(function(r){
       items.push({d:r.created_at,i:'🌟',x:'Expert request: '+r.expert_name,sub:'From: '+(r.client_name||'—')+' · '+r.status,c:'var(--gold)',type:'client',ref:r.client_name});
     });
-    AC.slice(0,5).forEach(function(c){
-      items.push({d:c.created_at,i:'🏢',x:'Client: '+c.name,sub:(c.stage||'')+(c.added_by?' · Added by: '+c.added_by:'')+(c.main_am_name?' · AM: '+c.main_am_name:''),c:'var(--green)',type:'client',ref:c.name});
+    AC.slice(0,8).forEach(function(c){
+      var typeIcon=c.client_type==='jv'?'🏦':c.client_type==='partner'?'🤝':c.client_type==='strategic'?'⚙️':'🏢';
+      var typeSub=c.client_type==='jv'?'JV Partner'+(c.jv_equity?' '+c.jv_equity+'%':''):c.client_type==='partner'?'Success Partner':c.client_type==='strategic'?'Strategic Partner':'Client';
+      items.push({d:c.created_at,i:typeIcon,x:c.name,sub:typeSub+(c.stage?' · '+c.stage:'')+(c.main_am_name?' · AM: '+c.main_am_name:''),c:'#22c55e',type:'client',ref:c.name});
     });
   }
+
+  // ── SERVICES ──
+  if(!filterType||filterType==='service'){
+    AClientServices.slice(0,8).forEach(function(s){
+      items.push({d:s.updated_at||s.created_at,i:'🛠️',x:s.service_type+' — '+s.stage,sub:'Client: '+s.client_name+(s.updated_at&&s.updated_at!==s.created_at?' · Stage updated':'· Service started'),c:'var(--teal)',type:'service',ref:s.client_name});
+    });
+    AServiceHistory.slice(0,8).forEach(function(h){
+      items.push({d:h.created_at,i:'📊',x:h.service_type+': '+(h.from_stage?h.from_stage+' → ':'')+h.to_stage,sub:'Client: '+h.client_name+(h.changed_by?' · by '+h.changed_by:'')+(h.note?' · '+h.note.slice(0,40):''),c:'#06b6d4',type:'service',ref:h.client_name});
+    });
+  }
+
+  // ── PEOPLE ──
   if(!filterType||filterType==='person'){
     APeople.slice(0,5).forEach(function(p){
-      items.push({d:p.created_at,i:'👤',x:'Member: '+p.name,sub:(p.role||p.person_type||''),c:'#a78bfa',type:'person',ref:p.name});
-    });
-    AActions.filter(function(a){return a.done;}).slice(0,5).forEach(function(a){
-      items.push({d:a.updated_at||a.created_at,i:'✅',x:'Done: '+a.title,sub:(a.assignee?'by '+a.assignee:'')+(a.client_name?' · '+a.client_name:''),c:'var(--green)',type:'person',ref:a.assignee});
+      items.push({d:p.created_at,i:'👤',x:p.name,sub:(p.role?p.role+' · ':'')+( p.person_type||''),c:'#a78bfa',type:'person',ref:p.name});
     });
   }
+
+  // ── PROJECTS ──
   if(!filterType||filterType==='project'){
     AProj.slice(0,5).forEach(function(p){
       items.push({d:p.created_at,i:'📁',x:'Project: '+p.name,sub:(p.client_name?'Client: '+p.client_name:'')+(p.status?' · '+p.status:''),c:'var(--teal)',type:'project',ref:p.name+'|'+(p.client_name||'')});
     });
+    ATasks.slice(0,5).forEach(function(t){
+      items.push({d:t.created_at,i:'📌',x:'Task: '+t.title,sub:(t.assignee?'→ '+t.assignee:'')+(t.client_name?' · '+t.client_name:'')+(t.status?' · '+t.status:''),c:t.status==='done'?'#22c55e':'#a78bfa',type:'project',ref:t.assignee});
+    });
   }
+
+  // ── MEETINGS ──
   if(!filterType||filterType==='meeting'){
     AMeetings.slice(0,5).forEach(function(m){
-      items.push({d:m.created_at,i:'📅',x:'Meeting: '+m.title,sub:(m.organization||'')+(m.date?' · '+m.date:''),c:'var(--teal)',type:'meeting',ref:m.organization});
+      items.push({d:m.created_at,i:'📅',x:'Meeting: '+m.title,sub:(m.organization||m.client_name||'')+(m.date?' · '+m.date:'')+(m.logged_by?' · by '+m.logged_by:''),c:'var(--teal)',type:'meeting',ref:m.organization||m.client_name});
+    });
+  }
+
+  // ── CONTRACTS ──
+  if(!filterType||filterType==='contract'){
+    AContracts.slice(0,5).forEach(function(ct){
+      var isExpiring=ct.end_date&&Math.round((new Date(ct.end_date)-new Date())/(1000*60*60*24))<=30;
+      items.push({d:ct.created_at,i:isExpiring?'⚠️':'📜',x:ct.contract_type+' — '+ct.client_name,sub:ct.status+(ct.end_date?' · Expires: '+ct.end_date:'')+(ct.value?' · $'+parseFloat(ct.value).toLocaleString():''),c:isExpiring?'var(--gold)':'#6b7280',type:'contract',ref:ct.client_name});
     });
   }
 
@@ -2199,9 +2232,14 @@ async function addClientService(){
     AClientServices.unshift(r.data);
     // Add initial history entry
     await sb.from('ix_service_history').insert({service_id:r.data.id,client_name:clientName,service_type:svcType,to_stage:stage,note:'Service started',show_to_client:true,changed_by:'Management'});
+    // Sync service_type back to client record
+    var allSvcs=AClientServices.filter(function(s){return s.client_id===clientId;}).map(function(s){return s.service_type;});
+    await sb.from('ix_clients_v2').update({service_type:allSvcs.join(', ')}).eq('id',clientId);
+    var ci=AC.findIndex(function(c){return c.id===clientId;});
+    if(ci>=0)AC[ci].service_type=allSvcs.join(', ');
     document.getElementById('new-svc-notes').value='';
     renderServicesList(clientId);
-    renderFeed();
+    renderClients();renderFeed();
     tgNotif('🛠️','New Service Added','*'+clientName+'*\nService: '+svcType+'\nStage: '+stage);
     toast('✅ Service added!','success');
   }catch(e){toast('Error adding service','error');}

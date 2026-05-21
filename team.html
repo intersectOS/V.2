@@ -160,14 +160,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <div class="tabs">
         <button class="tab on" onclick="showTab('clients',this)">🏢 My Clients</button>
         <button class="tab" onclick="showTab('tasks',this)">📌 My Tasks</button>
-        <button class="tab" onclick="showTab('requests',this)">📋 Requests</button>
         <button class="tab" onclick="showTab('workflow',this)">🔄 Add Update</button>
         <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
         <button class="tab" onclick="showTab('my-projects',this)">📁 Projects</button>
         <button class="tab" onclick="showTab('inbox',this)">🔔 Inbox</button>
         <button class="tab" onclick="showTab('add-client',this)">➕ Add Client</button>
         <button class="tab" onclick="showTab('team-marketplace',this)">🛒 Services</button>
-        <button class="tab" onclick="showTab('my-sent',this)">📤 My Requests</button>
+        <button class="tab" onclick="showTab('my-sent',this)">📋 My Requests</button>
         <button class="tab" onclick="showTab('team-news',this)">📰 News</button>
       </div>
       <div class="tp on" id="tp-clients">
@@ -445,9 +444,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 
       <!-- MY SENT REQUESTS -->
       <div class="tp" id="tp-my-sent">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="btn bbg" style="flex:1;" onclick="showTab('my-projects',document.querySelector('[onclick*=my-projects]'))">📋 Assign Task →</button>
+          <button class="btn bbo" style="flex:1;" onclick="showTab('inbox',document.querySelector('[onclick*=inbox]'))">🔔 View Inbox →</button>
+        </div>
         <div class="panel">
           <div class="ph">
-            <div class="pt">📤 My Sent Requests</div>
+            <div class="pt">📋 My Sent Requests</div>
             <button class="btn bbo bsm" onclick="loadMySent()" style="font-size:10px;">↻ Refresh</button>
           </div>
           <div class="pb" id="my-sent-list">
@@ -532,6 +535,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   <div id="team-svc-list" style="margin-bottom:14px;"></div>
   <div class="mft">
     <button class="btn bbo" onclick="closeModal('m-team-svc')" style="padding:8px 20px;">Close</button>
+  </div>
+</div></div>
+
+<!-- CLIENT TICKETS MODAL -->
+<div class="mo" id="m-cl-tickets"><div class="modal modal-lg">
+  <div class="mti">🎫 Tickets — <span id="cl-tkt-name"></span></div>
+  <input type="hidden" id="cl-tkt-cid">
+  <div id="cl-tkt-list" style="margin-bottom:14px;"></div>
+  <div class="mft">
+    <button class="btn bbo" onclick="closeModal('m-cl-tickets')" style="padding:8px 20px;">Close</button>
   </div>
 </div></div>
 
@@ -1439,6 +1452,88 @@ async function submitTMInquiry(){
   }catch(e){toast('Error','te');}
 }
 
+async function openClientTickets(cid, cname){
+  document.getElementById('cl-tkt-cid').value=cid;
+  document.getElementById('cl-tkt-name').textContent=cname;
+  var el=document.getElementById('cl-tkt-list');
+  el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:12px;">Loading...</div>';
+  openModal('m-cl-tickets');
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests?client_id=eq.'+cid+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var tickets=await r.json();
+    tickets=Array.isArray(tickets)?tickets:[];
+    if(!tickets.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No tickets from this client</div>';
+      return;
+    }
+    var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',Completed:'pgr',Rejected:'pr'};
+    var at={am:'👤 Account Manager',management:'🏛️ Senior Management'};
+    el.innerHTML=tickets.map(function(t){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+          +'<div>'
+            +'<div style="font-size:13px;font-weight:600;">'+t.title.replace('[Client Request] ','').replace(' [Management]','')+'</div>'
+            +'<div style="font-size:11px;color:var(--ink3);">'+(at[t.assignee_type]||'—')+'</div>'
+          +'</div>'
+          +'<span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span>'
+        +'</div>'
+        +(t.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;line-height:1.5;">'+t.description.slice(0,120)+'</div>':'')
+        +(t.reply?'<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:7px;padding:8px;margin-bottom:8px;">'
+          +'<div style="font-size:10px;color:#22c55e;font-weight:700;margin-bottom:2px;">💬 Reply</div>'
+          +'<div style="font-size:12px;color:var(--ink2);">'+t.reply.slice(0,100)+'</div>'
+        +'</div>':'')
+        +'<div style="display:flex;gap:6px;">'
+          +(t.status!=='Completed'&&t.status!=='Rejected'?
+            '<button class="btn bsm" style="font-size:11px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);" data-tid="'+t.id+'" onclick="replyToTicket(this.dataset.tid,this)">💬 Reply</button>'
+            +'<button class="btn bsm" style="font-size:11px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10b981;" data-tid="'+t.id+'" data-cid="'+cid+'" data-cname="'+cname+'" onclick="closeTicket(this.dataset.tid,this.dataset.cid,this.dataset.cname)">✅ Close</button>'
+          :'<span style="font-size:10px;color:#22c55e;font-weight:600;">✅ Closed</span>')
+        +'</div>'
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:6px;">'+new Date(t.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="text-align:center;color:var(--red);font-size:13px;padding:12px;">Error loading tickets</div>';
+  }
+}
+
+async function replyToTicket(tid, btn){
+  var reply=prompt('Your reply to client:');
+  if(!reply)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_requests?id=eq.'+tid,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({reply:reply,replied_by:memberData?memberData.name:'AM',replied_at:new Date().toISOString(),status:'Accepted'})
+    });
+    var cid=document.getElementById('cl-tkt-cid').value;
+    var cname=document.getElementById('cl-tkt-name').textContent;
+    sendTG('💬 *Reply Sent to Client*\n\n*Client:* '+cname+'\n*By:* '+(memberData?memberData.name:'AM')+'\n\n'+reply.slice(0,100));
+    toast('✅ Reply sent!','ts');
+    openClientTickets(cid, cname);
+  }catch(e){toast('Error','te');}
+}
+
+async function closeTicket(tid, cid, cname){
+  if(!confirm('Mark this ticket as resolved?'))return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_requests?id=eq.'+tid,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({status:'Completed',completed_at:new Date().toISOString(),replied_by:memberData?memberData.name:'AM'})
+    });
+    toast('✅ Ticket closed!','ts');
+    openClientTickets(cid, cname);
+  }catch(e){toast('Error','te');}
+}
+
 function toggleHelpType(){
   var isPrj=document.getElementById('help-type-proj').checked;
   document.getElementById('help-proj-sel').style.display=isPrj?'block':'none';
@@ -1729,6 +1824,44 @@ async function saveTelegramId(){
   }catch(e){toast('Error saving','te');}
 }
 
+async function confirmAndClose(id, btn){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var showClient=confirm('Show this completion to the client in their portal?');
+  try{
+    await fetch(SB+'/rest/v1/ix_requests?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({status:'Completed',completed_at:new Date().toISOString(),show_to_client:showClient})
+    });
+    // If show to client — add workflow update
+    if(showClient){
+      var req=null;
+      try{
+        var rr=await fetch(SB+'/rest/v1/ix_requests?id=eq.'+id+'&select=title,client_id,client_name',{
+          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+        });
+        var rdata=await rr.json();
+        req=Array.isArray(rdata)&&rdata[0]?rdata[0]:null;
+      }catch(e){}
+      if(req&&req.client_id){
+        await fetch(SB+'/rest/v1/ix_workflow',{
+          method:'POST',
+          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+          body:JSON.stringify({
+            client_id:req.client_id,client_name:req.client_name,
+            title:'✅ '+req.title.replace('[Project Help] ','').replace('[Client Help] ','').replace('[Team Structure] ','').slice(0,60),
+            description:'Task completed by team.',
+            show_to_client:true,created_by:memberData?memberData.name:'Team'
+          })
+        });
+      }
+    }
+    toast('🔒 Closed & confirmed!','ts');
+    loadMySent();
+  }catch(e){toast('Error','te');}
+}
+
 async function markSentComplete(id){
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
@@ -1784,7 +1917,16 @@ async function loadMySent(){
         +(r.assignee_type==='am'&&(r.status==='Pending'||r.status==='Accepted'||r.status==='In Progress')?'':'')
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">'
           +'<div style="font-size:10px;color:var(--ink3);">'+timeStr+' · '+(r.priority?r.priority+' priority':'')+'</div>'
-          +(r.status!=='Completed'&&r.status!=='Rejected'?'<button class="btn bsm" style="font-size:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10b981;" data-id="'+r.id+'" onclick="markSentComplete(this.dataset.id)">✅ Close</button>':'<span style="font-size:10px;color:#22c55e;font-weight:600;">✅ Closed</span>')
+          +(r.status==='Done - Pending Confirmation'?
+          '<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:7px;padding:8px;margin-bottom:6px;">'
+            +'<div style="font-size:10px;color:#10b981;font-weight:700;margin-bottom:4px;">✅ Assignee marked as done</div>'
+            +(r.reply?'<div style="font-size:12px;color:var(--ink2);">'+r.reply.slice(0,120)+'</div>':'')
+            +'<div style="font-size:11px;color:var(--ink3);margin-top:3px;">By: '+(r.replied_by||'Team')+'</div>'
+          +'</div>'
+          +'<button class="btn bsm" style="font-size:11px;width:100%;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;font-weight:700;" data-id="'+r.id+'" onclick="confirmAndClose(this.dataset.id,this)">🔒 Confirm & Close</button>'
+        :r.status!=='Completed'&&r.status!=='Rejected'?
+          '<button class="btn bsm" style="font-size:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10b981;" data-id="'+r.id+'" onclick="markSentComplete(this.dataset.id)">✅ Close</button>'
+        :'<span style="font-size:10px;color:#22c55e;font-weight:600;">✅ Closed</span>')
         +'</div>'
       +'</div>';
     }).join('');
@@ -1953,6 +2095,88 @@ async function submitTMInquiry(){
       sendTG('🛒 *Team Service Request*\n\n*From:* '+(memberData?memberData.name:'—')+'\n*Service:* '+svcName+(client?'\n*For Client:* '+client:'')+'\n*Timeline:* '+timeline+'\n\n'+desc.slice(0,100));
       toast('✅ Request submitted!','ts');
     }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
+}
+
+async function openClientTickets(cid, cname){
+  document.getElementById('cl-tkt-cid').value=cid;
+  document.getElementById('cl-tkt-name').textContent=cname;
+  var el=document.getElementById('cl-tkt-list');
+  el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:12px;">Loading...</div>';
+  openModal('m-cl-tickets');
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests?client_id=eq.'+cid+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var tickets=await r.json();
+    tickets=Array.isArray(tickets)?tickets:[];
+    if(!tickets.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No tickets from this client</div>';
+      return;
+    }
+    var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',Completed:'pgr',Rejected:'pr'};
+    var at={am:'👤 Account Manager',management:'🏛️ Senior Management'};
+    el.innerHTML=tickets.map(function(t){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+          +'<div>'
+            +'<div style="font-size:13px;font-weight:600;">'+t.title.replace('[Client Request] ','').replace(' [Management]','')+'</div>'
+            +'<div style="font-size:11px;color:var(--ink3);">'+(at[t.assignee_type]||'—')+'</div>'
+          +'</div>'
+          +'<span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span>'
+        +'</div>'
+        +(t.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;line-height:1.5;">'+t.description.slice(0,120)+'</div>':'')
+        +(t.reply?'<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:7px;padding:8px;margin-bottom:8px;">'
+          +'<div style="font-size:10px;color:#22c55e;font-weight:700;margin-bottom:2px;">💬 Reply</div>'
+          +'<div style="font-size:12px;color:var(--ink2);">'+t.reply.slice(0,100)+'</div>'
+        +'</div>':'')
+        +'<div style="display:flex;gap:6px;">'
+          +(t.status!=='Completed'&&t.status!=='Rejected'?
+            '<button class="btn bsm" style="font-size:11px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);" data-tid="'+t.id+'" onclick="replyToTicket(this.dataset.tid,this)">💬 Reply</button>'
+            +'<button class="btn bsm" style="font-size:11px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10b981;" data-tid="'+t.id+'" data-cid="'+cid+'" data-cname="'+cname+'" onclick="closeTicket(this.dataset.tid,this.dataset.cid,this.dataset.cname)">✅ Close</button>'
+          :'<span style="font-size:10px;color:#22c55e;font-weight:600;">✅ Closed</span>')
+        +'</div>'
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:6px;">'+new Date(t.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="text-align:center;color:var(--red);font-size:13px;padding:12px;">Error loading tickets</div>';
+  }
+}
+
+async function replyToTicket(tid, btn){
+  var reply=prompt('Your reply to client:');
+  if(!reply)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_requests?id=eq.'+tid,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({reply:reply,replied_by:memberData?memberData.name:'AM',replied_at:new Date().toISOString(),status:'Accepted'})
+    });
+    var cid=document.getElementById('cl-tkt-cid').value;
+    var cname=document.getElementById('cl-tkt-name').textContent;
+    sendTG('💬 *Reply Sent to Client*\n\n*Client:* '+cname+'\n*By:* '+(memberData?memberData.name:'AM')+'\n\n'+reply.slice(0,100));
+    toast('✅ Reply sent!','ts');
+    openClientTickets(cid, cname);
+  }catch(e){toast('Error','te');}
+}
+
+async function closeTicket(tid, cid, cname){
+  if(!confirm('Mark this ticket as resolved?'))return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_requests?id=eq.'+tid,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({status:'Completed',completed_at:new Date().toISOString(),replied_by:memberData?memberData.name:'AM'})
+    });
+    toast('✅ Ticket closed!','ts');
+    openClientTickets(cid, cname);
   }catch(e){toast('Error','te');}
 }
 
@@ -2174,7 +2398,7 @@ async function loadExpInbox(){
           +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><div style="font-size:13px;font-weight:700;">'+r.title+'</div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'
           +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:10px;">'+r.description.slice(0,120)+'</div>':'')
           +'<div style="font-size:11px;color:var(--ink3);">From: '+(r.requested_by||'—')+'</div>'
-          +(r.status==='Pending'?'<div style="display:flex;gap:7px;margin-top:8px;"><button class="btn bbg" style="flex:1;font-size:12px;" data-id="'+r.id+'" data-st="Accepted" onclick="respondReq(this.dataset.id,this.dataset.st)">✅ Accept</button><button class="btn" style="flex:1;font-size:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+r.id+'" data-st="Rejected" onclick="respondReq(this.dataset.id,this.dataset.st)">✕ Decline</button></div>':r.status==='Accepted'?'<div style="margin-top:8px;"><button class="btn" style="width:100%;font-size:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10b981;" data-id="'+r.id+'" data-st="Completed" onclick="respondReq(this.dataset.id,this.dataset.st)">✅ Mark Complete</button></div>':'')
+          +(r.status==='Pending'?'<div style="display:flex;gap:7px;margin-top:8px;"><button class="btn bbg" style="flex:1;font-size:12px;" data-id="'+r.id+'" data-st="Accepted" onclick="respondReq(this.dataset.id,this.dataset.st)">✅ Accept</button><button class="btn" style="flex:1;font-size:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+r.id+'" data-st="Rejected" onclick="respondReq(this.dataset.id,this.dataset.st)">✕ Decline</button></div>':r.status==='Accepted'?'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;"><button class="btn" style="width:100%;font-size:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10b981;" data-id="'+r.id+'" onclick="markDone(this.dataset.id)">✅ Mark Done + Add Note</button><div style="font-size:10px;color:var(--ink3);text-align:center;">Requester will confirm completion</div></div>':r.status==='Done - Pending Confirmation'?'<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:8px;margin-top:8px;font-size:11px;color:var(--gold);">⏳ Waiting for requester to confirm...</div>':'')
         +'</div>';
       }).join('');
     }
