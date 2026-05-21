@@ -2908,6 +2908,17 @@ function openReplyModal(rid, name){
   om('m-reply');
 }
 
+async function resolveRequest(id){
+  if(!confirm('Mark this request as Completed?'))return;
+  try{
+    await sb.from('ix_requests').update({status:'Completed',completed_at:new Date().toISOString()}).eq('id',id);
+    var i=ARequests.findIndex(function(r){return r.id===id;});
+    if(i>=0)ARequests[i].status='Completed';
+    lRequests();renderFeed();
+    toast('✅ Request resolved!','success');
+  }catch(e){toast('Error','error');}
+}
+
 async function sendReply(){
   var rid=document.getElementById('reply-rid').value;
   var text=document.getElementById('reply-text').value.trim();
