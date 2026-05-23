@@ -246,32 +246,37 @@ function setL(l){
 }
 
 function applyCoordTranslations(){
-  // Header
-  document.querySelector('.htit').textContent='📋 '+tt('title');
-  // Logout btn
-  document.querySelectorAll('.br').forEach(function(b){if(b.textContent.includes('Logout')||b.textContent.includes('خروج')||b.textContent.includes('Salir'))b.textContent=tt('logout');});
-  // Sidebar
-  document.querySelector('.sb-title').textContent=tt('clients_label');
-  document.querySelector('.new-cl-btn').textContent=tt('new_client');
-  // No selection
-  var nst=document.querySelector('#no-selection div:nth-child(2)');if(nst)nst.textContent=tt('no_selection_title');
-  var nss=document.querySelector('#no-selection div:nth-child(3)');if(nss)nss.textContent=tt('no_selection_sub');
-  // Log meeting panel
-  var logBtn=document.querySelector('#client-content .btn.bbg');if(logBtn)logBtn.textContent=tt('mt_save');
-  // Search
-  var srch=document.getElementById('mt-search');if(srch)srch.placeholder=tt('mt_search');
-  // Password field
-  var passField=document.getElementById('coord-pass');if(passField)passField.placeholder=tt('password_placeholder');
-  var accessBtn=document.querySelector('.lbtn');if(accessBtn)accessBtn.textContent=tt('access_btn');
-  // Form labels
-  var labels=document.querySelectorAll('#client-content .fl');
-  var labelKeys=['mt_title','mt_date','mt_type','mt_fup','mt_att','mt_agenda','mt_sum','mt_acts','mt_notes','mt_transcript'];
-  labels.forEach(function(lb,i){if(labelKeys[i])lb.textContent=tt(labelKeys[i]);});
-  // Modal
-  document.querySelector('#m-new-cl .mti').textContent=tt('new_cl_title');
-  // Meeting history title
-  var mhTitle=document.querySelector('#meets-list').closest&&document.querySelector('#meets-list').closest('.panel')&&document.querySelector('#meets-list').closest('.panel').querySelector('.pt');
-  if(mhTitle)mhTitle.textContent=tt('mt_history');
+  try{
+    // Login screen
+    var passField=document.getElementById('coord-pass');if(passField)passField.placeholder=tt('password_placeholder');
+    var accessBtn=document.querySelector('.lbtn');if(accessBtn)accessBtn.textContent=tt('access_btn');
+    // Header (only after login)
+    var htit=document.querySelector('.htit');if(htit)htit.textContent='📋 '+tt('title');
+    // Logout btn
+    document.querySelectorAll('.br').forEach(function(b){if(b.textContent.includes('Logout')||b.textContent.includes('خروج')||b.textContent.includes('Salir'))b.textContent=tt('logout');});
+    // Sidebar
+    var sbTitle=document.querySelector('.sb-title');if(sbTitle)sbTitle.textContent=tt('clients_label');
+    var newClBtn=document.querySelector('.new-cl-btn');if(newClBtn)newClBtn.textContent=tt('new_client');
+    // No selection
+    var nst=document.querySelector('#no-selection div:nth-child(2)');if(nst)nst.textContent=tt('no_selection_title');
+    var nss=document.querySelector('#no-selection div:nth-child(3)');if(nss)nss.textContent=tt('no_selection_sub');
+    // Log meeting panel
+    var logBtn=document.querySelector('#client-content .btn.bbg');if(logBtn)logBtn.textContent=tt('mt_save');
+    // Search
+    var srch=document.getElementById('mt-search');if(srch)srch.placeholder=tt('mt_search');
+    // Form labels
+    var labels=document.querySelectorAll('#client-content .fl');
+    var labelKeys=['mt_title','mt_date','mt_type','mt_fup','mt_att','mt_agenda','mt_sum','mt_acts','mt_notes','mt_transcript'];
+    labels.forEach(function(lb,i2){if(labelKeys[i2])lb.textContent=tt(labelKeys[i2]);});
+    // Modal
+    var mti=document.querySelector('#m-new-cl .mti');if(mti)mti.textContent=tt('new_cl_title');
+    // Meeting history title
+    var meetsList=document.getElementById('meets-list');
+    if(meetsList&&meetsList.closest){
+      var panel=meetsList.closest('.panel');
+      if(panel){var pt=panel.querySelector('.pt');if(pt)pt.textContent=tt('mt_history');}
+    }
+  }catch(e){console.log('Translation error:',e);}
 }
 
 var meetings=[], clients=[], selectedClient=null, allMeetings=[];
