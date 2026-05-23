@@ -299,8 +299,8 @@ function doLogout(){document.getElementById('main').style.display='none';documen
 async function fetchSB(table,params){
   try{var r=await fetch(SB_URL+'/rest/v1/'+table+'?'+params,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});return await r.json();}catch(e){return [];}
 }
-async function postSB(table,body){
-  try{var r=await fetch(SB_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});return await r.json();}catch(e){return null;}
+async async function postSB(table,body){
+  try{var r=await fetch(SB_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});return await r.json();}catch(e){console.error('postSB error:',e);return null;}
 }
 async function delSB(table,id){
   try{await fetch(SB_URL+'/rest/v1/'+table+'?id=eq.'+id,{method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});}catch(e){}
