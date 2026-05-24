@@ -2102,7 +2102,7 @@ function renderPeople(){
         +'</div>'
         +'<div style="flex:1;">'
           +'<div style="font-size:13px;font-weight:600;margin-bottom:2px;">'+p.name+'</div>'
-          +'<div style="font-size:10px;color:var(--ink3);margin-bottom:5px;">'+(p.role||'')+(p.freelancer_type?' · '+p.freelancer_type:'')+'</div>'
+          +'<div style="font-size:10px;color:var(--ink3);margin-bottom:5px;">'+(p.role||'')+(p.freelancer_type&&p.freelancer_type!==''?' · '+p.freelancer_type:'')+'</div>'
           +'<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;display:inline-block;" class="'+(tc[p.person_type]||'type-emp')+'">'+(tl[p.person_type]||p.person_type)+'</span>'
         +'</div>'
         +'<div style="width:8px;height:8px;border-radius:50%;background:'+(avC[p.availability]||'var(--ink3)')+';flex-shrink:0;margin-top:4px;"></div>'
@@ -4233,7 +4233,7 @@ function openPersonModal(editId){
     document.getElementById('pp-name').value=p.name||'';
     document.getElementById('pp-type').value=p.person_type||'employee';
     document.getElementById('pp-fw').style.display=p.person_type==='freelancer'?'block':'none';
-    document.getElementById('pp-ftype').value=p.freelancer_type||'Legal';
+    document.getElementById('pp-ftype').value=p.freelancer_type||'';
     document.getElementById('pp-role').value=p.role||'';
     document.getElementById('pp-specs').value=p.specializations||'';
     document.getElementById('pp-nat').value=p.nationality||'';
