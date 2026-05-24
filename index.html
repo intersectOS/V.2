@@ -985,7 +985,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 <div class="mo" id="m-person"><div class="modal modal-lg">
   <div class="mtit" id="person-modal-title">👤 Add to People Directory</div>
   <div class="fgrid"><div class="fg"><label class="fl">Full Name *</label><input class="fi" id="pp-name"></div><div class="fg"><label class="fl">Type *</label><select class="fs" id="pp-type" onchange="document.getElementById('pp-fw').style.display=this.value==='freelancer'?'block':'none'"><option value="employee">Employee</option><option value="freelancer">Freelancer</option><option value="consultant">Consultant</option><option value="expert">Expert</option></select></div></div>
-  <div id="pp-fw" style="display:none;" class="fg"><label class="fl">Freelancer Type</label><select class="fs" id="pp-ftype"><option>Legal</option><option>Financial</option><option>Technical</option><option>Design</option><option>Marketing</option><option>Translation</option><option>Research</option><option>Other</option></select></div>
+  <div id="pp-fw" style="display:none;" class="fg"><label class="fl">Freelancer Type</label><select class="fs" id="pp-ftype"><option value="">— None —</option><option>Legal</option><option>Financial</option><option>Technical</option><option>Design</option><option>Marketing</option><option>Translation</option><option>Research</option><option>Other</option></select></div>
   <div class="fgrid"><div class="fg"><label class="fl">Role / Title</label><input class="fi" id="pp-role"></div><div class="fg"><label class="fl">Specializations (comma separated)</label><input class="fi" id="pp-specs"></div></div>
   <div class="fgrid"><div class="fg"><label class="fl">Nationality</label><input class="fi" id="pp-nat"></div><div class="fg"><label class="fl">Languages</label><input class="fi" id="pp-langs" placeholder="e.g. Arabic, English"></div></div>
   <div class="fgrid"><div class="fg"><label class="fl">Residence</label><input class="fi" id="pp-res"></div><div class="fg"><label class="fl">Availability</label><select class="fs" id="pp-avail"><option>Available</option><option>Busy</option><option>Unavailable</option></select></div></div>
@@ -2127,7 +2127,7 @@ async function savePerson(){
   var marketplace=document.getElementById('pp-marketplace');
   var p={
     name:n,person_type:document.getElementById('pp-type').value,
-    freelancer_type:document.getElementById('pp-ftype').value||null,
+    freelancer_type:(function(){var v=document.getElementById('pp-ftype').value;return v&&v!==''?v:null;})(),
     role:document.getElementById('pp-role').value.trim(),
     specializations:document.getElementById('pp-specs').value.trim(),
     nationality:document.getElementById('pp-nat').value.trim(),
