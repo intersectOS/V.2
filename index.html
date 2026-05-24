@@ -341,13 +341,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 </style>
 </head>
 <body>
-<div id="dash-err-display" style="display:none;position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:12px;font-size:12px;z-index:9999;word-break:break-all;cursor:pointer;" onclick="this.style.display='none'">Click to dismiss</
-<script>
-window.onerror=function(msg,src,line,col,err){
-  var el=document.getElementById('dash-err-display');
-  if(el){el.textContent='JS Error: '+msg+' (line '+line+')';el.style.display='block';}
-};
-</script>div>
+<div id="dash-err-display" style="display:none;position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:12px;font-size:12px;z-index:9999;word-break:break-all;cursor:pointer;" onclick="this.style.display='none'">Click to dismiss</div>
 <div class="toast" id="toast"></div>
 <div class="sbo" id="sbo" onclick="closeSB()"></div>
 
