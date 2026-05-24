@@ -95,24 +95,6 @@ window.addEventListener('unhandledrejection',function(e){
   var el=document.getElementById('err-display');
   if(el){el.textContent='PROMISE ERROR: '+(e.reason||e);el.style.display='block';}
 });
-// Auto-login if came from portal
-(function(){
-  try{
-    var pt=localStorage.getItem('ix_portal_type');
-    if(pt==='coordinator'){
-      // Skip login screen
-      window.addEventListener('DOMContentLoaded',function(){
-        var ls=document.getElementById('login-sc');
-        var mn=document.getElementById('main');
-        if(ls)ls.style.display='none';
-        if(mn)mn.style.display='block';
-        var dt=document.getElementById('mt-date');
-        if(dt)dt.value=new Date().toISOString().split('T')[0];
-        loadData();
-      });
-    }
-  }catch(e){}
-})();
 </script>
 <div class="toast" id="toast"></div>
 
