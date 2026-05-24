@@ -166,8 +166,8 @@ window.addEventListener('unhandledrejection',function(e){
         </div>
 
         <!-- Add Meeting Form -->
-        <div class="panel">
-          <div class="ph"><div class="pt">➕ Log New Meeting</div></div>
+        <div class="panel" id="log-meet-section">
+          <div class="ph"><div class="pt">➕ Log New Meeting</div><button class="btn bbo bsm" onclick="document.getElementById('log-meet-section').style.display='none';">✕ Close</button></div>
           <div class="pb">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
               <div class="fg"><label class="fl">Title *</label><input class="fi2" id="mt-title" placeholder="e.g. Initial Partnership Discussion"></div>
@@ -418,15 +418,26 @@ async function saveMeeting(){
     transcript:document.getElementById('mt-tr').value.trim()||null
   };
   var r=await postSB('ix_meetings',body);
+  // Debug: show what came back
+  var errDisplay=document.getElementById('err-display');
+  // Check response
+  if(r&&r.code){
+    // Supabase error
+    if(errDisplay){errDisplay.textContent='DB Error: '+r.message+' ('+r.code+')';errDisplay.style.display='block';errDisplay.style.background='#ef4444';}
+    toast('Error: '+r.message,'te');return;
+  }
   var saved=r&&(Array.isArray(r)?r[0]:r);
-  if(saved&&(saved.id||saved.title)){
+  if(saved&&saved.id){
     allMeetings.unshift(saved);
-    ['mt-title','mt-fup','mt-att','mt-agenda','mt-sum','mt-acts','mt-notes','mt-tr'].forEach(function(id){document.getElementById(id).value='';});
-    document.getElementById('mt-date').value=new Date().toISOString().split('T')[0];
+    ['mt-title','mt-fup','mt-att','mt-agenda','mt-sum','mt-acts','mt-notes','mt-tr'].forEach(function(fid){var el=document.getElementById(fid);if(el)el.value='';});
+    var dtEl=document.getElementById('mt-date');if(dtEl)dtEl.value=new Date().toISOString().split('T')[0];
     renderMeetings();renderSidebar();
-    document.getElementById('meet-count-header').textContent=allMeetings.length+' total meetings · '+clients.length+' clients';
+    var hdr=document.getElementById('meet-count-header');if(hdr)hdr.textContent=allMeetings.length+' meetings · '+clients.length+' clients';
     toast('✅ Meeting saved!','ts');
-  } else {toast('Error saving','te');}
+  } else {
+    if(errDisplay){errDisplay.textContent='Save failed. Response: '+JSON.stringify(r).slice(0,100);errDisplay.style.display='block';errDisplay.style.background='#f59e0b';}
+    toast('Error saving','te');
+  }
 }
 
 async function deleteMeeting(id){
