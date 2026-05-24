@@ -407,7 +407,7 @@ async function saveMeeting(){
   var date=document.getElementById('mt-date').value;
   if(!title||!date){toast('Fill title and date','te');return;}
   var body={
-    title:title, organization:selectedClient.name,
+    title:title, organization:selectedClient.name, client_name:selectedClient.name,
     date:date, meeting_type:document.getElementById('mt-type').value,
     followup_deadline:document.getElementById('mt-fup').value||null,
     attendees:document.getElementById('mt-att').value.trim()||null,
@@ -418,8 +418,9 @@ async function saveMeeting(){
     transcript:document.getElementById('mt-tr').value.trim()||null
   };
   var r=await postSB('ix_meetings',body);
-  if(r&&r[0]){
-    allMeetings.unshift(r[0]);
+  var saved=r&&(Array.isArray(r)?r[0]:r);
+  if(saved&&(saved.id||saved.title)){
+    allMeetings.unshift(saved);
     ['mt-title','mt-fup','mt-att','mt-agenda','mt-sum','mt-acts','mt-notes','mt-tr'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('mt-date').value=new Date().toISOString().split('T')[0];
     renderMeetings();renderSidebar();
