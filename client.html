@@ -694,7 +694,7 @@ function showError(){document.getElementById('loading').style.display='none';doc
 var tT;function toast(m,t){var el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ts');clearTimeout(tT);tT=setTimeout(function(){el.classList.remove('show');},3000);}
 function openModal(id){document.getElementById(id).style.display='flex';}
 function closeModal(id){document.getElementById(id).style.display='none';}
-async async function sendTGToUser(chatId, msg){
+async function sendTGToUser(chatId, msg){
   if(!chatId)return;
   try{
     await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
@@ -705,7 +705,19 @@ async async function sendTGToUser(chatId, msg){
   }catch(e){}
 }
 
+async function tgNotifTo(chatId, title, body){
+  if(!chatId)return;
+  try{
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text:'*'+title+'*\n\n'+body,parse_mode:'Markdown'})
+    });
+  }catch(e){}
+}
+
 function sendTG(msg){
+  try{fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:'851323429',text:msg,parse_mode:'Markdown'})});}catch(e){}
+}
 
 function doLogout(){try{localStorage.removeItem('ix_portal_data');localStorage.removeItem('ix_portal_type');}catch(e){}window.location.href='portal.html';}
 
@@ -1064,7 +1076,7 @@ function renderFiles(c){
   el.innerHTML=html;
 }
 
-async async function saveTelegramIdClient(){
+async function saveTelegramIdClient(){
   var chatId=document.getElementById('tg-chat-id-cl').value.trim();
   if(!chatId){toast('Enter your Telegram Chat ID','te');return;}
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
@@ -1460,6 +1472,39 @@ async function submitInquiry(){
   }catch(e){toast('Error submitting','te');}
 }
 
+async function loadInvoices(){
+  var el=document.getElementById('inv-portal-list');if(!el)return;
+  if(!clientData)return;
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_invoices?client_id=eq.'+clientData.id+'&order=created_at.desc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var invs=await r.json();
+    if(!Array.isArray(invs)||!invs.length){
+      el.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink3);">No invoices yet</div>';
+      return;
+    }
+    var sc={Draft:'#6b7280',Sent:'#3b82f6',Paid:'#22c55e',Overdue:'#ef4444'};
+    el.innerHTML=invs.map(function(inv){
+      var stc=sc[inv.status]||'#6b7280';
+      var total=0;
+      try{var items=JSON.parse(inv.items||'[]');total=items.reduce(function(s,it){return s+(parseFloat(it.amount)||0);},0)+(parseFloat(inv.tax)||0);}catch(e){}
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+          +'<div><div style="font-size:14px;font-weight:700;">'+inv.invoice_number+'</div>'
+          +'<div style="font-size:11px;color:var(--ink3);">'+(inv.issue_date||'—')+(inv.due_date?' · Due: '+inv.due_date:'')+'</div></div>'
+          +'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+stc+'22;color:'+stc+';">'+inv.status+'</span>'
+        +'</div>'
+        +'<div style="font-size:20px;font-weight:800;color:var(--gold);font-family:Syne;margin-bottom:8px;">$'+total.toLocaleString()+'</div>'
+        +(inv.notes?'<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">'+inv.notes.slice(0,80)+'</div>':'')
+        +(inv.status==='Paid'?'<div style="font-size:11px;color:#22c55e;">✅ Paid</div>':inv.status==='Overdue'?'<div style="font-size:11px;color:var(--red);">⚠️ Overdue</div>':'')
+      +'</div>';
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Unable to load invoices</div>';
+  }
+}
+
 function showTab(n,el){
   document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
@@ -1468,6 +1513,7 @@ function showTab(n,el){
   if(n==='tickets')loadExtraData(clientData);
   if(n==='files')renderFiles(clientData);
   if(n==='services')loadServices();
+  if(n==='invoices')loadInvoices();
   if(n==='marketplace')loadMarketplace();
   if(n==='my-companies')loadMyCompanies();
   if(n==='my-projects-sp')loadSPAssignments();

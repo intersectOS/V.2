@@ -1123,6 +1123,22 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <option value="opportunity">🎯 Opportunity</option>
       <option value="event">📅 Event</option>
     </select>
+  <div class="fg"><label class="fl">Audience</label>
+    <select class="fs" id="news-audience" onchange="toggleNewsAudience()">
+      <option value="all">🌐 Everyone</option>
+      <option value="team">👥 Team Only</option>
+      <option value="clients">🏢 Clients Only</option>
+      <option value="partners">🤝 Partners Only</option>
+      <option value="experts">🌟 Experts Only</option>
+      <option value="specific">👤 Specific Person</option>
+    </select>
+  </div>
+  <div class="fg" id="news-specific-wrap" style="display:none;">
+    <label class="fl">Select Person</label>
+    <select class="fs" id="news-specific-person">
+      <option value="">— Select —</option>
+    </select>
+  </div>
   </div>
   <div class="fg"><label class="fl">Show to *</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
@@ -1999,6 +2015,10 @@ async function saveClient(){
     // Create workflow update for stage change
     var note=document.getElementById('cl-update-note')&&document.getElementById('cl-update-note').value.trim();
     var showC=document.getElementById('cl-update-show')&&document.getElementById('cl-update-show').checked;
+    // Notify client via Telegram if they have it linked
+    if(showC&&note&&c.telegram_chat_id){
+      tgNotifTo(c.telegram_chat_id,'📋 Update from Intersect','*'+c.name+'*\n\n'+note);
+    }
     var stageChanged=oldClient&&oldClient.stage!==c.stage;
     if(stageChanged||note){
       var wfTitle=stageChanged?'Stage updated: '+c.stage:(note?note.slice(0,60):'Client updated');
@@ -2503,6 +2523,11 @@ async function updateServiceStage(svcId,clientId){
     renderFeed();
     toast('✅ Stage updated!','success');
     tgNotif('📊','Service Stage Updated','*'+svc.client_name+'*\n'+svc.service_type+'\n'+svc.stage+' - '+newStage);
+    // Notify client
+    var cl2=AC.find(function(c){return c.id===clientId;});
+    if(cl2&&cl2.telegram_chat_id&&showClient){
+      tgNotifTo(cl2.telegram_chat_id,'🛠️ Service Update','*'+svc.service_type+'*\nNew stage: '+newStage+(note?'\n\n'+note:''));
+    }
   }catch(e){toast('Error','error');}
 }
 
@@ -2705,6 +2730,115 @@ function printInv(id){
     +'</body></html>';
   var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},600);
 }
+function printInvoice(id){
+  var inv=AInvoices.find(function(x){return x.id===id;});if(!inv)return;
+  var cl=AC.find(function(c){return c.id===inv.client_id;})||{name:inv.client_name||'—'};
+  var items=[];
+  try{items=JSON.parse(inv.items||'[]');}catch(e){}
+  var subtotal=items.reduce(function(s,it){return s+(parseFloat(it.amount)||0);},0);
+  var tax=parseFloat(inv.tax)||0;
+  var total=subtotal+tax;
+  var statusColor={Draft:'#6b7280',Sent:'#3b82f6',Paid:'#22c55e',Overdue:'#ef4444',Cancelled:'#6b7280'};
+  var sc=statusColor[inv.status]||'#6b7280';
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice '+inv.invoice_number+'</title><style>'
+    +'*{margin:0;padding:0;box-sizing:border-box;}'
+    +'body{font-family:Arial,sans-serif;color:#1a1a2e;padding:40px;max-width:800px;margin:0 auto;}'
+    +'.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;}'
+    +'.company{font-size:28px;font-weight:800;color:#06b6d4;letter-spacing:2px;}'
+    +'.company-sub{font-size:12px;color:#6b7280;margin-top:4px;}'
+    +'.inv-title{text-align:right;}'
+    +'.inv-title h1{font-size:32px;font-weight:800;color:#030407;}'
+    +'.inv-num{font-size:14px;color:#6b7280;margin-top:4px;}'
+    +'.status-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;background:'+sc+'22;color:'+sc+';margin-top:6px;}'
+    +'.section{margin-bottom:30px;}'
+    +'.section-title{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}'
+    +'.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}'
+    +'.info-label{font-size:11px;color:#6b7280;margin-bottom:2px;}'
+    +'.info-value{font-size:14px;font-weight:600;}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:20px;}'
+    +'thead tr{background:#f8f9fc;}'
+    +'th{padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;}'
+    +'td{padding:12px;border-bottom:1px solid #e8ecf8;font-size:13px;}'
+    +'.total-row{background:#f8f9fc;font-weight:700;}'
+    +'.grand-total td{font-size:16px;font-weight:800;color:#06b6d4;border-top:2px solid #06b6d4;}'
+    +'.notes{background:#f8f9fc;border-radius:8px;padding:16px;font-size:12px;color:#6b7280;}'
+    +'.footer{margin-top:40px;text-align:center;font-size:11px;color:#6b7280;border-top:1px solid #e8ecf8;padding-top:16px;}'
+    +'@media print{body{padding:20px;}}'
+    +'</style></head><body>'
+    +'<div class="header">'
+      +'<div><div class="company">INTERSECT</div><div class="company-sub">PartnerOS · Strategic Partnership Management</div></div>'
+      +'<div class="inv-title">'
+        +'<h1>INVOICE</h1>'
+        +'<div class="inv-num">'+inv.invoice_number+'</div>'
+        +'<div class="status-badge">'+inv.status+'</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="section">'
+      +'<div class="info-grid">'
+        +'<div>'
+          +'<div class="section-title">Bill To</div>'
+          +'<div class="info-value">'+cl.name+'</div>'
+          +(cl.industry?'<div style="font-size:12px;color:#6b7280;">'+cl.industry+'</div>':'')
+          +(cl.country?'<div style="font-size:12px;color:#6b7280;">'+cl.country+'</div>':'')
+        +'</div>'
+        +'<div>'
+          +'<div class="section-title">Invoice Details</div>'
+          +'<div><div class="info-label">Issue Date</div><div class="info-value">'+(inv.issue_date||'—')+'</div></div>'
+          +(inv.due_date?'<div style="margin-top:8px;"><div class="info-label">Due Date</div><div class="info-value">'+inv.due_date+'</div></div>':'')
+          +(inv.expert_name?'<div style="margin-top:8px;"><div class="info-label">Consultant</div><div class="info-value">'+inv.expert_name+'</div></div>':'')
+        +'</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="section">'
+      +'<table>'
+        +'<thead><tr><th>Description</th><th style="text-align:right;">Amount</th></tr></thead>'
+        +'<tbody>'
+        +(items.length?items.map(function(it){return '<tr><td>'+it.description+'</td><td style="text-align:right;">$'+parseFloat(it.amount||0).toLocaleString()+'</td></tr>';}).join(''):'<tr><td colspan="2" style="text-align:center;color:#6b7280;">No line items</td></tr>')
+        +(tax?'<tr><td style="color:#6b7280;">Tax</td><td style="text-align:right;color:#6b7280;">$'+tax.toLocaleString()+'</td></tr>':'')
+        +'<tr class="grand-total"><td>Total</td><td style="text-align:right;">$'+total.toLocaleString()+'</td></tr>'
+        +'</tbody>'
+      +'</table>'
+    +'</div>'
+    +(inv.notes?'<div class="section"><div class="section-title">Notes</div><div class="notes">'+inv.notes+'</div></div>':'')
+    +'<div class="footer">INTERSECT PartnerOS · Thank you for your business</div>'
+    +'</body></html>';
+
+  var w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){w.print();},500);
+}
+
+async function markInvSent(id){
+  try{
+    await sb.from('ix_invoices').update({status:'Sent'}).eq('id',id);
+    var i=AInvoices.findIndex(function(x){return x.id===id;});
+    if(i>=0)AInvoices[i].status='Sent';
+    renderInvoices();
+    // Notify client
+    var inv=AInvoices.find(function(x){return x.id===id;});
+    if(inv){
+      var cl=AC.find(function(c){return c.id===inv.client_id;});
+      if(cl&&cl.telegram_chat_id){
+        tgNotifTo(cl.telegram_chat_id,'🧾 New Invoice','Invoice '+inv.invoice_number+' has been sent to you.\nAmount: $'+(parseFloat(inv.amount)||0).toLocaleString()+(inv.due_date?'\nDue: '+inv.due_date:''));
+      }
+    }
+    toast('✅ Marked as Sent','success');
+  }catch(e){toast('Error','error');}
+}
+
+async function markInvPaid(id){
+  try{
+    await sb.from('ix_invoices').update({status:'Paid',paid_at:new Date().toISOString()}).eq('id',id);
+    var i=AInvoices.findIndex(function(x){return x.id===id;});
+    if(i>=0)AInvoices[i].status='Paid';
+    renderInvoices();
+    tgNotif('💰','Invoice Paid','Invoice '+id.slice(0,8)+' marked as paid');
+    toast('✅ Marked as Paid','success');
+  }catch(e){toast('Error','error');}
+}
+
 async function delInv(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_invoices').delete().eq('id',id);AInvoices=AInvoices.filter(function(i){return i.id!==id;});renderInvoices();toast('Deleted','success');}
 
 // ── NEWS & ANNOUNCEMENTS ──
@@ -2718,6 +2852,22 @@ function toggleNewsAll(cb){
   ['news-clients','news-team','news-experts'].forEach(function(id){
     var el=document.getElementById(id);if(el)el.checked=cb.checked;
   });
+}
+
+function toggleNewsAudience(){
+  var aud=document.getElementById('news-audience').value;
+  var wrap=document.getElementById('news-specific-wrap');
+  if(wrap)wrap.style.display=aud==='specific'?'block':'none';
+  if(aud==='specific'){
+    var sel=document.getElementById('news-specific-person');
+    if(sel){
+      var opts='<option value="">— Select —</option>';
+      APeople.forEach(function(p){opts+='<option value="person:'+p.id+'|'+p.name+'">👥 '+p.name+(p.role?' · '+p.role:'')+'</option>';});
+      AC.forEach(function(c){opts+='<option value="client:'+c.id+'|'+c.name+'">🏢 '+c.name+'</option>';});
+      APartners.forEach(function(p){opts+='<option value="partner:'+p.id+'|'+p.name+'">🤝 '+p.name+'</option>';});
+      sel.innerHTML=opts;
+    }
+  }
 }
 
 async function saveNews(){
@@ -3249,6 +3399,31 @@ async function sendReply(){
     cm('m-reply');
     lRequests();
     toast('✅ Reply sent!','success');
+    // Notify client if they have Telegram
+    if(notify&&req&&req.client_id){
+      var clr=AC.find(function(c){return c.id===req.client_id;});
+      if(clr&&clr.telegram_chat_id){
+        tgNotifTo(clr.telegram_chat_id,'💬 Reply from Intersect','Your request has been responded to.\n\n'+text.slice(0,150));
+      }
+    }
+    // Notify partner if request came from partner
+    if(notify&&req&&req.partner_id){
+      try{
+        var rpart=await sb.from('ix_partners').select('telegram_chat_id,name').eq('id',req.partner_id).single();
+        if(!rpart.error&&rpart.data&&rpart.data.telegram_chat_id){
+          tgNotifTo(rpart.data.telegram_chat_id,'💬 Reply from Intersect','Your request has been responded to.\n\n'+text.slice(0,150));
+        }
+      }catch(e){}
+    }
+    // Notify team member if request came from team
+    if(notify&&req&&req.requested_by&&!req.client_id&&!req.partner_id){
+      try{
+        var rteam=await sb.from('ix_people').select('telegram_chat_id').eq('name',req.requested_by).single();
+        if(!rteam.error&&rteam.data&&rteam.data.telegram_chat_id){
+          tgNotifTo(rteam.data.telegram_chat_id,'💬 Reply from Intersect','Your request has been responded to.\n\n'+text.slice(0,150));
+        }
+      }catch(e){}
+    }
   }catch(e){toast('Error sending reply','error');}
 }
 
