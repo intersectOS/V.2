@@ -1743,7 +1743,7 @@ function renderClients(){
     var stgColor=STAGE_COLORS[c.stage]||'#6b7280';
     var hs=c.health_score||100;
     var hsC=hs>=80?'var(--green)':hs>=50?'var(--gold)':'var(--red)';
-    return '<div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor=\'var(--purple)\'" onmouseout="this.style.borderColor=\'var(--border)\'" onclick="openClientDetail(\''+c.id+'\')">'
+    return '<div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;cursor:pointer;transition:all .2s;" data-cid="'+c.id+'" onclick="openClientDetail(this.dataset.cid)">'
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:9px;">'
         +'<div><div style="font-size:14px;font-weight:700;margin-bottom:2px;">'+c.name+'</div>'
         +'<div style="font-size:10px;color:var(--ink3);">'+(c.industry||'')+(c.country?' · '+c.country:'')+'</div></div>'
@@ -1757,8 +1757,8 @@ function renderClients(){
       +(c.referred_by?'<div style="font-size:10px;color:var(--ink3);margin-bottom:7px;">📎 Ref: '+c.referred_by+'</div>':'')
       +'<div style="display:flex;gap:5px;">'
         +'<button class="btn bg bsm" style="flex:1;" onclick="event.stopPropagation();copyPortalLink(\''+c.code+'\')">🔗 Portal</button>'
-        +'<button class="btn bo bsm" onclick="event.stopPropagation();editClient(\''+c.id+'\')" title="Edit">✏️</button>'
-        +'<button class="btn bd bsm" onclick="event.stopPropagation();delClient(\''+c.id+'\')">✕</button>'
+        +'<button class="btn bo bsm" data-id="'+c.id+'" onclick="event.stopPropagation();editClient(this.dataset.id)" title="Edit">✏️</button>'
+        +'<button class="btn bd bsm" data-id="'+c.id+'" onclick="event.stopPropagation();delClient(this.dataset.id)">✕</button>'
       +'</div>'
     +'</div>';
   }).join('');
