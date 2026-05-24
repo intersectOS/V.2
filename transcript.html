@@ -406,16 +406,24 @@ async function saveMeeting(){
   var title=document.getElementById('mt-title').value.trim();
   var date=document.getElementById('mt-date').value;
   if(!title||!date){toast('Fill title and date','te');return;}
+  // Build notes from all fields (workaround for schema cache)
+  var agenda=document.getElementById('mt-agenda').value.trim();
+  var summary=document.getElementById('mt-sum').value.trim();
+  var acts=document.getElementById('mt-acts').value.trim();
+  var tr_text=document.getElementById('mt-tr').value.trim();
+  var combined_notes=[
+    agenda?'AGENDA:\n'+agenda:'',
+    summary?'SUMMARY:\n'+summary:'',
+    acts?'ACTIONS:\n'+acts:'',
+    document.getElementById('mt-notes').value.trim()?'NOTES:\n'+document.getElementById('mt-notes').value.trim():'',
+    tr_text?'TRANSCRIPT:\n'+tr_text:''
+  ].filter(Boolean).join('\n\n');
+
   var body={
-    title:title, organization:selectedClient.name, client_name:selectedClient.name,
-    date:date, meeting_type:document.getElementById('mt-type').value,
-    followup_deadline:document.getElementById('mt-fup').value||null,
-    attendees:document.getElementById('mt-att').value.trim()||null,
-    agenda:document.getElementById('mt-agenda').value.trim()||null,
-    summary:document.getElementById('mt-sum').value.trim()||null,
-    action_items:document.getElementById('mt-acts').value.trim()||null,
-    notes:document.getElementById('mt-notes').value.trim()||null,
-    transcript:document.getElementById('mt-tr').value.trim()||null
+    title:title,
+    organization:selectedClient.name,
+    date:date,
+    notes:combined_notes||null
   };
   var r=await postSB('ix_meetings',body);
   // Debug: show what came back
