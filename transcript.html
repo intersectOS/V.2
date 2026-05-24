@@ -406,24 +406,10 @@ async function saveMeeting(){
   var title=document.getElementById('mt-title').value.trim();
   var date=document.getElementById('mt-date').value;
   if(!title||!date){toast('Fill title and date','te');return;}
-  // Build notes from all fields (workaround for schema cache)
-  var agenda=document.getElementById('mt-agenda').value.trim();
-  var summary=document.getElementById('mt-sum').value.trim();
-  var acts=document.getElementById('mt-acts').value.trim();
-  var tr_text=document.getElementById('mt-tr').value.trim();
-  var combined_notes=[
-    agenda?'AGENDA:\n'+agenda:'',
-    summary?'SUMMARY:\n'+summary:'',
-    acts?'ACTIONS:\n'+acts:'',
-    document.getElementById('mt-notes').value.trim()?'NOTES:\n'+document.getElementById('mt-notes').value.trim():'',
-    tr_text?'TRANSCRIPT:\n'+tr_text:''
-  ].filter(Boolean).join('\n\n');
-
   var body={
     title:title,
     organization:selectedClient.name,
-    date:date,
-    notes:combined_notes||null
+    date:date
   };
   var r=await postSB('ix_meetings',body);
   // Debug: show what came back
