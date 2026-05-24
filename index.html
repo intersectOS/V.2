@@ -1430,7 +1430,7 @@ function gp(n,el){
   if(ti&&sp)ti.textContent=t(sp.dataset.i);
   closeSB();
   var renderMap={
-    clients:renderClients,
+    clients:function(){if(sb){sb.from('ix_clients_v2').select('*').order('created_at',{ascending:false}).then(function(r){if(!r.error){AC=r.data||[];renderClients();}});}else{renderClients();}},
     people:function(){if(sb){sb.from('ix_people').select('*').order('name').then(function(r){if(!r.error){APeople=r.data||[];renderPeople();}});}else{renderPeople();}},
     pipeline:renderPipeline,
     actions:renderActions,
