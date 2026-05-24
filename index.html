@@ -662,6 +662,37 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       </div>
     </div>
 
+    <!-- REPORTS PAGE -->
+    <div class="page" id="page-reports">
+      <div class="sh"><div class="ptit">📈 Reports & Analytics</div><button class="btn bg bsm" onclick="loadReports()">↻ Refresh</button></div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
+        <div class="panel" style="margin:0;"><div class="pb" style="text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--teal);font-family:Syne;" id="rep-total-clients">—</div><div style="font-size:11px;color:var(--ink3);">Total Clients</div></div></div>
+        <div class="panel" style="margin:0;"><div class="pb" style="text-align:center;"><div style="font-size:26px;font-weight:800;color:#22c55e;font-family:Syne;" id="rep-active-svcs">—</div><div style="font-size:11px;color:var(--ink3);">Active Services</div></div></div>
+        <div class="panel" style="margin:0;"><div class="pb" style="text-align:center;"><div style="font-size:26px;font-weight:800;color:#a78bfa;font-family:Syne;" id="rep-pending-reqs">—</div><div style="font-size:11px;color:var(--ink3);">Pending Requests</div></div></div>
+        <div class="panel" style="margin:0;"><div class="pb" style="text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--gold);font-family:Syne;" id="rep-total-meetings">—</div><div style="font-size:11px;color:var(--ink3);">Total Meetings</div></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div class="panel"><div class="ph"><div class="ptit">🏢 Client Funnel</div></div><div class="pb" id="rep-funnel"></div></div>
+        <div class="panel"><div class="ph"><div class="ptit">🛠️ Services</div></div><div class="pb" id="rep-services-dist"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="panel"><div class="ph"><div class="ptit">👥 Team</div></div><div class="pb" id="rep-team-perf"></div></div>
+        <div class="panel"><div class="ph"><div class="ptit">📅 Last 30 Days</div></div><div class="pb" id="rep-activity"></div></div>
+      </div>
+    </div>
+
+    <!-- CONTRACTS PAGE -->
+    <div class="page" id="page-contracts">
+      <div class="sh"><div class="ptit">📜 Contracts</div><button class="btn bg bsm" onclick="om('m-contract')">+ New Contract</button></div>
+      <div id="contracts-list"><div style="text-align:center;color:var(--ink3);padding:30px;">Loading...</div></div>
+    </div>
+
+    <!-- SERVICES CATALOG PAGE -->
+    <div class="page" id="page-catalog">
+      <div class="sh"><div class="ptit">🛒 Services Catalog</div><button class="btn bg bsm" onclick="openAddService()">+ Add Service</button></div>
+      <div id="catalog-list"><div style="text-align:center;color:var(--ink3);padding:30px;">Loading...</div></div>
+    </div>
+
     <!-- AI INSIGHTS -->
     <div class="page" id="page-ai">
       <div class="sh"><div class="st" data-i="n_ai">AI Insights</div><button class="btn bg bsm" onclick="generateAIInsights()">🤖 Generate Insights</button></div>
@@ -1320,10 +1351,12 @@ function gp(n,el){
   closeSB();
   var renderMap={
     clients:renderClients, people:renderPeople, pipeline:renderPipeline,
-    actions:renderActions, experts:renderExperts, requests:renderRequests,
-    meetings:renderMeetings, reports:function(){loadReportClients();},
+    actions:renderActions, experts:renderExperts, requests:lRequests,
+    meetings:renderMeetings, reports:loadReports,
     invoices:renderInvoices, ai:renderAI, projects:renderProjects, tasks:renderTasks,
     notifications:renderNotifs, news:lNews,
+    contracts:function(){loadContracts();populateContractClients();},
+    catalog:loadCatalog,
     settings:function(){
       var k=document.getElementById('claude-key');
       if(k){var saved=localStorage.getItem('ix_claude_key');k.placeholder=saved?'••••••••• (saved)':'sk-ant-...';}
@@ -1608,39 +1641,137 @@ function copyPortalLink(code){
   navigator.clipboard.writeText(link).then(function(){toast('✅ Portal link copied!','success');});
 }
 
-function openClientDetail(id){
+async function openClientDetail(id){
   var c=AC.find(function(x){return x.id===id;});if(!c)return;
   var wf=AWorkflow.filter(function(w){return w.client_id===id;});
   var req=ARequests.filter(function(r){return r.client_id===id;});
-  var meet=AMeet.filter(function(m){return m.organization===c.name;});
+  var meet=AMeet.filter(function(m){return m.organization===c.name||m.client_name===c.name;});
+  var svcs=AClientServices.filter(function(s){return s.client_id===id;});
   var stgColor=STAGE_COLORS[c.stage]||'#6b7280';
-  document.getElementById('client-detail-body').innerHTML=
-    '<div style="margin-bottom:14px;">'
-      +'<div style="font-size:18px;font-weight:800;margin-bottom:6px;">'+c.name+'</div>'
-      +'<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px;">'
-        +'<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+stgColor+'22;color:'+stgColor+';">'+c.stage+'</span>'
-        +'<span class="pill '+(SVC_CLASS[c.service_type]||'pgr')+'">'+(c.service_type||'—')+'</span>'
-      +'</div>'
-      +(c.notes_internal?'<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:8px;padding:9px;font-size:11px;margin-bottom:7px;"><span style="color:var(--purple-light);font-weight:700;">🔒 Internal:</span> '+c.notes_internal+'</div>':'')
-      +(c.referred_by?'<div style="font-size:11px;color:var(--ink3);margin-bottom:7px;">📎 Referred by: <strong style="color:var(--gold);">'+c.referred_by+'</strong></div>':'')
-    +'</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;">'
-      +'<div><div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Workflow Updates</div>'
-      +(wf.length?wf.slice(0,4).map(function(w){var sc=w.status==='Completed'?'var(--green)':w.status==='Blocked'?'var(--red)':'var(--teal)';return '<div style="padding:8px;background:var(--card2);border-radius:7px;margin-bottom:5px;display:flex;gap:8px;"><div style="width:7px;height:7px;border-radius:50%;background:'+sc+';flex-shrink:0;margin-top:3px;"></div><div><div style="font-size:11px;font-weight:600;">'+w.title+'</div><div style="display:flex;gap:5px;margin-top:3px;"><span style="font-size:9px;color:var(--ink3);">'+new Date(w.created_at).toLocaleDateString()+'</span><span style="font-size:9px;padding:1px 5px;border-radius:6px;'+(w.show_to_client?'background:rgba(34,197,94,.1);color:var(--green)':'background:rgba(74,82,112,.15);color:var(--ink3)')+';">'+(w.show_to_client?'Client':'Internal')+'</span></div></div></div>';}).join(''):'<div style="font-size:11px;color:var(--ink3);padding:10px;text-align:center;">No updates</div>')
-      +'<button class="btn bg bsm" style="width:100%;margin-top:6px;" onclick="openWF(\''+id+'\',\''+c.name+'\')">+ Add Update</button></div>'
-      +'<div>'
-        +'<div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Meetings ('+meet.length+')</div>'
-        +(meet.length?meet.slice(0,3).map(function(m){return '<div style="padding:7px;background:var(--card2);border-radius:7px;margin-bottom:5px;"><div style="font-size:11px;font-weight:600;">'+m.title+'</div><div style="font-size:10px;color:var(--ink3);">'+(m.date||'')+'</div></div>';}).join(''):'<div style="font-size:11px;color:var(--ink3);padding:8px;text-align:center;">No meetings</div>')
-        +'<div style="margin-top:8px;"><div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Requests ('+req.length+')</div>'
-        +(req.length?req.slice(0,3).map(function(r){var rc={'Pending':'var(--gold)','Accepted':'var(--green)','Completed':'var(--teal)','Rejected':'var(--red)'};return '<div style="padding:7px;background:var(--card2);border-radius:7px;margin-bottom:5px;"><div style="font-size:11px;font-weight:600;">'+r.title+'</div><div style="font-size:10px;color:'+(rc[r.status]||'var(--ink3)')+';font-weight:700;">'+r.status+'</div></div>';}).join(''):'<div style="font-size:11px;color:var(--ink3);padding:8px;text-align:center;">No requests</div>')
-        +'</div>'
-      +'</div>'
-    +'</div>'
-    +'<div style="display:flex;gap:7px;flex-wrap:wrap;">'
-      +'<button class="btn bg bsm" onclick="openReq(\''+id+'\',\''+c.name+'\')">📋 New Request</button>'
-      +'<button class="btn bo bsm" onclick="generateReport(\''+id+'\')">📄 Report</button>'
-      +'<button class="btn bo bsm" onclick="copyPortalLink(\''+c.code+'\')">🔗 Copy Portal</button>'
-    +'</div>';
+  var typeIcon=c.client_type==='jv'?'🏦':c.client_type==='partner'?'🤝':c.client_type==='strategic'?'⚙️':'🏢';
+  var typeBadge=c.client_type==='jv'?'🏦 JV '+(c.jv_equity?c.jv_equity+'%':''):c.client_type==='partner'?'🤝 Success Partner':c.client_type==='strategic'?'⚙️ Strategic Partner':'🏢 Client';
+
+  // Load team structure requests
+  var teamReqs=req.filter(function(r){return r.context_type==='team_structure';});
+
+  var html='';
+
+  // ── HEADER ──
+  html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
+  html+='<div><div style="font-size:20px;font-weight:800;font-family:Syne;margin-bottom:4px;">'+typeIcon+' '+c.name+'</div>';
+  html+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+  html+='<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+stgColor+'22;color:'+stgColor+';">'+c.stage+'</span>';
+  html+='<span style="font-size:10px;background:rgba(6,182,212,.1);color:var(--teal);padding:2px 8px;border-radius:8px;">'+typeBadge+'</span>';
+  if(c.industry)html+='<span style="font-size:10px;color:var(--ink3);">'+c.industry+'</span>';
+  if(c.country)html+='<span style="font-size:10px;color:var(--ink3);">📍 '+c.country+'</span>';
+  html+='</div></div>';
+  html+='<div style="display:flex;gap:6px;">';
+  html+='<button class="btn bg bsm" onclick="openAddClient(\''+id+'\')" >✏️ Edit</button>';
+  html+='<button class="btn bo bsm" onclick="copyPortalLink(\''+c.code+'\')" >🔗 Portal</button>';
+  html+='</div></div>';
+
+  // ── INFO ROW ──
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">';
+  html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Account Manager</div><div style="font-size:12px;font-weight:600;">'+(c.main_am_name||'Unassigned')+'</div></div>';
+  html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Added By</div><div style="font-size:12px;font-weight:600;">'+(c.added_by||'—')+'</div></div>';
+  html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Added</div><div style="font-size:12px;font-weight:600;">'+new Date(c.created_at).toLocaleDateString()+'</div></div>';
+  html+='</div>';
+
+  // ── NOTES ──
+  if(c.notes_internal)html+='<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:8px;padding:10px;font-size:12px;margin-bottom:10px;"><span style="color:#a78bfa;font-weight:700;">🔒 Internal:</span> '+c.notes_internal+'</div>';
+  if(c.notes_client)html+='<div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:8px;padding:10px;font-size:12px;margin-bottom:10px;"><span style="color:var(--teal);font-weight:700;">👤 Client Note:</span> '+c.notes_client+'</div>';
+  if(c.partner_ref_name)html+='<div style="font-size:12px;color:var(--ink2);margin-bottom:10px;">🤝 Referred by: <strong style="color:var(--gold);">'+c.partner_ref_name+'</strong></div>';
+
+  // ── SERVICES ──
+  if(svcs.length){
+    html+='<div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🛠️ Services ('+svcs.length+')</div>';
+    html+='<div style="display:flex;flex-direction:column;gap:6px;">';
+    var stgC={'RELATIONSHIP BUILDING':'#06b6d4','PROPOSAL':'#a78bfa','NEGOTIATION':'#f59e0b','AGREEMENT':'#3b82f6','LEGAL':'#8b5cf6','EXECUTION':'#22c55e','COMPLETED':'#10b981','ON HOLD':'#6b7280'};
+    svcs.forEach(function(s){
+      var sc=stgC[s.stage]||'#06b6d4';
+      html+='<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid '+sc+';border-radius:8px;padding:9px;display:flex;justify-content:space-between;align-items:center;">';
+      html+='<div><div style="font-size:12px;font-weight:600;">'+s.service_type+'</div><div style="font-size:10px;color:var(--ink3);">Started: '+(s.start_date||new Date(s.created_at).toLocaleDateString())+'</div></div>';
+      html+='<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:'+sc+'22;color:'+sc+';font-weight:700;">'+s.stage+'</span>';
+      html+='</div>';
+    });
+    html+='</div></div>';
+  }
+
+  // ── WORKFLOW TIMELINE ──
+  html+='<div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🔄 Workflow Timeline ('+wf.length+')</div>';
+  if(wf.length){
+    html+='<div style="position:relative;padding-left:16px;">';
+    wf.slice(0,8).forEach(function(w){
+      var sc=w.status==='Completed'?'#22c55e':w.status==='Blocked'?'var(--red)':'var(--teal)';
+      html+='<div style="display:flex;gap:8px;margin-bottom:8px;position:relative;">';
+      html+='<div style="position:absolute;left:-16px;top:4px;width:8px;height:8px;border-radius:50%;background:'+sc+';flex-shrink:0;"></div>';
+      html+='<div style="flex:1;background:var(--card2);border-radius:7px;padding:8px;">';
+      html+='<div style="font-size:12px;font-weight:600;margin-bottom:2px;">'+w.title+'</div>';
+      if(w.description)html+='<div style="font-size:11px;color:var(--ink2);margin-bottom:3px;">'+w.description.slice(0,80)+'</div>';
+      html+='<div style="display:flex;gap:6px;align-items:center;">';
+      html+='<span style="font-size:9px;color:var(--ink3);">'+new Date(w.created_at).toLocaleDateString()+'</span>';
+      if(w.created_by)html+='<span style="font-size:9px;color:var(--ink3);">by '+w.created_by+'</span>';
+      html+='<span style="font-size:9px;padding:1px 5px;border-radius:5px;'+(w.show_to_client?'background:rgba(34,197,94,.1);color:#22c55e':'background:rgba(74,82,112,.15);color:var(--ink3)')+';">'+(w.show_to_client?'Visible to client':'Internal')+'</span>';
+      html+='</div></div></div>';
+    });
+    html+='</div>';
+  } else {
+    html+='<div style="font-size:12px;color:var(--ink3);padding:10px;text-align:center;background:var(--card2);border-radius:8px;">No updates yet</div>';
+  }
+  html+='<button class="btn bg bsm" style="width:100%;margin-top:6px;" data-cid="'+id+'" data-cname="'+c.name+'" onclick="openWF(this.dataset.cid,this.dataset.cname)">+ Add Update</button>';
+  html+='</div>';
+
+  // ── REQUESTS ──
+  html+='<div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📋 Requests & Tickets ('+req.length+')</div>';
+  if(req.length){
+    req.slice(0,5).forEach(function(r){
+      var rc={Pending:'var(--gold)',Accepted:'#10b981',Completed:'#22c55e',Rejected:'var(--red)','Done - Pending Confirmation':'var(--gold)'};
+      html+='<div style="background:var(--card2);border-radius:7px;padding:8px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:flex-start;">';
+      html+='<div><div style="font-size:12px;font-weight:600;">'+r.title.replace('[Client Request] ','').replace(' [Management]','').slice(0,50)+'</div>';
+      if(r.reply)html+='<div style="font-size:11px;color:#22c55e;">💬 '+r.reply.slice(0,50)+'</div>';
+      html+='<div style="font-size:10px;color:var(--ink3);">'+new Date(r.created_at).toLocaleDateString()+'</div></div>';
+      html+='<span style="font-size:10px;color:'+(rc[r.status]||'var(--ink3)')+';font-weight:700;white-space:nowrap;margin-left:6px;">'+r.status+'</span>';
+      html+='</div>';
+    });
+  } else {
+    html+='<div style="font-size:12px;color:var(--ink3);padding:10px;text-align:center;background:var(--card2);border-radius:8px;">No requests</div>';
+  }
+  html+='</div>';
+
+  // ── MEETINGS ──
+  html+='<div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📅 Meetings ('+meet.length+')</div>';
+  if(meet.length){
+    meet.slice(0,4).forEach(function(m){
+      html+='<div style="background:var(--card2);border-radius:7px;padding:8px;margin-bottom:5px;">';
+      html+='<div style="font-size:12px;font-weight:600;">'+m.title+'</div>';
+      html+='<div style="font-size:10px;color:var(--ink3);">'+(m.date||'')+(m.meeting_type?' · '+m.meeting_type:'')+(m.logged_by?' · by '+m.logged_by:'')+'</div>';
+      html+='</div>';
+    });
+  } else {
+    html+='<div style="font-size:12px;color:var(--ink3);padding:10px;text-align:center;background:var(--card2);border-radius:8px;">No meetings</div>';
+  }
+  html+='</div>';
+
+  // ── TEAM STRUCTURE ──
+  if(teamReqs.length){
+    html+='<div style="margin-bottom:14px;background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:10px;padding:12px;">';
+    html+='<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🏗️ Team Structure</div>';
+    teamReqs.forEach(function(r){
+      html+='<div style="font-size:12px;margin-bottom:4px;">'+r.description.slice(0,100)+'</div>';
+      html+='<div style="font-size:10px;color:var(--ink3);">Status: <strong>'+r.status+'</strong> · '+new Date(r.created_at).toLocaleDateString()+'</div>';
+    });
+    html+='</div>';
+  }
+
+  // ── LINKS ──
+  html+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+  if(c.drive_url)html+='<a href="'+c.drive_url+'" target="_blank" class="btn bo bsm">📁 Files</a>';
+  if(c.roadmap_url)html+='<a href="'+c.roadmap_url+'" target="_blank" class="btn bo bsm">🗺️ Roadmap</a>';
+  html+='<button class="btn bbg bsm" data-cid="'+id+'" data-cname="'+c.name+'" onclick="openWF(this.dataset.cid,this.dataset.cname)">📝 Add Update</button>';
+  html+='<button class="btn bsm" style="background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);" data-cid="'+id+'" data-cname="'+c.name+'" onclick="manageServices(this.dataset.cid,this.dataset.cname)">🛠️ Services</button>';
+  html+='</div>';
+
+  document.getElementById('client-detail-body').innerHTML=html;
   om('m-cd');
 }
 
@@ -3234,6 +3365,45 @@ async function deleteCatalogService(id){
   await sb.from('ix_services_catalog').delete().eq('id',id);
   ACatalog=ACatalog.filter(function(s){return s.id!==id;});
   renderCatalog();toast('Deleted','success');
+}
+
+var dashSelectedRating=0;
+
+function setDashRating(r){
+  dashSelectedRating=r;
+  document.getElementById('dash-rating-val').textContent=r+' star'+(r>1?'s':'');
+  document.querySelectorAll('#dash-star-rating button').forEach(function(b,i){
+    b.style.opacity=i<r?'1':'0.3';
+  });
+}
+
+function openRateDashExpert(pid, pname){
+  document.getElementById('dash-rate-pid').value=pid;
+  document.getElementById('dash-rate-name').textContent=pname;
+  dashSelectedRating=0;
+  document.querySelectorAll('#dash-star-rating button').forEach(function(b){b.style.opacity='0.3';});
+  document.getElementById('dash-rating-val').textContent='Select rating';
+  document.getElementById('dash-rate-feedback').value='';
+  om('m-dash-rate');
+}
+
+async function submitDashRating(){
+  if(!dashSelectedRating){toast('Select a rating','error');return;}
+  var pid=document.getElementById('dash-rate-pid').value;
+  var feedback=document.getElementById('dash-rate-feedback').value.trim();
+  var p=APeople.find(function(x){return x.id===pid;});if(!p)return;
+  var oldRating=p.rating||0;
+  var oldCount=p.rating_count||0;
+  var newCount=oldCount+1;
+  var newRating=Math.round(((oldRating*oldCount)+dashSelectedRating)/newCount*10)/10;
+  try{
+    await sb.from('ix_people').update({rating:newRating,rating_count:newCount,rating_feedback:feedback||null}).eq('id',pid);
+    var i=APeople.findIndex(function(x){return x.id===pid;});
+    if(i>=0){APeople[i].rating=newRating;APeople[i].rating_count=newCount;}
+    cm('m-dash-rate');
+    lPeople();
+    toast('⭐ Rating saved!','success');
+  }catch(e){toast('Error saving rating','error');}
 }
 
 function populateContractClients(){

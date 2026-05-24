@@ -333,9 +333,15 @@ async function loadData(){
   // Load clients from ix_clients_v2 + ix_meetings
   var r1=await fetchSB('ix_clients_v2','order=name.asc&select=id,name,stage,industry,code');
   clients=Array.isArray(r1)?r1:[];
-  var r2=await fetchSB('ix_meetings','order=date.desc');
+  var r2=await fetchSB('ix_meetings','order=created_at.desc');
   allMeetings=Array.isArray(r2)?r2:[];
-  document.getElementById('meet-count-header').textContent=allMeetings.length+' total meetings · '+clients.length+' clients';
+  var hdr=document.getElementById('meet-count-header');
+  if(hdr)hdr.textContent=allMeetings.length+' meetings · '+clients.length+' clients';
+  // Debug: show error if no clients
+  if(!clients.length){
+    var dbg=document.getElementById('err-display');
+    if(dbg){dbg.textContent='No clients found. Check Supabase connection.';dbg.style.display='block';dbg.style.background='#f59e0b';}
+  }
   renderSidebar();
   }catch(e){var el=document.getElementById("err-display");if(el){el.textContent="loadData error: "+e.message;el.style.display="block";}}
 }
@@ -344,7 +350,7 @@ function renderSidebar(){
   var el=document.getElementById('cl-list-sidebar');
   if(!clients.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);padding:8px;">No clients yet</div>';return;}
   el.innerHTML=clients.map(function(c){
-    var cnt=allMeetings.filter(function(m){return m.organization===c.name;}).length;
+    var cnt=allMeetings.filter(function(m){return m.organization===c.name||m.client_name===c.name;}).length;
     var isOn=selectedClient&&selectedClient.id===c.id;
     return '<div class="cl-item '+(isOn?'on':'')+'" data-id="'+c.id+'" onclick="selectClient(\''+c.id+'\')">'
       +'<div class="cl-name">'+c.name+'</div>'
@@ -442,6 +448,38 @@ function viewTranscript(id){
 }
 
 // New client file
+async function createClientFile(){
+  var name=document.getElementById('nc-name')&&document.getElementById('nc-name').value.trim();
+  if(!name){toast('Enter client name','te');return;}
+  var industry=document.getElementById('nc-industry')&&document.getElementById('nc-industry').value.trim();
+  var notes=document.getElementById('nc-notes')&&document.getElementById('nc-notes').value.trim();
+  // Check if exists
+  var existing=clients.find(function(c){return c.name.toLowerCase()===name.toLowerCase();});
+  if(existing){closeModal('m-new-cl');selectClient(existing.id);toast('Client already exists','ts');return;}
+  // Create in Supabase
+  var body={name:name,industry:industry||null,notes:notes||null};
+  var result=await postSB('ix_clients_v2',body);
+  if(result&&result.id){
+    clients.push(result);
+    renderSidebar();
+    selectClient(result.id);
+    closeModal('m-new-cl');
+    toast('✅ Client file created!','ts');
+    // Clear form
+    if(document.getElementById('nc-name'))document.getElementById('nc-name').value='';
+    if(document.getElementById('nc-industry'))document.getElementById('nc-industry').value='';
+    if(document.getElementById('nc-notes'))document.getElementById('nc-notes').value='';
+  } else {
+    // Fallback: local only
+    var localClient={id:'local-'+Date.now(),name:name,industry:industry||'',notes:notes||'',meetings:[]};
+    clients.push(localClient);
+    renderSidebar();
+    selectClient(localClient.id);
+    closeModal('m-new-cl');
+    toast('✅ Client file created (local)','ts');
+  }
+}
+
 function openNewClient(){
   // Check if exists in current list first
   var r=prompt('Enter client name:');
