@@ -394,6 +394,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <div class="ni" onclick="gp('ai',this)"><span class="nico">🤖</span><span data-i="n_ai">AI Insights</span></div>
       <div class="nsec" data-i="g_ops">Operations</div>
       <div class="ni" onclick="gp('clients',this)"><span class="nico">🏢</span><span data-i="n_clients">Clients</span></div>
+      <div class="ni" onclick="gp('partners',this)"><span class="nico">🤝</span><span>Partners</span></div>
       <div class="ni" onclick="gp('pipeline',this)"><span class="nico">🎯</span><span data-i="n_pipe">Opportunities</span></div>
       <div class="ni" onclick="gp('actions',this)"><span class="nico">✅</span><span data-i="n_act">Action Items</span></div>
       <div class="ni" onclick="gp('people',this)"><span class="nico">👥</span><span data-i="n_people">People Directory</span></div>
@@ -660,6 +661,22 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
         </div>
         <div class="pb" id="news-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:18px;">No news yet — add your first announcement</div></div>
       </div>
+    </div>
+
+    <!-- PARTNERS PAGE -->
+    <div class="page" id="page-partners">
+      <div class="sh">
+        <div class="ptit">🤝 Partners</div>
+        <button class="btn bg bsm" onclick="openAddPartner()">+ Add Partner</button>
+      </div>
+      <!-- Type tabs -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;flex-wrap:wrap;">
+        <button class="pt-tab on" data-pt="" onclick="setPartnerType('',this)" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(6,182,212,.3);background:rgba(6,182,212,.1);color:var(--teal);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">All</button>
+        <button class="pt-tab" data-pt="success_partner" onclick="setPartnerType('success_partner',this)" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">🤝 Success Partners</button>
+        <button class="pt-tab" data-pt="strategic" onclick="setPartnerType('strategic',this)" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">⚙️ Strategic Partners</button>
+        <button class="pt-tab" data-pt="jv" onclick="setPartnerType('jv',this)" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">🏦 JV Partners</button>
+      </div>
+      <div id="partners-grid" class="client-grid"></div>
     </div>
 
     <!-- REPORTS PAGE -->
@@ -1264,6 +1281,7 @@ var sb = null;
 // Data arrays
 var AC=[], APeople=[], AOpps=[], AActions=[], AWorkflow=[], ARequests=[], AMeet=[], ANotifs=[], AInvoices=[], AProj=[], ATasks=[], AExpertReq=[];
 var AMeetings=AMeet, AClientServices=[], AServiceHistory=[], AContracts=[], ACatalog=[];
+var APartners=[];
 
 function t(k){return (T[lang]&&T[lang][k]) ? T[lang][k] : (T.en[k]||k);}
 
@@ -1607,6 +1625,7 @@ function renderClients(){
   var sf=document.getElementById('cf-stage')&&document.getElementById('cf-stage').value;
   var svf=document.getElementById('cf-svc')&&document.getElementById('cf-svc').value;
   var f=AC;
+  if(currentCLType)f=f.filter(function(c){return (c.client_type||'client')===currentCLType;});
   if(sf)f=f.filter(function(c){return c.stage===sf;});
   if(svf)f=f.filter(function(c){return c.service_type===svf;});
   if(!f.length){grid.innerHTML='<div style="grid-column:span 3;text-align:center;padding:40px;color:var(--ink3);">No clients yet — click Add Client</div>';return;}
@@ -3404,6 +3423,221 @@ async function submitDashRating(){
     lPeople();
     toast('⭐ Rating saved!','success');
   }catch(e){toast('Error saving rating','error');}
+}
+
+// ── PARTNERS SYSTEM ──
+var currentPartnerType='';
+
+function setPartnerType(type, el){
+  currentPartnerType=type;
+  document.querySelectorAll('.pt-tab').forEach(function(b){
+    b.style.background='var(--card2)';b.style.color='var(--ink2)';b.style.borderColor='var(--border)';
+  });
+  var colors={'':{bg:'rgba(6,182,212,.1)',tx:'var(--teal)',bd:'rgba(6,182,212,.3)'},
+    success_partner:{bg:'rgba(245,158,11,.1)',tx:'var(--gold)',bd:'rgba(245,158,11,.3)'},
+    strategic:{bg:'rgba(124,58,237,.1)',tx:'#a78bfa',bd:'rgba(124,58,237,.3)'},
+    jv:{bg:'rgba(245,158,11,.08)',tx:'var(--gold)',bd:'rgba(245,158,11,.3)'}};
+  var c=colors[type]||colors[''];
+  el.style.background=c.bg;el.style.color=c.tx;el.style.borderColor=c.bd;
+  renderPartners();
+}
+
+function togglePartnerTypeFields(){
+  var type=document.getElementById('pt-type').value;
+  document.getElementById('pt-jv-wrap').style.display=type==='jv'?'block':'none';
+  document.getElementById('pt-strategic-wrap').style.display=type==='strategic'?'block':'none';
+}
+
+function openAddPartner(editId){
+  document.getElementById('m-partner').dataset.editId=editId||'';
+  var titleEl=document.getElementById('partner-modal-title');
+  // Populate AM
+  var amSel=document.getElementById('pt-am');
+  if(amSel)amSel.innerHTML='<option value="">— No AM —</option>'+APeople.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+  if(!editId){
+    if(titleEl)titleEl.textContent='🤝 Add Partner';
+    ['pt-name','pt-industry','pt-country','pt-addedby','pt-username','pt-pass','pt-notes-i','pt-notes-c','pt-drive','pt-equity','pt-jv-link','pt-specialization'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('pt-type').value='success_partner';
+    document.getElementById('pt-jv-wrap').style.display='none';
+    document.getElementById('pt-strategic-wrap').style.display='none';
+    document.getElementById('pt-id').value='';
+  } else {
+    var p=APartners.find(function(x){return x.id===editId;});if(!p)return;
+    if(titleEl)titleEl.textContent='✏️ Edit: '+p.name;
+    document.getElementById('pt-id').value=editId;
+    document.getElementById('pt-type').value=p.partner_type||'success_partner';
+    document.getElementById('pt-name').value=p.name||'';
+    document.getElementById('pt-industry').value=p.industry||'';
+    document.getElementById('pt-country').value=p.country||'';
+    document.getElementById('pt-addedby').value=p.added_by||'';
+    document.getElementById('pt-username').value=p.username||'';
+    document.getElementById('pt-pass').value=p.portal_password||'';
+    document.getElementById('pt-notes-i').value=p.notes_internal||'';
+    document.getElementById('pt-notes-c').value=p.notes_client||'';
+    document.getElementById('pt-drive').value=p.drive_url||'';
+    document.getElementById('pt-equity').value=p.jv_equity||'';
+    document.getElementById('pt-jv-link').value=p.jv_link||'';
+    document.getElementById('pt-specialization').value=p.specialization||'';
+    if(amSel&&p.main_am_name)amSel.value=(p.main_am_id||'')+'|'+p.main_am_name;
+    togglePartnerTypeFields();
+  }
+  om('m-partner');
+}
+
+function renderPartners(){
+  var grid=document.getElementById('partners-grid');if(!grid)return;
+  var f=APartners;
+  if(currentPartnerType)f=f.filter(function(p){return p.partner_type===currentPartnerType;});
+  if(!f.length){
+    grid.innerHTML='<div style="grid-column:span 3;text-align:center;padding:40px;color:var(--ink3);">No partners yet — click Add Partner</div>';
+    return;
+  }
+  var typeIcon={success_partner:'🤝',strategic:'⚙️',jv:'🏦'};
+  var typeLabel={success_partner:'Success Partner',strategic:'Strategic Partner',jv:'JV Partner'};
+  var typeColor={success_partner:'var(--gold)',strategic:'#a78bfa',jv:'var(--gold)'};
+  grid.innerHTML=f.map(function(p){
+    var ic=typeIcon[p.partner_type]||'🤝';
+    var lb=typeLabel[p.partner_type]||'Partner';
+    var tc=typeColor[p.partner_type]||'var(--gold)';
+    return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;cursor:pointer;" " data-id='+p.id+' onclick="openPartnerDetail(this.dataset.id)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+        +'<div><div style="font-size:14px;font-weight:700;">'+ic+' '+p.name+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">'+(p.industry||'—')+(p.country?' · '+p.country:'')+'</div></div>'
+        +'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:'+tc+'22;color:'+tc+';">'+lb+'</span>'
+      +'</div>'
+      +(p.partner_type==='jv'&&p.jv_equity?'<div style="font-size:12px;color:var(--gold);margin-bottom:6px;">🏦 '+p.jv_equity+'% Equity</div>':'')
+      +(p.partner_type==='strategic'&&p.specialization?'<div style="font-size:12px;color:#a78bfa;margin-bottom:6px;">⚙️ '+p.specialization+'</div>':'')
+      +'<div style="font-size:11px;color:var(--ink3);">AM: '+(p.main_am_name||'Unassigned')+'</div>'
+      +'<div style="display:flex;gap:6px;margin-top:10px;">'
+        +'<button class="btn bo bsm" data-id="'+p.id+'" onclick="event.stopPropagation();openAddPartner(this.dataset.id)">✏️</button>'
+        +'<button class="btn bsm" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+p.id+'" onclick="event.stopPropagation();deletePartner(this.dataset.id)">✕</button>'
+        +(p.partner_type==='success_partner'?'<button class="btn bsm" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--gold);" data-id="'+p.id+'" data-name="'+p.name+'" onclick="event.stopPropagation();viewPartnerCompanies(this.dataset.id,this.dataset.name)">🏭 Companies</button>':'')
+        +(p.partner_type==='strategic'?'<button class="btn bsm" style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;" data-id="'+p.id+'" data-name="'+p.name+'" onclick="event.stopPropagation();openPartnerProjects(this.dataset.id,this.dataset.name)">⚙️ Projects</button>':'')
+        +(p.partner_type==='jv'?'<button class="btn bsm" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--gold);" data-id="'+p.id+'" data-name="'+p.name+'" onclick="event.stopPropagation();manageServices(this.dataset.id,this.dataset.name)">🛠️ Services</button>':'')
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function savePartner(){
+  var editId=document.getElementById('pt-id').value;
+  var name=document.getElementById('pt-name').value.trim();
+  if(!name)return toast('Enter partner name','error');
+  var amVal=document.getElementById('pt-am').value;
+  var amParts=amVal?amVal.split('|'):['',''];
+  var body={
+    name:name,
+    partner_type:document.getElementById('pt-type').value,
+    industry:document.getElementById('pt-industry').value.trim()||null,
+    country:document.getElementById('pt-country').value.trim()||null,
+    added_by:document.getElementById('pt-addedby').value.trim()||null,
+    username:document.getElementById('pt-username').value.trim()||null,
+    portal_password:document.getElementById('pt-pass').value.trim()||null,
+    notes_internal:document.getElementById('pt-notes-i').value.trim()||null,
+    notes_client:document.getElementById('pt-notes-c').value.trim()||null,
+    drive_url:document.getElementById('pt-drive').value.trim()||null,
+    main_am_id:amParts[0]||null,
+    main_am_name:amParts[1]||null,
+    jv_equity:document.getElementById('pt-equity').value?parseFloat(document.getElementById('pt-equity').value):null,
+    jv_type:document.getElementById('pt-jv-type').value||null,
+    jv_link:document.getElementById('pt-jv-link').value.trim()||null,
+    jv_show_am:document.getElementById('pt-jv-show-am').checked||false,
+    specialization:document.getElementById('pt-specialization').value.trim()||null
+  };
+  try{
+    if(editId){
+      var r=await sb.from('ix_partners').update(body).eq('id',editId).select().single();
+      if(r.error)return toast('Error: '+r.error.message,'error');
+      var i=APartners.findIndex(function(x){return x.id===editId;});
+      if(i>=0)APartners[i]=r.data;
+    } else {
+      var r=await sb.from('ix_partners').insert(body).select().single();
+      if(r.error)return toast('Error: '+r.error.message,'error');
+      APartners.unshift(r.data);
+    }
+    cm('m-partner');
+    renderPartners();
+    renderFeed();
+    tgNotif('🤝','Partner Saved','*'+name+'*\nType: '+body.partner_type);
+    toast('✅ Partner saved!','success');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function deletePartner(id){
+  if(!confirm('Delete this partner?'))return;
+  await sb.from('ix_partners').delete().eq('id',id);
+  APartners=APartners.filter(function(p){return p.id!==id;});
+  renderPartners();
+  toast('Deleted','success');
+}
+
+function viewPartnerCompanies(pid, pname){
+  // Show clients referred by this partner (from ix_clients_v2)
+  var companies=AC.filter(function(c){return c.partner_ref_id===pid||c.partner_ref_name===pname;});
+  var html=companies.length
+    ?companies.map(function(c){return '<div style="padding:8px;background:var(--card2);border-radius:8px;margin-bottom:6px;"><div style="font-size:13px;font-weight:600;">'+c.name+'</div><div style="font-size:11px;color:var(--ink3);">'+c.stage+'</div></div>';}).join('')
+    :'<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No referred companies yet</div>';
+  // Use a simple alert modal
+  var el=document.getElementById('client-detail-body');
+  if(el){el.innerHTML='<div style="font-size:14px;font-weight:700;margin-bottom:12px;">🏭 Companies referred by '+pname+'</div>'+html;}
+  om('m-cd');
+}
+
+async function openPartnerDetail(id){
+  var p=APartners.find(function(x){return x.id===id;});if(!p)return;
+  var typeIcon={success_partner:'🤝',strategic:'⚙️',jv:'🏦'};
+  var typeLabel={success_partner:'Success Partner',strategic:'Strategic Partner',jv:'JV Partner'};
+  var req=ARequests.filter(function(r){return r.partner_id===id||r.requested_by===p.name;});
+  var wf=AWorkflow.filter(function(w){return w.partner_id===id||w.client_name===p.name;});
+
+  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">';
+  html+='<div><div style="font-size:18px;font-weight:800;font-family:Syne;">'+(typeIcon[p.partner_type]||'🤝')+' '+p.name+'</div>';
+  html+='<div style="font-size:11px;color:var(--ink3);">'+(typeLabel[p.partner_type]||'Partner')+(p.industry?' · '+p.industry:'')+(p.country?' · '+p.country:'')+'</div></div>';
+  html+='<button class="btn bg bsm" data-id="'+id+'" onclick="openAddPartner(this.dataset.id)">✏️ Edit</button></div>';
+
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">';
+  html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--ink3);text-transform:uppercase;margin-bottom:3px;">AM</div><div style="font-size:12px;font-weight:600;">'+(p.main_am_name||'—')+'</div></div>';
+  html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--ink3);text-transform:uppercase;margin-bottom:3px;">Added By</div><div style="font-size:12px;font-weight:600;">'+(p.added_by||'—')+'</div></div>';
+  html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--ink3);text-transform:uppercase;margin-bottom:3px;">Since</div><div style="font-size:12px;font-weight:600;">'+new Date(p.created_at).toLocaleDateString()+'</div></div>';
+  html+='</div>';
+
+  if(p.partner_type==='jv'&&p.jv_equity){
+    html+='<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:9px;padding:12px;margin-bottom:12px;">';
+    html+='<div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px;">🏦 JV Details</div>';
+    html+='<div style="font-size:20px;font-weight:800;color:var(--gold);">'+p.jv_equity+'% Equity</div>';
+    if(p.jv_type)html+='<div style="font-size:12px;color:var(--ink2);">'+(p.jv_type==='company_wide'?'Company-Wide':'Project-Specific')+'</div>';
+    if(p.jv_link)html+='<a href="'+p.jv_link+'" target="_blank" style="font-size:11px;color:var(--teal);">📎 Agreement →</a>';
+    html+='</div>';
+  }
+
+  if(p.partner_type==='strategic'&&p.specialization){
+    html+='<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:9px;padding:12px;margin-bottom:12px;">';
+    html+='<div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:4px;">⚙️ Specialization</div>';
+    html+='<div style="font-size:13px;">'+p.specialization+'</div></div>';
+  }
+
+  if(p.partner_type==='success_partner'){
+    var companies=AC.filter(function(c){return c.partner_ref_id===id||c.partner_ref_name===p.name;});
+    html+='<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;">🏭 Referred Companies ('+companies.length+')</div>';
+    if(companies.length){
+      companies.forEach(function(c){
+        var sc=STAGE_COLORS[c.stage]||'#6b7280';
+        html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px;margin-bottom:5px;display:flex;justify-content:space-between;">';
+        html+='<div><div style="font-size:12px;font-weight:600;">'+c.name+'</div><div style="font-size:10px;color:var(--ink3);">'+(c.industry||'—')+'</div></div>';
+        html+='<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:'+sc+'22;color:'+sc+';">'+c.stage+'</span>';
+        html+='</div>';
+      });
+    } else {
+      html+='<div style="font-size:12px;color:var(--ink3);padding:8px;text-align:center;background:var(--card2);border-radius:8px;">No referred companies yet</div>';
+    }
+    html+='</div>';
+  }
+
+  if(p.notes_internal)html+='<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;"><span style="color:#a78bfa;font-weight:700;">🔒 Internal:</span> '+p.notes_internal+'</div>';
+  if(p.drive_url)html+='<a href="'+p.drive_url+'" target="_blank" class="btn bo bsm">📁 Files</a>';
+
+  document.getElementById('client-detail-body').innerHTML=html;
+  om('m-cd');
 }
 
 function populateContractClients(){

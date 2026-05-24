@@ -133,15 +133,28 @@ async function doLogin(){
   btn.textContent='...';btn.disabled=true;
 
   try{
-    // Client / Partner / Strategic / JV
-    if(['client','partner','strategic','jv'].includes(selectedRole)){
+    // Client login - from ix_clients_v2
+    if(selectedRole==='client'){
       var r=await sb.from('ix_clients_v2').select('*').eq('username',user).limit(1);
       if(r.data&&r.data.length>0&&r.data[0].portal_password===pass){
         var rec=r.data[0];
-        try{localStorage.setItem('ix_portal_type',rec.client_type||'client');}catch(e){}
+        try{localStorage.setItem('ix_portal_type','client');}catch(e){}
         try{localStorage.setItem('ix_portal_id',rec.id);}catch(e){}
         try{localStorage.setItem('ix_portal_data',JSON.stringify(rec));}catch(e){}
         window.location.href='client.html';return;
+      }
+      showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
+    }
+
+    // Partner / Strategic / JV login - from ix_partners table
+    if(['partner','strategic','jv'].includes(selectedRole)){
+      var rp=await sb.from('ix_partners').select('*').eq('username',user).limit(1);
+      if(rp.data&&rp.data.length>0&&rp.data[0].portal_password===pass){
+        var recp=rp.data[0];
+        try{localStorage.setItem('ix_portal_type',recp.partner_type||selectedRole);}catch(e){}
+        try{localStorage.setItem('ix_portal_id',recp.id);}catch(e){}
+        try{localStorage.setItem('ix_portal_data',JSON.stringify(recp));}catch(e){}
+        window.location.href='partner.html';return;
       }
       showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
     }

@@ -243,10 +243,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTabE('exp-projects',this)">📁 Projects</button>
         <button class="tab" onclick="showTabE('exp-inbox',this)">🔔 Inbox</button>
         <button class="tab" onclick="showTabE('exp-news',this)">📰 News</button>
+        <button class="tab" onclick="showTabE('exp-marketplace',this)">🛒 Services</button>
+        <button class="tab" onclick="showTabE('exp-sent',this)">📤 My Requests</button>
       </div>
       <div class="tp on" id="tpe-requests">
-        <div class="panel"><div class="ph"><div class="pt">📋 Incoming Requests</div></div>
-        <div class="pb" id="exp-reqs-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:18px;">No requests yet</div></div></div>
+        <div class="panel">
+          <div class="ph"><div class="pt">📋 Client Requests for Experts</div></div>
+          <div class="pb" id="exp-reqs-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:18px;">Loading...</div></div>
+        </div>
       </div>
       <div class="tp" id="tpe-profile">
         <div class="panel"><div class="ph"><div class="pt">👤 My Profile</div></div>
@@ -264,6 +268,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
           </div>
           <button class="btn bbg bw" onclick="updateAvail()">💾 Update</button>
         </div></div>
+      </div>
+
+      <!-- Expert Marketplace -->
+      <div class="tp" id="tpe-exp-marketplace">
+        <div style="font-size:13px;color:var(--ink2);margin-bottom:14px;line-height:1.6;background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.15);border-radius:10px;padding:13px;">
+          🛒 Request services for your work or personal needs.
+        </div>
+        <div id="exp-mp-filter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
+        <div id="exp-mp-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div></div>
+      </div>
+
+      <!-- Expert Sent Requests -->
+      <div class="tp" id="tpe-exp-sent">
+        <div class="panel">
+          <div class="ph">
+            <div class="pt">📤 My Sent Requests</div>
+            <button class="btn bbo bsm" onclick="loadExpSent()" style="font-size:10px;">↻ Refresh</button>
+          </div>
+          <div class="pb" id="exp-sent-list">
+            <div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Loading...</div>
+          </div>
+        </div>
       </div>
 
       <!-- Expert Projects -->
@@ -535,6 +561,55 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   <div id="team-svc-list" style="margin-bottom:14px;"></div>
   <div class="mft">
     <button class="btn bbo" onclick="closeModal('m-team-svc')" style="padding:8px 20px;">Close</button>
+  </div>
+</div></div>
+
+<!-- EXPERT OFFER MODAL -->
+<div class="mo" id="m-exp-offer"><div class="modal">
+  <div class="mti">💼 Submit Proposal</div>
+  <input type="hidden" id="exp-offer-rid">
+  <div id="exp-offer-info" style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:14px;"></div>
+  <div class="fg"><label class="fl">Your Proposal *</label>
+    <textarea class="fta" id="exp-offer-text" placeholder="Describe your approach, experience, and what you can deliver..."></textarea>
+  </div>
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Rate / Fee</label>
+      <input class="fi" id="exp-offer-rate" placeholder="e.g. $150/hr or $2,000 fixed">
+    </div>
+    <div class="fg"><label class="fl">Timeline</label>
+      <input class="fi" id="exp-offer-timeline" placeholder="e.g. 3-5 days">
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Portfolio / Reference (optional)</label>
+    <input class="fi" type="url" id="exp-offer-link" dir="ltr" placeholder="https://...">
+  </div>
+  <div class="mft">
+    <button class="btn bbo" onclick="closeModal('m-exp-offer')" style="padding:8px 14px;">Cancel</button>
+    <button class="btn bbg" onclick="submitExpOffer()" style="padding:8px 20px;">💼 Submit Proposal</button>
+  </div>
+</div></div>
+
+<!-- EXPERT RATING MODAL -->
+<div class="mo" id="m-exp-rate"><div class="modal">
+  <div class="mti">⭐ Rate Expert</div>
+  <input type="hidden" id="exp-rate-pid">
+  <div id="exp-rate-name" style="font-size:14px;font-weight:700;margin-bottom:12px;"></div>
+  <div class="fg"><label class="fl">Rating</label>
+    <div style="display:flex;gap:8px;margin-top:5px;" id="star-rating">
+      <button onclick="setRating(1)" data-r="1" style="font-size:24px;background:none;border:none;cursor:pointer;">⭐</button>
+      <button onclick="setRating(2)" data-r="2" style="font-size:24px;background:none;border:none;cursor:pointer;">⭐</button>
+      <button onclick="setRating(3)" data-r="3" style="font-size:24px;background:none;border:none;cursor:pointer;">⭐</button>
+      <button onclick="setRating(4)" data-r="4" style="font-size:24px;background:none;border:none;cursor:pointer;">⭐</button>
+      <button onclick="setRating(5)" data-r="5" style="font-size:24px;background:none;border:none;cursor:pointer;">⭐</button>
+    </div>
+    <div id="rating-val" style="font-size:12px;color:var(--ink3);margin-top:4px;">Select rating</div>
+  </div>
+  <div class="fg"><label class="fl">Feedback</label>
+    <textarea class="fta" id="exp-rate-feedback" placeholder="Comments about the expert's work..."></textarea>
+  </div>
+  <div class="mft">
+    <button class="btn bbo" onclick="closeModal('m-exp-rate')" style="padding:8px 14px;">Cancel</button>
+    <button class="btn bbg" onclick="submitRating()" style="padding:8px 20px;">⭐ Submit Rating</button>
   </div>
 </div></div>
 
@@ -1072,6 +1147,8 @@ async function loadTeamData(){
   var m=memberData;
   var clients=[],tasks=[],reqs=[],meetings=[];
   try{var r=await sb.from('ix_clients_v2').select('*').eq('main_am_name',m.name);if(r.data)clients=r.data;}catch(e){}
+  // Also load partners assigned to this AM
+  try{var rpart=await sb.from('ix_partners').select('*').eq('main_am_name',m.name);if(rpart.data)partners=rpart.data||[];}catch(e){}
   try{
     var SB2='https://rppwppxyhmuicgemmecu.supabase.co';
     var KEY2='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
@@ -1532,6 +1609,191 @@ async function closeTicket(tid, cid, cname){
     toast('✅ Ticket closed!','ts');
     openClientTickets(cid, cname);
   }catch(e){toast('Error','te');}
+}
+
+var selectedRating=0;
+
+function setRating(r){
+  selectedRating=r;
+  document.getElementById('rating-val').textContent=r+' star'+(r>1?'s':'');
+  document.querySelectorAll('#star-rating button').forEach(function(b,i){
+    b.style.opacity=i<r?'1':'0.3';
+  });
+}
+
+function openRateExpert(pid, pname){
+  document.getElementById('exp-rate-pid').value=pid;
+  document.getElementById('exp-rate-name').textContent='Rating for: '+pname;
+  selectedRating=0;
+  document.querySelectorAll('#star-rating button').forEach(function(b){b.style.opacity='0.3';});
+  document.getElementById('rating-val').textContent='Select rating';
+  document.getElementById('exp-rate-feedback').value='';
+  openModal('m-exp-rate');
+}
+
+async function submitRating(){
+  if(!selectedRating){toast('Select a rating first','te');return;}
+  var pid=document.getElementById('exp-rate-pid').value;
+  var feedback=document.getElementById('exp-rate-feedback').value.trim();
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  // Get current person
+  try{
+    var rp=await fetch(SB+'/rest/v1/ix_people?id=eq.'+pid+'&select=name,rating,rating_count',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var pd=await rp.json();
+    if(Array.isArray(pd)&&pd[0]){
+      var p=pd[0];
+      var oldRating=p.rating||0;
+      var oldCount=p.rating_count||0;
+      var newCount=oldCount+1;
+      var newRating=((oldRating*oldCount)+selectedRating)/newCount;
+      await fetch(SB+'/rest/v1/ix_people?id=eq.'+pid,{
+        method:'PATCH',
+        headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({rating:Math.round(newRating*10)/10,rating_count:newCount,rating_feedback:feedback||null})
+      });
+      closeModal('m-exp-rate');
+      toast('⭐ Rating submitted!','ts');
+    }
+  }catch(e){toast('Error submitting rating','te');}
+}
+
+function openExpOffer(rid, title, clientName){
+  document.getElementById('exp-offer-rid').value=rid;
+  var info=document.getElementById('exp-offer-info');
+  if(info)info.innerHTML='<div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+title+'</div>'+(clientName?'<div style="font-size:11px;color:var(--ink3);">Client: '+clientName+'</div>':'');
+  document.getElementById('exp-offer-text').value='';
+  document.getElementById('exp-offer-rate').value='';
+  document.getElementById('exp-offer-timeline').value='';
+  document.getElementById('exp-offer-link').value='';
+  openModal('m-exp-offer');
+}
+
+async function submitExpOffer(){
+  var rid=document.getElementById('exp-offer-rid').value;
+  var text=document.getElementById('exp-offer-text').value.trim();
+  if(!text){toast('Write your proposal first','te');return;}
+  var rate=document.getElementById('exp-offer-rate').value.trim();
+  var timeline=document.getElementById('exp-offer-timeline').value.trim();
+  var link=document.getElementById('exp-offer-link').value.trim();
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:'[Expert Proposal] '+(memberData?memberData.name:'Expert'),
+    description:text+(rate?'\n\nRate: '+rate:'')+(timeline?'\nTimeline: '+timeline:'')+(link?'\nPortfolio: '+link:''),
+    requested_by:memberData?memberData.name:null,
+    context_type:'expert_proposal',
+    context_value:rid,
+    status:'Pending',
+    show_to_client:false,
+    priority:'medium'
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      closeModal('m-exp-offer');
+      sendTG('💼 *Expert Proposal Submitted*\n\nBy: '+(memberData?memberData.name:'Expert')+'\n\n'+text.slice(0,100));
+      toast('✅ Proposal submitted!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
+}
+
+async function loadExpReqs(){
+  var el=document.getElementById('exp-reqs-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_expert_requests?order=created_at.desc&limit=20',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var reqs=await r.json();
+    if(!Array.isArray(reqs)||!reqs.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No requests yet</div>';
+      return;
+    }
+    el.innerHTML=reqs.map(function(r){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+          +'<div><div style="font-size:13px;font-weight:700;">'+r.expertise_needed+'</div>'
+          +'<div style="font-size:11px;color:var(--ink3);">Client: '+(r.client_name||'—')+'</div></div>'
+          +'<span class="pill pgo">Open</span>'
+        +'</div>'
+        +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;line-height:1.5;">'+r.description.slice(0,120)+'</div>':'')
+        +(r.budget?'<div style="font-size:11px;color:var(--gold);margin-bottom:8px;">Budget: '+r.budget+'</div>':'')
+        +'<button class="btn bbg bw" data-rid="'+r.id+'" data-title="'+r.expertise_needed+'" data-client="'+(r.client_name||'')+'" onclick="openExpOffer(this.dataset.rid,this.dataset.title,this.dataset.client)">💼 Submit Proposal</button>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error loading</div>';}
+}
+
+async function loadExpSent(){
+  if(!memberData)return;
+  var el=document.getElementById('exp-sent-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests?requested_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var items=await r.json();
+    items=Array.isArray(items)?items:[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No requests sent yet</div>';return;}
+    var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr','Done - Pending Confirmation':'pgo',Completed:'pgr'};
+    el.innerHTML=items.map(function(r){
+      var cleanTitle=r.title.replace('[Expert Proposal] ','').replace('[Team Request] ','');
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
+          +'<div style="font-size:13px;font-weight:600;">'+cleanTitle+'</div>'
+          +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+        +'</div>'
+        +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">'+r.description.slice(0,100)+'</div>':'')
+        +(r.reply?'<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:7px;padding:7px;margin-bottom:6px;">'
+          +'<div style="font-size:10px;color:#22c55e;font-weight:700;">💬 Reply</div>'
+          +'<div style="font-size:12px;color:var(--ink2);">'+r.reply.slice(0,100)+'</div>'
+        +'</div>':'')
+        +'<div style="font-size:10px;color:var(--ink3);">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:12px;">Error loading</div>';}
+}
+
+async function loadExpMarketplace(){
+  var el=document.getElementById('exp-mp-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_services_catalog?is_active=eq.true&order=category.asc,name.asc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var svcs=await r.json();
+    if(!Array.isArray(svcs)||!svcs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No services available</div>';return;}
+    var catColors={Print:'#06b6d4',Logistics:'#f59e0b',Travel:'#22c55e',Services:'#a78bfa',Events:'#f97316',General:'#6b7280'};
+    var grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;';
+    svcs.forEach(function(s,i2){
+      var cc=catColors[s.category]||'#6b7280';
+      var card=document.createElement('div');
+      card.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;cursor:pointer;text-align:center;';
+      card.dataset.idx=i2;
+      card.innerHTML='<div style="font-size:26px;margin-bottom:5px;">'+s.icon+'</div>'
+        +'<div style="font-size:11px;font-weight:700;margin-bottom:3px;">'+s.name+'</div>'
+        +'<div style="margin-top:8px;background:var(--grad);border-radius:5px;padding:5px;font-size:10px;font-weight:700;color:#fff;">📋 Request</div>';
+      card.onclick=(function(svc){return function(){
+        var body={title:'[Expert Request] '+svc.name+' — '+(memberData?memberData.name:''),
+          description:'Service request: '+svc.name,
+          requested_by:memberData?memberData.name:null,
+          status:'Pending',context_type:'team_service_request',context_value:svc.id,show_to_client:false};
+        fetch(SB+'/rest/v1/ix_requests',{method:'POST',
+          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+          body:JSON.stringify(body)
+        }).then(function(r){if(r.ok){toast('✅ Request submitted!','ts');}else{toast('Error','te');}}).catch(function(){toast('Error','te');});
+      };})(svcs[i2]);
+      grid.appendChild(card);
+    });
+    el.innerHTML='';el.appendChild(grid);
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error</div>';}
 }
 
 function toggleHelpType(){
@@ -2172,6 +2434,191 @@ async function closeTicket(tid, cid, cname){
   }catch(e){toast('Error','te');}
 }
 
+var selectedRating=0;
+
+function setRating(r){
+  selectedRating=r;
+  document.getElementById('rating-val').textContent=r+' star'+(r>1?'s':'');
+  document.querySelectorAll('#star-rating button').forEach(function(b,i){
+    b.style.opacity=i<r?'1':'0.3';
+  });
+}
+
+function openRateExpert(pid, pname){
+  document.getElementById('exp-rate-pid').value=pid;
+  document.getElementById('exp-rate-name').textContent='Rating for: '+pname;
+  selectedRating=0;
+  document.querySelectorAll('#star-rating button').forEach(function(b){b.style.opacity='0.3';});
+  document.getElementById('rating-val').textContent='Select rating';
+  document.getElementById('exp-rate-feedback').value='';
+  openModal('m-exp-rate');
+}
+
+async function submitRating(){
+  if(!selectedRating){toast('Select a rating first','te');return;}
+  var pid=document.getElementById('exp-rate-pid').value;
+  var feedback=document.getElementById('exp-rate-feedback').value.trim();
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  // Get current person
+  try{
+    var rp=await fetch(SB+'/rest/v1/ix_people?id=eq.'+pid+'&select=name,rating,rating_count',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var pd=await rp.json();
+    if(Array.isArray(pd)&&pd[0]){
+      var p=pd[0];
+      var oldRating=p.rating||0;
+      var oldCount=p.rating_count||0;
+      var newCount=oldCount+1;
+      var newRating=((oldRating*oldCount)+selectedRating)/newCount;
+      await fetch(SB+'/rest/v1/ix_people?id=eq.'+pid,{
+        method:'PATCH',
+        headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({rating:Math.round(newRating*10)/10,rating_count:newCount,rating_feedback:feedback||null})
+      });
+      closeModal('m-exp-rate');
+      toast('⭐ Rating submitted!','ts');
+    }
+  }catch(e){toast('Error submitting rating','te');}
+}
+
+function openExpOffer(rid, title, clientName){
+  document.getElementById('exp-offer-rid').value=rid;
+  var info=document.getElementById('exp-offer-info');
+  if(info)info.innerHTML='<div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+title+'</div>'+(clientName?'<div style="font-size:11px;color:var(--ink3);">Client: '+clientName+'</div>':'');
+  document.getElementById('exp-offer-text').value='';
+  document.getElementById('exp-offer-rate').value='';
+  document.getElementById('exp-offer-timeline').value='';
+  document.getElementById('exp-offer-link').value='';
+  openModal('m-exp-offer');
+}
+
+async function submitExpOffer(){
+  var rid=document.getElementById('exp-offer-rid').value;
+  var text=document.getElementById('exp-offer-text').value.trim();
+  if(!text){toast('Write your proposal first','te');return;}
+  var rate=document.getElementById('exp-offer-rate').value.trim();
+  var timeline=document.getElementById('exp-offer-timeline').value.trim();
+  var link=document.getElementById('exp-offer-link').value.trim();
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:'[Expert Proposal] '+(memberData?memberData.name:'Expert'),
+    description:text+(rate?'\n\nRate: '+rate:'')+(timeline?'\nTimeline: '+timeline:'')+(link?'\nPortfolio: '+link:''),
+    requested_by:memberData?memberData.name:null,
+    context_type:'expert_proposal',
+    context_value:rid,
+    status:'Pending',
+    show_to_client:false,
+    priority:'medium'
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      closeModal('m-exp-offer');
+      sendTG('💼 *Expert Proposal Submitted*\n\nBy: '+(memberData?memberData.name:'Expert')+'\n\n'+text.slice(0,100));
+      toast('✅ Proposal submitted!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
+}
+
+async function loadExpReqs(){
+  var el=document.getElementById('exp-reqs-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_expert_requests?order=created_at.desc&limit=20',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var reqs=await r.json();
+    if(!Array.isArray(reqs)||!reqs.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No requests yet</div>';
+      return;
+    }
+    el.innerHTML=reqs.map(function(r){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+          +'<div><div style="font-size:13px;font-weight:700;">'+r.expertise_needed+'</div>'
+          +'<div style="font-size:11px;color:var(--ink3);">Client: '+(r.client_name||'—')+'</div></div>'
+          +'<span class="pill pgo">Open</span>'
+        +'</div>'
+        +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;line-height:1.5;">'+r.description.slice(0,120)+'</div>':'')
+        +(r.budget?'<div style="font-size:11px;color:var(--gold);margin-bottom:8px;">Budget: '+r.budget+'</div>':'')
+        +'<button class="btn bbg bw" data-rid="'+r.id+'" data-title="'+r.expertise_needed+'" data-client="'+(r.client_name||'')+'" onclick="openExpOffer(this.dataset.rid,this.dataset.title,this.dataset.client)">💼 Submit Proposal</button>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error loading</div>';}
+}
+
+async function loadExpSent(){
+  if(!memberData)return;
+  var el=document.getElementById('exp-sent-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests?requested_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var items=await r.json();
+    items=Array.isArray(items)?items:[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No requests sent yet</div>';return;}
+    var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr','Done - Pending Confirmation':'pgo',Completed:'pgr'};
+    el.innerHTML=items.map(function(r){
+      var cleanTitle=r.title.replace('[Expert Proposal] ','').replace('[Team Request] ','');
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
+          +'<div style="font-size:13px;font-weight:600;">'+cleanTitle+'</div>'
+          +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+        +'</div>'
+        +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">'+r.description.slice(0,100)+'</div>':'')
+        +(r.reply?'<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:7px;padding:7px;margin-bottom:6px;">'
+          +'<div style="font-size:10px;color:#22c55e;font-weight:700;">💬 Reply</div>'
+          +'<div style="font-size:12px;color:var(--ink2);">'+r.reply.slice(0,100)+'</div>'
+        +'</div>':'')
+        +'<div style="font-size:10px;color:var(--ink3);">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:12px;">Error loading</div>';}
+}
+
+async function loadExpMarketplace(){
+  var el=document.getElementById('exp-mp-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_services_catalog?is_active=eq.true&order=category.asc,name.asc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var svcs=await r.json();
+    if(!Array.isArray(svcs)||!svcs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">No services available</div>';return;}
+    var catColors={Print:'#06b6d4',Logistics:'#f59e0b',Travel:'#22c55e',Services:'#a78bfa',Events:'#f97316',General:'#6b7280'};
+    var grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;';
+    svcs.forEach(function(s,i2){
+      var cc=catColors[s.category]||'#6b7280';
+      var card=document.createElement('div');
+      card.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;cursor:pointer;text-align:center;';
+      card.dataset.idx=i2;
+      card.innerHTML='<div style="font-size:26px;margin-bottom:5px;">'+s.icon+'</div>'
+        +'<div style="font-size:11px;font-weight:700;margin-bottom:3px;">'+s.name+'</div>'
+        +'<div style="margin-top:8px;background:var(--grad);border-radius:5px;padding:5px;font-size:10px;font-weight:700;color:#fff;">📋 Request</div>';
+      card.onclick=(function(svc){return function(){
+        var body={title:'[Expert Request] '+svc.name+' — '+(memberData?memberData.name:''),
+          description:'Service request: '+svc.name,
+          requested_by:memberData?memberData.name:null,
+          status:'Pending',context_type:'team_service_request',context_value:svc.id,show_to_client:false};
+        fetch(SB+'/rest/v1/ix_requests',{method:'POST',
+          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+          body:JSON.stringify(body)
+        }).then(function(r){if(r.ok){toast('✅ Request submitted!','ts');}else{toast('Error','te');}}).catch(function(){toast('Error','te');});
+      };})(svcs[i2]);
+      grid.appendChild(card);
+    });
+    el.innerHTML='';el.appendChild(grid);
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error</div>';}
+}
+
 function toggleHelpType(){
   var isPrj=document.getElementById('help-type-proj').checked;
   document.getElementById('help-proj-sel').style.display=isPrj?'block':'none';
@@ -2431,6 +2878,9 @@ async function loadExpNews(){
 }
 
 function showTabE(n,el){
+  if(n==='requests')loadExpReqs();
+  if(n==='exp-marketplace')loadExpMarketplace();
+  if(n==='exp-sent')loadExpSent();
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#expert-tabs .tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tpe-'+n).classList.add('on');
