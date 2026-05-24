@@ -245,6 +245,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTabE('exp-news',this)">📰 News</button>
         <button class="tab" onclick="showTabE('exp-marketplace',this)">🛒 Services</button>
         <button class="tab" onclick="showTabE('exp-sent',this)">📤 My Requests</button>
+        <button class="tab" onclick="showTabE('exp-tasks',this)">📌 My Tasks</button>
+        <button class="tab" onclick="showTabE('exp-updates',this)">🔄 Add Update</button>
       </div>
       <div class="tp on" id="tpe-requests">
         <div class="panel">
@@ -277,6 +279,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         </div>
         <div id="exp-mp-filter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
         <div id="exp-mp-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:20px;">Loading...</div></div>
+      </div>
+
+      <!-- Expert Tasks -->
+      <div class="tp" id="tpe-exp-tasks">
+        <div class="panel">
+          <div class="ph">
+            <div class="pt">📌 My Tasks</div>
+            <button class="btn bbo bsm" onclick="loadExpTasks()" style="font-size:10px;">↻ Refresh</button>
+          </div>
+          <div class="pb" id="exp-tasks-list">
+            <div style="text-align:center;color:var(--ink3);padding:16px;">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expert Add Update -->
+      <div class="tp" id="tpe-exp-updates">
+        <div class="panel">
+          <div class="ph"><div class="pt">🔄 Add Progress Update</div></div>
+          <div class="pb">
+            <div class="fg"><label class="fl">Related Task / Project</label>
+              <select class="fs" id="exp-upd-task"><option value="">— Select —</option></select>
+            </div>
+            <div class="fg"><label class="fl">Update *</label>
+              <textarea class="fta" id="exp-upd-text" placeholder="Describe your progress, deliverables, blockers..."></textarea>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+              <input type="checkbox" id="exp-upd-show" style="width:14px;height:14px;">
+              <label for="exp-upd-show" style="font-size:12px;color:var(--ink2);">Show to client</label>
+            </div>
+            <button class="btn bbg bw" onclick="submitExpUpdate()">📤 Submit Update</button>
+            <div id="exp-upd-sent" style="display:none;margin-top:8px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Update submitted!</div>
+          </div>
+        </div>
       </div>
 
       <!-- Expert Sent Requests -->
@@ -1066,9 +1102,28 @@ async function updateTeamServiceStage(btn){
     btn.dataset.oldstage=newStage;
     toast('✅ Stage updated!','ts');
     sendTG('📊 *Service Stage Updated*\n\n*Client:* '+cname+'\n*Service:* '+stype+'\n*'+oldStage+' → '+newStage+'*'+(note?'\n'+note:''));
-    // Refresh
+    // Notify client if show_to_client
+    if(showClient){
+      try{
+        var rcc2=await fetch(SB+'/rest/v1/ix_clients_v2?id=eq.'+cid+'&select=telegram_chat_id',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+        var rcd2=await rcc2.json();
+        if(Array.isArray(rcd2)&&rcd2[0]&&rcd2[0].telegram_chat_id){
+          tgNotifTo(rcd2[0].telegram_chat_id,'🛠️ Service Update','*'+stype+'*\nNew stage: '+newStage+(note?'\n\n'+note:''));
+        }
+      }catch(e){}
+    }
     openClientServices(cid,cname);
   }catch(e){toast('Error updating','te');}
+}
+
+async function tgNotifTo(chatId, title, body){
+  if(!chatId)return;
+  try{
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text:'*'+title+'*\n\n'+body,parse_mode:'Markdown'})
+    });
+  }catch(e){}
 }
 
 async function sendTG(msg){
@@ -1117,6 +1172,10 @@ function render(){
   if(isExpert){
     document.getElementById('team-tabs').style.display='none';
     document.getElementById('expert-tabs').style.display='block';
+    // Show check-in button for experts too
+    var expCIBtn=document.getElementById('exp-checkin-btn');
+    if(expCIBtn)expCIBtn.style.display='block';
+    checkTodayAttendance(m.id);
     document.getElementById('k1l').textContent='Requests';
     document.getElementById('k2l').textContent='Pending';
     document.getElementById('k3l').textContent='Responded';
@@ -1135,10 +1194,10 @@ function render(){
   document.getElementById('loading').style.display='none';
   document.getElementById('main').style.display='block';
   applyTeamTranslations();
-  // Check inbox for badge
   setTimeout(function(){loadInbox();},1000);
-  // Check for recent notifications
   setTimeout(function(){checkTeamNotifs(m.name);},1500);
+  // Check if already checked in today
+  setTimeout(function(){checkTodayAttendance(m.id);},500);
 }
 
 // ── TEAM DATA ──
@@ -1592,6 +1651,14 @@ async function replyToTicket(tid, btn){
     var cname=document.getElementById('cl-tkt-name').textContent;
     sendTG('💬 *Reply Sent to Client*\n\n*Client:* '+cname+'\n*By:* '+(memberData?memberData.name:'AM')+'\n\n'+reply.slice(0,100));
     toast('✅ Reply sent!','ts');
+    // Notify client via Telegram
+    try{
+      var rcc=await fetch(SB+'/rest/v1/ix_clients_v2?id=eq.'+cid+'&select=telegram_chat_id,name',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+      var rcd=await rcc.json();
+      if(Array.isArray(rcd)&&rcd[0]&&rcd[0].telegram_chat_id){
+        tgNotifTo(rcd[0].telegram_chat_id,'💬 Reply from Intersect','Your ticket has been responded to.\n\n'+reply.slice(0,150));
+      }
+    }catch(e){}
     openClientTickets(cid, cname);
   }catch(e){toast('Error','te');}
 }
@@ -1697,6 +1764,10 @@ async function submitExpOffer(){
     if(r.ok){
       closeModal('m-exp-offer');
       sendTG('💼 *Expert Proposal Submitted*\n\nBy: '+(memberData?memberData.name:'Expert')+'\n\n'+text.slice(0,100));
+      // Confirm to expert
+      if(memberData&&memberData.telegram_chat_id){
+        tgNotifTo(memberData.telegram_chat_id,'✅ Proposal Submitted','Your proposal has been sent to the team. We will get back to you shortly.');
+      }
       toast('✅ Proposal submitted!','ts');
     }else{toast('Error submitting','te');}
   }catch(e){toast('Error','te');}
@@ -1794,6 +1865,208 @@ async function loadExpMarketplace(){
     });
     el.innerHTML='';el.appendChild(grid);
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error</div>';}
+}
+
+async function checkInExpert(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var today=new Date().toISOString().split('T')[0];
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var existing=await r.json();
+    if(Array.isArray(existing)&&existing.length>0){
+      toast('Already checked in today at '+new Date(existing[0].check_in_time).toLocaleTimeString(),'ts');
+      return;
+    }
+    await fetch(SB+'/rest/v1/ix_attendance',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({person_id:memberData.id,person_name:memberData.name,person_role:memberData.person_type||'Expert',date:today,check_in_time:new Date().toISOString()})
+    });
+    var btn=document.getElementById('exp-checkin-btn');
+    if(btn){btn.textContent='✅ Checked In';btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+    sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.person_type||'Expert')+'\nTime: '+new Date().toLocaleTimeString());
+    toast('✅ Checked in!','ts');
+  }catch(e){toast('Error','te');}
+}
+
+async function checkTodayAttendance(personId){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var today=new Date().toISOString().split('T')[0];
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+personId+'&date=eq.'+today,{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var existing=await r.json();
+    if(Array.isArray(existing)&&existing.length>0){
+      var btn=document.getElementById('checkin-btn');
+      if(btn){btn.textContent='✅ Checked In '+new Date(existing[0].check_in_time).toLocaleTimeString();btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+    }
+  }catch(e){}
+}
+
+async function checkIn(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var today=new Date().toISOString().split('T')[0];
+  // Check if already checked in today
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var existing=await r.json();
+    if(Array.isArray(existing)&&existing.length>0){
+      toast('Already checked in today at '+new Date(existing[0].check_in_time).toLocaleTimeString(),'ts');
+      return;
+    }
+    // Check in
+    await fetch(SB+'/rest/v1/ix_attendance',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({
+        person_id:memberData.id,
+        person_name:memberData.name,
+        person_role:memberData.role||memberData.person_type||'Team',
+        date:today,
+        check_in_time:new Date().toISOString()
+      })
+    });
+    var btn=document.getElementById('checkin-btn');
+    if(btn){btn.textContent='✅ Checked In';btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+    // Send TG notification to management
+    sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+new Date().toLocaleTimeString());
+    toast('✅ Checked in successfully!','ts');
+  }catch(e){toast('Error checking in','te');}
+}
+
+async function saveTelegramTeam(){
+  var chatId=document.getElementById('tg-chat-id-team')&&document.getElementById('tg-chat-id-team').value.trim();
+  if(!chatId){toast('Enter your Telegram Chat ID','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_people?id=eq.'+memberData.id,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({telegram_chat_id:chatId})
+    });
+    memberData.telegram_chat_id=chatId;
+    // Send test message
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text:'✅ *INTERSECT PartnerOS*\n\nHi '+memberData.name+'! Your Telegram is now linked.\nYou will receive task notifications here.',parse_mode:'Markdown'})
+    });
+    var st=document.getElementById('tg-status-team');
+    if(st)st.innerHTML='<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:8px;font-size:12px;color:#22c55e;text-align:center;">✅ Telegram linked!</div>';
+    toast('✅ Telegram linked!','ts');
+  }catch(e){toast('Error saving','te');}
+}
+
+async function loadExpTasks(){
+  if(!memberData)return;
+  var el=document.getElementById('exp-tasks-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Tasks assigned to this expert
+    var r=await fetch(SB+'/rest/v1/ix_tasks?assignee=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var tasks=await r.json();
+    // Also get requests assigned to them
+    var r2=await fetch(SB+'/rest/v1/ix_requests?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var reqs=await r2.json();
+    tasks=Array.isArray(tasks)?tasks:[];
+    reqs=Array.isArray(reqs)?reqs:[];
+    // Populate update dropdown
+    var sel=document.getElementById('exp-upd-task');
+    if(sel){
+      var opts='<option value="">— Select —</option>';
+      tasks.forEach(function(t){opts+='<option value="task:'+t.id+'">📌 '+t.title+(t.client_name?' ('+t.client_name+')':'')+'</option>';});
+      reqs.forEach(function(r){opts+='<option value="req:'+r.id+'">📋 '+r.title.slice(0,40)+'</option>';});
+      sel.innerHTML=opts;
+    }
+    if(!tasks.length&&!reqs.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No tasks assigned yet</div>';
+      return;
+    }
+    var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',done:'pgr',Completed:'pgr'};
+    var html='';
+    if(tasks.length){
+      html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;">Tasks</div>';
+      tasks.forEach(function(t){
+        html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+            +'<div style="font-size:13px;font-weight:600;">'+t.title+'</div>'
+            +'<span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span>'
+          +'</div>'
+          +(t.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+t.client_name+'</div>':'')
+          +(t.deadline?'<div style="font-size:10px;color:var(--ink3);">Due: '+t.deadline+'</div>':'')
+          +(t.description?'<div style="font-size:11px;color:var(--ink2);margin-top:4px;">'+t.description.slice(0,80)+'</div>':'')
+        +'</div>';
+      });
+    }
+    if(reqs.length){
+      html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;margin-top:10px;">Requests</div>';
+      reqs.forEach(function(r){
+        html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+            +'<div style="font-size:12px;font-weight:600;">'+r.title.replace('[Project Help] ','').replace('[Client Help] ','').slice(0,50)+'</div>'
+            +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+          +'</div>'
+          +(r.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+r.client_name+'</div>':'')
+          +(r.description?'<div style="font-size:11px;color:var(--ink2);margin-top:4px;">'+r.description.slice(0,80)+'</div>':'')
+        +'</div>';
+      });
+    }
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
+}
+
+async function submitExpUpdate(){
+  var sel=document.getElementById('exp-upd-task');
+  var text=document.getElementById('exp-upd-text').value.trim();
+  var showClient=document.getElementById('exp-upd-show').checked;
+  if(!text){toast('Write your update first','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:'[Expert Update] '+(memberData?memberData.name:'Expert'),
+    description:text,
+    requested_by:memberData?memberData.name:null,
+    assignee_name:memberData?memberData.name:null,
+    context_type:'expert_update',
+    context_value:sel?sel.value:null,
+    status:'Pending',
+    show_to_client:showClient,
+    priority:'medium'
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('exp-upd-text').value='';
+      var sent=document.getElementById('exp-upd-sent');
+      if(sent){sent.style.display='block';setTimeout(function(){sent.style.display='none';},4000);}
+      sendTG('🔄 *Expert Update*\n\nFrom: '+(memberData?memberData.name:'Expert')+'\n\n'+text.slice(0,100));
+      // Notify self
+      if(memberData&&memberData.telegram_chat_id){
+        tgNotifTo(memberData.telegram_chat_id,'✅ Update Submitted','Your update has been sent to the team.');
+      }
+      toast('✅ Update submitted!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
 }
 
 function toggleHelpType(){
@@ -2112,6 +2385,18 @@ async function confirmAndClose(id, btn){
       }
     }
     toast('🔒 Closed & confirmed!','ts');
+    // Notify the person who did the work
+    try{
+      var rreq3=await fetch(SB+'/rest/v1/ix_requests?id=eq.'+id+'&select=replied_by',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+      var rreqd3=await rreq3.json();
+      if(Array.isArray(rreqd3)&&rreqd3[0]&&rreqd3[0].replied_by){
+        var rperson3=await fetch(SB+'/rest/v1/ix_people?name=eq.'+encodeURIComponent(rreqd3[0].replied_by)+'&select=telegram_chat_id',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+        var rpd4=await rperson3.json();
+        if(Array.isArray(rpd4)&&rpd4[0]&&rpd4[0].telegram_chat_id){
+          tgNotifTo(rpd4[0].telegram_chat_id,'🔒 Task Confirmed & Closed','Your work has been confirmed. Thank you!');
+        }
+      }
+    }catch(e){}
     loadMySent();
   }catch(e){toast('Error','te');}
 }
@@ -2415,6 +2700,14 @@ async function replyToTicket(tid, btn){
     var cname=document.getElementById('cl-tkt-name').textContent;
     sendTG('💬 *Reply Sent to Client*\n\n*Client:* '+cname+'\n*By:* '+(memberData?memberData.name:'AM')+'\n\n'+reply.slice(0,100));
     toast('✅ Reply sent!','ts');
+    // Notify client via Telegram
+    try{
+      var rcc=await fetch(SB+'/rest/v1/ix_clients_v2?id=eq.'+cid+'&select=telegram_chat_id,name',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+      var rcd=await rcc.json();
+      if(Array.isArray(rcd)&&rcd[0]&&rcd[0].telegram_chat_id){
+        tgNotifTo(rcd[0].telegram_chat_id,'💬 Reply from Intersect','Your ticket has been responded to.\n\n'+reply.slice(0,150));
+      }
+    }catch(e){}
     openClientTickets(cid, cname);
   }catch(e){toast('Error','te');}
 }
@@ -2520,6 +2813,10 @@ async function submitExpOffer(){
     if(r.ok){
       closeModal('m-exp-offer');
       sendTG('💼 *Expert Proposal Submitted*\n\nBy: '+(memberData?memberData.name:'Expert')+'\n\n'+text.slice(0,100));
+      // Confirm to expert
+      if(memberData&&memberData.telegram_chat_id){
+        tgNotifTo(memberData.telegram_chat_id,'✅ Proposal Submitted','Your proposal has been sent to the team. We will get back to you shortly.');
+      }
       toast('✅ Proposal submitted!','ts');
     }else{toast('Error submitting','te');}
   }catch(e){toast('Error','te');}
@@ -2619,6 +2916,208 @@ async function loadExpMarketplace(){
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Error</div>';}
 }
 
+async function checkInExpert(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var today=new Date().toISOString().split('T')[0];
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var existing=await r.json();
+    if(Array.isArray(existing)&&existing.length>0){
+      toast('Already checked in today at '+new Date(existing[0].check_in_time).toLocaleTimeString(),'ts');
+      return;
+    }
+    await fetch(SB+'/rest/v1/ix_attendance',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({person_id:memberData.id,person_name:memberData.name,person_role:memberData.person_type||'Expert',date:today,check_in_time:new Date().toISOString()})
+    });
+    var btn=document.getElementById('exp-checkin-btn');
+    if(btn){btn.textContent='✅ Checked In';btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+    sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.person_type||'Expert')+'\nTime: '+new Date().toLocaleTimeString());
+    toast('✅ Checked in!','ts');
+  }catch(e){toast('Error','te');}
+}
+
+async function checkTodayAttendance(personId){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var today=new Date().toISOString().split('T')[0];
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+personId+'&date=eq.'+today,{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var existing=await r.json();
+    if(Array.isArray(existing)&&existing.length>0){
+      var btn=document.getElementById('checkin-btn');
+      if(btn){btn.textContent='✅ Checked In '+new Date(existing[0].check_in_time).toLocaleTimeString();btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+    }
+  }catch(e){}
+}
+
+async function checkIn(){
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var today=new Date().toISOString().split('T')[0];
+  // Check if already checked in today
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var existing=await r.json();
+    if(Array.isArray(existing)&&existing.length>0){
+      toast('Already checked in today at '+new Date(existing[0].check_in_time).toLocaleTimeString(),'ts');
+      return;
+    }
+    // Check in
+    await fetch(SB+'/rest/v1/ix_attendance',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({
+        person_id:memberData.id,
+        person_name:memberData.name,
+        person_role:memberData.role||memberData.person_type||'Team',
+        date:today,
+        check_in_time:new Date().toISOString()
+      })
+    });
+    var btn=document.getElementById('checkin-btn');
+    if(btn){btn.textContent='✅ Checked In';btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+    // Send TG notification to management
+    sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+new Date().toLocaleTimeString());
+    toast('✅ Checked in successfully!','ts');
+  }catch(e){toast('Error checking in','te');}
+}
+
+async function saveTelegramTeam(){
+  var chatId=document.getElementById('tg-chat-id-team')&&document.getElementById('tg-chat-id-team').value.trim();
+  if(!chatId){toast('Enter your Telegram Chat ID','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_people?id=eq.'+memberData.id,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({telegram_chat_id:chatId})
+    });
+    memberData.telegram_chat_id=chatId;
+    // Send test message
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text:'✅ *INTERSECT PartnerOS*\n\nHi '+memberData.name+'! Your Telegram is now linked.\nYou will receive task notifications here.',parse_mode:'Markdown'})
+    });
+    var st=document.getElementById('tg-status-team');
+    if(st)st.innerHTML='<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:8px;font-size:12px;color:#22c55e;text-align:center;">✅ Telegram linked!</div>';
+    toast('✅ Telegram linked!','ts');
+  }catch(e){toast('Error saving','te');}
+}
+
+async function loadExpTasks(){
+  if(!memberData)return;
+  var el=document.getElementById('exp-tasks-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Tasks assigned to this expert
+    var r=await fetch(SB+'/rest/v1/ix_tasks?assignee=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var tasks=await r.json();
+    // Also get requests assigned to them
+    var r2=await fetch(SB+'/rest/v1/ix_requests?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var reqs=await r2.json();
+    tasks=Array.isArray(tasks)?tasks:[];
+    reqs=Array.isArray(reqs)?reqs:[];
+    // Populate update dropdown
+    var sel=document.getElementById('exp-upd-task');
+    if(sel){
+      var opts='<option value="">— Select —</option>';
+      tasks.forEach(function(t){opts+='<option value="task:'+t.id+'">📌 '+t.title+(t.client_name?' ('+t.client_name+')':'')+'</option>';});
+      reqs.forEach(function(r){opts+='<option value="req:'+r.id+'">📋 '+r.title.slice(0,40)+'</option>';});
+      sel.innerHTML=opts;
+    }
+    if(!tasks.length&&!reqs.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No tasks assigned yet</div>';
+      return;
+    }
+    var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',done:'pgr',Completed:'pgr'};
+    var html='';
+    if(tasks.length){
+      html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;">Tasks</div>';
+      tasks.forEach(function(t){
+        html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+            +'<div style="font-size:13px;font-weight:600;">'+t.title+'</div>'
+            +'<span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span>'
+          +'</div>'
+          +(t.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+t.client_name+'</div>':'')
+          +(t.deadline?'<div style="font-size:10px;color:var(--ink3);">Due: '+t.deadline+'</div>':'')
+          +(t.description?'<div style="font-size:11px;color:var(--ink2);margin-top:4px;">'+t.description.slice(0,80)+'</div>':'')
+        +'</div>';
+      });
+    }
+    if(reqs.length){
+      html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;margin-top:10px;">Requests</div>';
+      reqs.forEach(function(r){
+        html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+            +'<div style="font-size:12px;font-weight:600;">'+r.title.replace('[Project Help] ','').replace('[Client Help] ','').slice(0,50)+'</div>'
+            +'<span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span>'
+          +'</div>'
+          +(r.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+r.client_name+'</div>':'')
+          +(r.description?'<div style="font-size:11px;color:var(--ink2);margin-top:4px;">'+r.description.slice(0,80)+'</div>':'')
+        +'</div>';
+      });
+    }
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
+}
+
+async function submitExpUpdate(){
+  var sel=document.getElementById('exp-upd-task');
+  var text=document.getElementById('exp-upd-text').value.trim();
+  var showClient=document.getElementById('exp-upd-show').checked;
+  if(!text){toast('Write your update first','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var body={
+    title:'[Expert Update] '+(memberData?memberData.name:'Expert'),
+    description:text,
+    requested_by:memberData?memberData.name:null,
+    assignee_name:memberData?memberData.name:null,
+    context_type:'expert_update',
+    context_value:sel?sel.value:null,
+    status:'Pending',
+    show_to_client:showClient,
+    priority:'medium'
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('exp-upd-text').value='';
+      var sent=document.getElementById('exp-upd-sent');
+      if(sent){sent.style.display='block';setTimeout(function(){sent.style.display='none';},4000);}
+      sendTG('🔄 *Expert Update*\n\nFrom: '+(memberData?memberData.name:'Expert')+'\n\n'+text.slice(0,100));
+      // Notify self
+      if(memberData&&memberData.telegram_chat_id){
+        tgNotifTo(memberData.telegram_chat_id,'✅ Update Submitted','Your update has been sent to the team.');
+      }
+      toast('✅ Update submitted!','ts');
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
+}
+
 function toggleHelpType(){
   var isPrj=document.getElementById('help-type-proj').checked;
   document.getElementById('help-proj-sel').style.display=isPrj?'block':'none';
@@ -2656,6 +3155,19 @@ async function sendTaskRequest(){
       body:JSON.stringify(body)
     });
     if(r.ok){
+      // Notify assignee via Telegram
+      try{
+        var asel=document.getElementById('at-assignee');
+        if(asel&&asel.value){
+          var aparts=asel.value.split('|');
+          var apid=aparts[0];
+          var rp2=await fetch(SB+'/rest/v1/ix_people?id=eq.'+apid+'&select=telegram_chat_id,name',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+          var rpd2=await rp2.json();
+          if(Array.isArray(rpd2)&&rpd2[0]&&rpd2[0].telegram_chat_id){
+            tgNotifTo(rpd2[0].telegram_chat_id,'📋 New Task Assigned','From: '+(memberData?memberData.name:'Team')+'\n\n'+titleVal.slice(0,100));
+          }
+        }
+      }catch(e){}
       document.getElementById('at-sent').style.display='block';
       document.getElementById('at-title').value='';
       document.getElementById('at-desc').value='';
@@ -2881,6 +3393,8 @@ function showTabE(n,el){
   if(n==='requests')loadExpReqs();
   if(n==='exp-marketplace')loadExpMarketplace();
   if(n==='exp-sent')loadExpSent();
+  if(n==='exp-tasks')loadExpTasks();
+  if(n==='exp-updates')loadExpTasks();
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#expert-tabs .tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tpe-'+n).classList.add('on');

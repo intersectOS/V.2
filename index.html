@@ -403,6 +403,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <div class="ni" onclick="gp('meetings',this)"><span class="nico">📅</span><span data-i="n_meetings">Meetings</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📈</span><span>Reports</span></div>
       <div class="ni" onclick="gp('contracts',this)"><span class="nico">📜</span><span>Contracts</span></div>
+      <div class="ni" onclick="gp('attendance',this)"><span class="nico">📋</span><span>Attendance</span></div>
       <div class="ni" onclick="gp('catalog',this)"><span class="nico">🛒</span><span>Services Catalog</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📄</span><span data-i="n_reports">Reports</span></div>
       <div class="ni" onclick="gp('invoices',this)"><span class="nico">🧾</span><span data-i="n_inv">Invoices</span></div>
@@ -505,8 +506,13 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <div class="sh">
         <div class="st" data-i="n_clients">Clients</div>
         <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
-          <select id="cf-stage" class="fs" style="width:130px;font-size:11px;" onchange="renderClients()"><option value="">All Stages</option></select>
-          <select id="cf-svc" class="fs" style="width:140px;font-size:11px;" onchange="renderClients()"><option value="">All Services</option></select>
+          <input id="cf-search" class="fs" style="width:150px;font-size:11px;" placeholder="🔍 Search..." oninput="renderClients()">
+          <select id="cf-stage" class="fs" style="width:120px;font-size:11px;" onchange="renderClients()"><option value="">All Stages</option></select>
+          <select id="cf-svc" class="fs" style="width:130px;font-size:11px;" onchange="renderClients()"><option value="">All Services</option></select>
+          <select id="cf-referred-by" class="fs" style="width:150px;font-size:11px;" onchange="renderClients()">
+            <option value="">👤 All Sources</option>
+            <option value="__direct__">🏢 Direct</option>
+          </select>
           <button class="btn bg" onclick="openAddClient()">+ Add</button>
         </div>
       </div>
@@ -698,6 +704,28 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       </div>
     </div>
 
+    <!-- ATTENDANCE PAGE -->
+    <div class="page" id="page-attendance">
+      <div class="sh">
+        <div class="ptit">📋 Attendance</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="date" id="att-date" class="fs" style="width:150px;font-size:12px;" onchange="loadAttendance()">
+          <button class="btn bg bsm" onclick="loadAttendance()">↻ Refresh</button>
+        </div>
+      </div>
+      <!-- Today summary -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+        <div class="panel" style="margin:0;"><div class="pb" style="text-align:center;"><div style="font-size:26px;font-weight:800;color:#22c55e;font-family:Syne;" id="att-count">—</div><div style="font-size:11px;color:var(--ink3);">Checked In</div></div></div>
+        <div class="panel" style="margin:0;"><div class="pb" style="text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--teal);font-family:Syne;" id="att-first">—</div><div style="font-size:11px;color:var(--ink3);">First In</div></div></div>
+        <div class="panel" style="margin:0;"><div class="pb" style="text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--gold);font-family:Syne;" id="att-last">—</div><div style="font-size:11px;color:var(--ink3);">Last In</div></div></div>
+      </div>
+      <!-- Attendance list -->
+      <div class="panel">
+        <div class="ph"><div class="ptit" id="att-title">Today's Attendance</div></div>
+        <div class="pb" id="att-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+      </div>
+    </div>
+
     <!-- CONTRACTS PAGE -->
     <div class="page" id="page-contracts">
       <div class="sh"><div class="ptit">📜 Contracts</div><button class="btn bg bsm" onclick="om('m-contract')">+ New Contract</button></div>
@@ -857,9 +885,26 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
     </div>
   </div>
   <div class="fg"><label class="fl">Added by</label><input class="fi" id="cl-addedby" placeholder="Who introduced this client?"></div>
+  <div class="fg"><label class="fl">Client Source</label>
+    <select class="fs" id="cl-source" onchange="toggleSourceFields()">
+      <option value="direct">🏢 Direct</option>
+      <option value="from_team">👥 From Team Member</option>
+      <option value="from_partner">🤝 From Partner</option>
+    </select>
+  </div>
+  <div class="fg" id="cl-source-team-wrap" style="display:none;">
+    <label class="fl">Team Member</label>
+    <select class="fs" id="cl-source-team"><option value="">— Select Member —</option></select>
+  </div>
   <div class="fg" id="partner-ref-wrap" style="display:none;">
     <label class="fl">Referred by Partner (optional)</label>
     <select class="fs" id="cl-partner-ref">
+      <option value="">— None / Direct —</option>
+    </select>
+  </div>
+  <div class="fg" id="team-ref-wrap" style="display:none;">
+    <label class="fl">Referred by Team Member (optional)</label>
+    <select class="fs" id="cl-team-ref">
       <option value="">— None / Direct —</option>
     </select>
   </div>
@@ -1510,7 +1555,7 @@ function renderFeed(){
   // ── REQUESTS (all statuses) ──
   if(!filterType||filterType==='request'){
     ARequests.slice(0,15).forEach(function(r){
-      var icon=r.status==='Completed'?'🔒':r.status==='Done - Pending Confirmation'?'⏳':r.status==='Accepted'?'✅':r.status==='Rejected'?'❌':r.context_type==='service_inquiry'?'🛒':r.context_type==='team_service_request'?'🛒':r.assignee_type==='management'?'🏛️':'📋';
+      var icon=r.status==='Completed'?'🔒':r.status==='Done - Pending Confirmation'?'⏳':r.status==='Accepted'?'✅':r.status==='Rejected'?'❌':r.context_type==='client_referral'?'🏭':r.context_type==='service_inquiry'?'🛒':r.context_type==='team_service_request'?'🛒':r.assignee_type==='management'?'🏛️':'📋';
       var statusColor=r.status==='Completed'?'#22c55e':r.status==='Done - Pending Confirmation'?'var(--gold)':r.status==='Accepted'?'#10b981':r.status==='Rejected'?'var(--red)':'#a78bfa';
       var cleanTitle=r.title.replace('[Team Request] ','').replace('[Project Help] ','').replace('[Client Help] ','').replace('[Service Inquiry] ','').replace('[SP Update] ','').replace('[JV Update] ','');
       items.push({d:r.updated_at||r.created_at,i:icon,x:cleanTitle,sub:r.status+(r.client_name?' · '+r.client_name:'')+(r.requested_by?' · by '+r.requested_by:'')+(r.replied_by?' → replied by '+r.replied_by:''),c:statusColor,type:'request',ref:(r.client_name||'')+'|'+(r.requested_by||'')});
@@ -1625,10 +1670,42 @@ function renderClients(){
   var sf=document.getElementById('cf-stage')&&document.getElementById('cf-stage').value;
   var svf=document.getElementById('cf-svc')&&document.getElementById('cf-svc').value;
   var f=AC;
+  var searchF=(document.getElementById('cf-search')&&document.getElementById('cf-search').value||'').toLowerCase();
+  var refBy=document.getElementById('cf-referred-by')&&document.getElementById('cf-referred-by').value||'';
   if(currentCLType)f=f.filter(function(c){return (c.client_type||'client')===currentCLType;});
+  if(currentCLSource)f=f.filter(function(c){return (c.client_source||'direct')===currentCLSource;});
   if(sf)f=f.filter(function(c){return c.stage===sf;});
   if(svf)f=f.filter(function(c){return c.service_type===svf;});
+  if(searchF)f=f.filter(function(c){
+    return c.name.toLowerCase().includes(searchF)
+      ||(c.industry||'').toLowerCase().includes(searchF)
+      ||(c.country||'').toLowerCase().includes(searchF)
+      ||(c.main_am_name||'').toLowerCase().includes(searchF)
+      ||(c.source_person_name||'').toLowerCase().includes(searchF)
+      ||(c.partner_ref_name||'').toLowerCase().includes(searchF)
+      ||(c.added_by||'').toLowerCase().includes(searchF);
+  });
+  if(refBy==='__direct__')f=f.filter(function(c){return !c.client_source||c.client_source==='direct';});
+  else if(refBy)f=f.filter(function(c){return c.source_person_name===refBy||c.partner_ref_name===refBy;});
   if(!f.length){grid.innerHTML='<div style="grid-column:span 3;text-align:center;padding:40px;color:var(--ink3);">No clients yet — click Add Client</div>';return;}
+  // Populate referred-by dropdown
+  var refSel=document.getElementById('cf-referred-by');
+  if(refSel){
+    var currentVal=refSel.value;
+    var names=new Set();
+    AC.forEach(function(c){
+      if(c.source_person_name)names.add('team:'+c.source_person_name);
+      if(c.partner_ref_name)names.add('partner:'+c.partner_ref_name);
+    });
+    var opts='<option value="">👤 All Sources</option><option value="__direct__">🏢 Direct</option>';
+    names.forEach(function(n){
+      var parts=n.split(':');
+      var icon=parts[0]==='team'?'👥':'🤝';
+      opts+='<option value="'+parts[1]+'">'+icon+' '+parts[1]+'</option>';
+    });
+    refSel.innerHTML=opts;
+    if(currentVal)refSel.value=currentVal;
+  }
   grid.innerHTML=f.map(function(c){
     var stgColor=STAGE_COLORS[c.stage]||'#6b7280';
     var hs=c.health_score||100;
@@ -1821,6 +1898,11 @@ function editClient(id){
     var jvTy=document.getElementById('cl-jv-type');if(jvTy)jvTy.value=c.jv_type||'company_wide';
     var jvLk=document.getElementById('cl-jv-link');if(jvLk)jvLk.value=c.jv_link||'';
     var jvNt=document.getElementById('cl-jv-notes');if(jvNt)jvNt.value=c.jv_notes||'';
+    var srcEl=document.getElementById('cl-source');if(srcEl){srcEl.value=c.client_source||'direct';toggleSourceFields();}
+    var srcTeam=document.getElementById('cl-source-team');
+    if(srcTeam&&c.source_person_id)srcTeam.value=c.source_person_id+'|'+(c.source_person_name||'');
+    var teamRef=document.getElementById('cl-team-ref');
+    if(teamRef&&c.source_person_id&&c.client_source==='from_team')teamRef.value=c.source_person_id+'|'+(c.source_person_name||'');
     var jvSh=document.getElementById('cl-jv-show-am');
     if(jvSh){
       jvSh.checked=c.jv_show_am||false;
@@ -1882,6 +1964,9 @@ async function saveClient(){
     name:n,
     client_type:document.getElementById('cl-type')&&document.getElementById('cl-type').value||'client',
     added_by:document.getElementById('cl-addedby')&&document.getElementById('cl-addedby').value||null,
+    client_source:document.getElementById('cl-source')&&document.getElementById('cl-source').value||'direct',
+    source_person_id:(function(){var src=document.getElementById('cl-source')&&document.getElementById('cl-source').value;var fid=src==='from_team'?'cl-team-ref':'cl-source-team';var v=document.getElementById(fid)&&document.getElementById(fid).value;return v?v.split('|')[0]:null;})(),
+    source_person_name:(function(){var src=document.getElementById('cl-source')&&document.getElementById('cl-source').value;var fid=src==='from_team'?'cl-team-ref':'cl-source-team';var v=document.getElementById(fid)&&document.getElementById(fid).value;return v?v.split('|')[1]:null;})(),
     partner_ref_id:(function(){var v=document.getElementById('cl-partner-ref')&&document.getElementById('cl-partner-ref').value;return v?v.split('|')[0]:null;})(),
     partner_ref_name:(function(){var v=document.getElementById('cl-partner-ref')&&document.getElementById('cl-partner-ref').value;return v?v.split('|')[1]:null;})(),
     jv_equity:document.getElementById('cl-jv-equity')&&document.getElementById('cl-jv-equity').value?parseFloat(document.getElementById('cl-jv-equity').value):null,
@@ -3096,6 +3181,36 @@ function openReplyModal(rid, name){
   om('m-reply');
 }
 
+async function addClientFromReferral(rid){
+  var req=ARequests.find(function(r){return r.id===rid;});if(!req)return;
+  try{
+    var data=JSON.parse(req.context_value||'{}');
+    // Pre-fill add client modal
+    openAddClient();
+    setTimeout(function(){
+      var nameEl=document.getElementById('cl-name');if(nameEl)nameEl.value=data.name||'';
+      var indEl=document.getElementById('cl-ind');if(indEl)indEl.value=data.industry||'';
+      var cntEl=document.getElementById('cl-country');if(cntEl)cntEl.value=data.country||'';
+      var srcEl=document.getElementById('cl-source');if(srcEl){srcEl.value='from_partner';toggleSourceFields();}
+      var partRef=document.getElementById('cl-partner-ref');
+      if(partRef&&data.partner_id){
+        populatePartnerRef();
+        setTimeout(function(){
+          var opt=partRef.querySelector('option[value*="'+data.partner_id+'"]');
+          if(opt)partRef.value=opt.value;
+        },200);
+      }
+      // Pre-check service
+      if(data.service){
+        document.querySelectorAll('#svc-checks input').forEach(function(cb){
+          if(cb.value===data.service)cb.checked=true;
+        });
+      }
+      toast('✅ Pre-filled from referral — review and save','success');
+    },300);
+  }catch(e){toast('Error loading referral data','error');}
+}
+
 async function resolveRequest(id){
   if(!confirm('Mark this request as Completed?'))return;
   try{
@@ -3640,6 +3755,56 @@ async function openPartnerDetail(id){
   om('m-cd');
 }
 
+// ── ATTENDANCE ──
+async function loadAttendance(){
+  var dateEl=document.getElementById('att-date');
+  var date=dateEl&&dateEl.value?dateEl.value:new Date().toISOString().split('T')[0];
+  // Set date picker to today if empty
+  if(dateEl&&!dateEl.value)dateEl.value=date;
+  var title=document.getElementById('att-title');
+  if(title)title.textContent='Attendance — '+date;
+  var el=document.getElementById('att-list');
+  if(!el)return;
+  try{
+    var r=await sb.from('ix_attendance').select('*').eq('date',date).order('check_in_time',{ascending:true});
+    var records=r.data||[];
+    // KPIs
+    var countEl=document.getElementById('att-count');if(countEl)countEl.textContent=records.length;
+    var firstEl=document.getElementById('att-first');
+    var lastEl=document.getElementById('att-last');
+    if(records.length){
+      if(firstEl)firstEl.textContent=new Date(records[0].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+      if(lastEl)lastEl.textContent=new Date(records[records.length-1].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+    } else {
+      if(firstEl)firstEl.textContent='—';
+      if(lastEl)lastEl.textContent='—';
+    }
+    if(!records.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:30px;"><div style="font-size:36px;margin-bottom:10px;">📋</div><div>No check-ins for this date</div></div>';
+      return;
+    }
+    el.innerHTML='<table style="width:100%;border-collapse:collapse;">'
+      +'<thead><tr style="border-bottom:1px solid var(--border);">'
+        +'<th style="text-align:left;padding:8px;font-size:11px;color:var(--ink3);font-weight:600;">#</th>'
+        +'<th style="text-align:left;padding:8px;font-size:11px;color:var(--ink3);font-weight:600;">Name</th>'
+        +'<th style="text-align:left;padding:8px;font-size:11px;color:var(--ink3);font-weight:600;">Role</th>'
+        +'<th style="text-align:left;padding:8px;font-size:11px;color:var(--ink3);font-weight:600;">Check-in Time</th>'
+      +'</tr></thead>'
+      +'<tbody>'
+      +records.map(function(r,i){
+        return '<tr style="border-bottom:1px solid rgba(26,31,56,.3);">'
+          +'<td style="padding:10px 8px;font-size:12px;color:var(--ink3);">'+(i+1)+'</td>'
+          +'<td style="padding:10px 8px;font-size:13px;font-weight:600;">'+r.person_name+'</td>'
+          +'<td style="padding:10px 8px;"><span style="font-size:11px;background:rgba(6,182,212,.1);color:var(--teal);padding:2px 8px;border-radius:6px;">'+(r.person_role||'Team')+'</span></td>'
+          +'<td style="padding:10px 8px;font-size:13px;font-weight:600;color:#22c55e;">'+new Date(r.check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+'</td>'
+        +'</tr>';
+      }).join('')
+      +'</tbody></table>';
+  }catch(e){
+    el.innerHTML='<div style="text-align:center;color:var(--red);padding:16px;">Error loading attendance</div>';
+  }
+}
+
 function populateContractClients(){
   var sel=document.getElementById('ct-client');if(!sel)return;
   sel.innerHTML='<option value="">— Select Client —</option>'+AC.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>';}).join('');
@@ -3920,6 +4085,23 @@ function openActModal(){
   var cl=document.getElementById('act-cl');
   if(cl)cl.innerHTML='<option value="">— No client —</option>'+AC.map(function(c){return '<option value="'+c.name+'">'+c.name+'</option>';}).join('');
   om('m-act');
+}
+
+function toggleSourceFields(){
+  var src=document.getElementById('cl-source').value;
+  var teamWrap=document.getElementById('cl-source-team-wrap');
+  var partnerWrap=document.getElementById('partner-ref-wrap');
+  var teamRefWrap=document.getElementById('team-ref-wrap');
+  if(teamWrap)teamWrap.style.display=src==='from_team'?'block':'none';
+  if(partnerWrap)partnerWrap.style.display=src==='from_partner'?'block':'none';
+  if(teamRefWrap)teamRefWrap.style.display=src==='from_team'?'block':'none';
+  if(src==='from_team'){
+    var sel=document.getElementById('cl-source-team');
+    var refSel=document.getElementById('cl-team-ref');
+    var opts='<option value="">— Select Member —</option>'+APeople.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+    if(sel)sel.innerHTML=opts;
+    if(refSel)refSel.innerHTML='<option value="">— None / Direct —</option>'+APeople.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+  }
 }
 
 function togglePartnerField(){

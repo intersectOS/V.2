@@ -642,6 +642,27 @@ async function loadJVOverview(){
   }
 }
 
+async function saveTelegramPartner(){
+  var chatId=prompt('Enter your Telegram Chat ID (get it from @userinfobot):');
+  if(!chatId)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_partners?id=eq.'+partnerData.id,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({telegram_chat_id:chatId})
+    });
+    partnerData.telegram_chat_id=chatId;
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text:'✅ *INTERSECT PartnerOS*\n\nHi '+partnerData.name+'! Your Telegram is now linked.',parse_mode:'Markdown'})
+    });
+    toast('✅ Telegram linked!','ts');
+  }catch(e){toast('Error saving','te');}
+}
+
 async function submitJVUpdate(){
   var text=document.getElementById('jv-update-text').value.trim();
   if(!text){toast('Write an update first','te');return;}
