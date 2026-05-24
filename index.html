@@ -1478,9 +1478,24 @@ async function loadAll(){
     ['ix_expert_requests',function(d){AExpertReq=d||[];},'created_at']
   ];
   await Promise.all(tables.map(async function(tbl){
-    try{var r=await sb.from(tbl[0]).select('*').order(tbl[2],{ascending:false}); tbl[1](r.data);}
-    catch(e){tbl[1]([]);}
+    try{
+      var r=await sb.from(tbl[0]).select('*').order(tbl[2],{ascending:false});
+      if(r.error){
+        console.warn('Load error for '+tbl[0]+':',r.error.message);
+        tbl[1]([]);
+      } else {
+        tbl[1](r.data||[]);
+      }
+    }catch(e){
+      console.warn('Exception for '+tbl[0]+':',e.message);
+      tbl[1]([]);
+    }
   }));
+  // Also load partners and client services
+  try{var rp=await sb.from('ix_partners').select('*').order('created_at',{ascending:false});if(!rp.error)APartners=rp.data||[];}catch(e){}
+  try{var rcs=await sb.from('ix_client_services').select('*').order('created_at',{ascending:false});if(!rcs.error)AClientServices=rcs.data||[];}catch(e){}
+  try{var rsh=await sb.from('ix_service_history').select('*').order('created_at',{ascending:false}).limit(200);if(!rsh.error)AServiceHistory=rsh.data||[];}catch(e){}
+  try{var rct=await sb.from('ix_contracts').select('*').order('end_date',{ascending:true});if(!rct.error)AContracts=rct.data||[];}catch(e){}
   renderOV();
   updateNotifBadge();
 }
