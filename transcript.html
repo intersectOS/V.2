@@ -84,6 +84,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 </style>
 </head>
 <body>
+<div id="err-display" style="display:none;position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:12px;font-size:12px;z-index:9999;word-break:break-all;"></div>
+<script>
+window.onerror=function(msg,src,line,col,err){
+  var el=document.getElementById('err-display');
+  if(el){el.textContent='ERROR: '+msg+' | Line:'+line+' | '+src.split('/').pop();el.style.display='block';}
+  return false;
+};
+window.addEventListener('unhandledrejection',function(e){
+  var el=document.getElementById('err-display');
+  if(el){el.textContent='PROMISE ERROR: '+(e.reason||e);el.style.display='block';}
+});
+// Auto-login if came from portal
+(function(){
+  try{
+    var pt=localStorage.getItem('ix_portal_type');
+    if(pt==='coordinator'){
+      // Skip login screen
+      window.addEventListener('DOMContentLoaded',function(){
+        var ls=document.getElementById('login-sc');
+        var mn=document.getElementById('main');
+        if(ls)ls.style.display='none';
+        if(mn)mn.style.display='block';
+        var dt=document.getElementById('mt-date');
+        if(dt)dt.value=new Date().toISOString().split('T')[0];
+        loadData();
+      });
+    }
+  }catch(e){}
+})();
+</script>
 <div class="toast" id="toast"></div>
 
 <!-- LOGIN -->
@@ -286,17 +316,22 @@ function openModal(id){document.getElementById(id).style.display='flex';}
 function closeModal(id){document.getElementById(id).style.display='none';}
 
 function doLogin(){
-  var pass=document.getElementById('coord-pass').value;
-  var stored=localStorage.getItem('ix_coord_pass')||'coordinator2026';
-  if(pass===stored){
-    document.getElementById('login-sc').style.display='none';
-    document.getElementById('main').style.display='block';
-    document.getElementById('mt-date').value=new Date().toISOString().split('T')[0];
-    try{var sl=localStorage.getItem('ix_coord_lang');if(sl)setL(sl);}catch(e){}
-    loadData();
-  } else {
-    document.getElementById('lerr').style.display='block';
-    setTimeout(function(){document.getElementById('lerr').style.display='none';},2000);
+  try{
+    var pass=document.getElementById('coord-pass').value;
+    var stored=localStorage.getItem('ix_coord_pass')||'coordinator2026';
+    if(pass===stored){
+      document.getElementById('login-sc').style.display='none';
+      document.getElementById('main').style.display='block';
+      document.getElementById('mt-date').value=new Date().toISOString().split('T')[0];
+      try{var sl=localStorage.getItem('ix_coord_lang');if(sl)setL(sl);}catch(e){}
+      loadData();
+    } else {
+      var errEl=document.getElementById('lerr');
+      if(errEl){errEl.style.display='block';setTimeout(function(){errEl.style.display='none';},2000);}
+    }
+  }catch(e){
+    var el=document.getElementById('err-display');
+    if(el){el.textContent='Login error: '+e.message+' | '+e.stack;el.style.display='block';}
   }
 }
 function doLogout(){document.getElementById('main').style.display='none';document.getElementById('login-sc').style.display='flex';document.getElementById('coord-pass').value='';}
@@ -312,6 +347,7 @@ async function delSB(table,id){
 }
 
 async function loadData(){
+  try{
   // Load clients from ix_clients_v2 + ix_meetings
   var r1=await fetchSB('ix_clients_v2','order=name.asc&select=id,name,stage,industry,code');
   clients=Array.isArray(r1)?r1:[];
@@ -319,6 +355,7 @@ async function loadData(){
   allMeetings=Array.isArray(r2)?r2:[];
   document.getElementById('meet-count-header').textContent=allMeetings.length+' total meetings · '+clients.length+' clients';
   renderSidebar();
+  }catch(e){var el=document.getElementById("err-display");if(el){el.textContent="loadData error: "+e.message;el.style.display="block";}}
 }
 
 function renderSidebar(){
