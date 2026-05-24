@@ -158,13 +158,22 @@ async function doLogin(){
       showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
     }
 
-    // Coordinator
+    // Coordinator - login via ix_people with person_type coordinator
     if(selectedRole==='coordinator'){
+      // Try ix_people first
+      var rc=await sb.from('ix_people').select('*').eq('username',user).limit(1);
+      if(rc.data&&rc.data.length>0&&rc.data[0].portal_password===pass){
+        var rec=rc.data[0];
+        try{localStorage.setItem('ix_portal_type','coordinator');}catch(e){}
+        try{localStorage.setItem('ix_portal_data',JSON.stringify(rec));}catch(e){}
+        window.location.href='transcript.html';return;
+      }
+      // Fallback: legacy password
       var storedPass=localStorage.getItem('ix_coord_pass')||'coordinator2026';
       if(pass===storedPass){
         window.location.href='transcript.html';return;
       }
-      showErr('Wrong coordinator password');btn.textContent='→ Access Portal';btn.disabled=false;return;
+      showErr('Invalid coordinator credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
     }
 
   }catch(e){
