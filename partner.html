@@ -182,8 +182,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
     <!-- SUCCESS PARTNER: My Companies -->
     <div class="tp" id="tp-companies">
       <div class="panel">
-        <div class="ph"><div class="pt">🏭 Companies I Referred</div><span id="companies-badge" class="pill pgo" style="display:none;"></span></div>
+        <div class="ph">
+          <div class="pt">🏭 Companies I Referred</div>
+          <span id="companies-badge" class="pill pgo" style="display:none;"></span>
+        </div>
         <div class="pb" id="companies-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt">➕ Refer a New Client</div></div>
+        <div class="pb">
+          <div style="font-size:12px;color:var(--ink2);margin-bottom:12px;line-height:1.5;">
+            Know a company that could benefit from Intersect's services? Submit a referral and our team will follow up.
+          </div>
+          <label class="fl">Company Name *</label>
+          <input class="fi" id="ref-name" placeholder="e.g. Saudi Aramco">
+          <label class="fl">Industry</label>
+          <input class="fi" id="ref-industry" placeholder="e.g. Energy">
+          <label class="fl">Country</label>
+          <input class="fi" id="ref-country" placeholder="e.g. Saudi Arabia">
+          <label class="fl">Contact Person (optional)</label>
+          <input class="fi" id="ref-contact" placeholder="Name and title">
+          <label class="fl">Service Interest</label>
+          <select class="fs" id="ref-service">
+            <option value="Soft Landing">Soft Landing</option>
+            <option value="Strategic Partnership">Strategic Partnership</option>
+            <option value="Market Entry">Market Entry</option>
+            <option value="Investment">Investment</option>
+            <option value="Consulting">Consulting</option>
+            <option value="Other">Other</option>
+          </select>
+          <label class="fl">Notes</label>
+          <textarea class="fta" id="ref-notes" placeholder="Any additional context about this company..."></textarea>
+          <button class="btn bbg bw" onclick="submitReferral()">📤 Submit Referral</button>
+          <div id="ref-sent" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">
+            ✅ Referral submitted! Our team will review and add the company to your portfolio.
+          </div>
+        </div>
       </div>
     </div>
 
@@ -530,6 +564,48 @@ async function submitAssignmentUpdate(){
   });
   if(r){document.getElementById('assign-update').value='';toast('✅ Update submitted!','ts');}
   else{toast('Error submitting','te');}
+}
+
+async function submitReferral(){
+  var name=document.getElementById('ref-name').value.trim();
+  if(!name){toast('Enter company name','te');return;}
+  var industry=document.getElementById('ref-industry').value.trim();
+  var country=document.getElementById('ref-country').value.trim();
+  var contact=document.getElementById('ref-contact').value.trim();
+  var service=document.getElementById('ref-service').value;
+  var notes=document.getElementById('ref-notes').value.trim();
+
+  var body={
+    title:'[Client Referral] '+name+' — via '+partnerData.name,
+    description:'Company: '+name
+      +(industry?'\nIndustry: '+industry:'')
+      +(country?'\nCountry: '+country:'')
+      +(contact?'\nContact: '+contact:'')
+      +'\nService Interest: '+service
+      +(notes?'\n\nNotes: '+notes:''),
+    partner_id:partnerData.id,
+    requested_by:partnerData.name,
+    context_type:'client_referral',
+    context_value:JSON.stringify({name:name,industry:industry,country:country,service:service,partner_id:partnerData.id,partner_name:partnerData.name}),
+    status:'Pending',
+    priority:'high',
+    show_to_client:false
+  };
+
+  var r=await postSB('ix_requests',body);
+  if(r&&(Array.isArray(r)?r[0]:r)){
+    document.getElementById('ref-name').value='';
+    document.getElementById('ref-industry').value='';
+    document.getElementById('ref-country').value='';
+    document.getElementById('ref-contact').value='';
+    document.getElementById('ref-notes').value='';
+    var sent=document.getElementById('ref-sent');
+    sent.style.display='block';
+    setTimeout(function(){sent.style.display='none';},6000);
+    toast('✅ Referral submitted!','ts');
+  } else {
+    toast('Error submitting referral','te');
+  }
 }
 
 async function loadJVOverview(){
