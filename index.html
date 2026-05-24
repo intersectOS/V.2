@@ -1429,13 +1429,24 @@ function gp(n,el){
   if(ti&&sp)ti.textContent=t(sp.dataset.i);
   closeSB();
   var renderMap={
-    clients:renderClients, people:renderPeople, pipeline:renderPipeline,
-    actions:renderActions, experts:renderExperts, requests:lRequests,
-    meetings:renderMeetings, reports:loadReports,
-    invoices:renderInvoices, ai:renderAI, projects:renderProjects, tasks:renderTasks,
-    notifications:renderNotifs, news:lNews,
+    clients:renderClients,
+    people:function(){if(sb){sb.from('ix_people').select('*').order('name').then(function(r){if(!r.error){APeople=r.data||[];renderPeople();}});}else{renderPeople();}},
+    pipeline:renderPipeline,
+    actions:renderActions,
+    experts:renderExperts,
+    requests:lRequests,
+    meetings:renderMeetings,
+    reports:loadReports,
+    invoices:renderInvoices,
+    ai:renderAI,
+    projects:renderProjects,
+    tasks:renderTasks,
+    notifications:renderNotifs,
+    news:lNews,
     contracts:function(){loadContracts();populateContractClients();},
     catalog:loadCatalog,
+    partners:function(){if(sb){sb.from('ix_partners').select('*').order('created_at',{ascending:false}).then(function(r){if(!r.error){APartners=r.data||[];renderPartners();}});}else{renderPartners();}},
+    attendance:loadAttendance,
     settings:function(){
       var k=document.getElementById('claude-key');
       if(k){var saved=localStorage.getItem('ix_claude_key');k.placeholder=saved?'••••••••• (saved)':'sk-ant-...';}
@@ -1688,7 +1699,13 @@ function renderClients(){
   var f=AC;
   var searchF=(document.getElementById('cf-search')&&document.getElementById('cf-search').value||'').toLowerCase();
   var refBy=document.getElementById('cf-referred-by')&&document.getElementById('cf-referred-by').value||'';
-  if(currentCLType)f=f.filter(function(c){return (c.client_type||'client')===currentCLType;});
+  if(currentCLType){
+    if(currentCLType==='client'){
+      f=f.filter(function(c){return !c.client_type||c.client_type==='client';});
+    } else {
+      f=f.filter(function(c){return c.client_type===currentCLType;});
+    }
+  }
   if(currentCLSource)f=f.filter(function(c){return (c.client_source||'direct')===currentCLSource;});
   if(sf)f=f.filter(function(c){return c.stage===sf;});
   if(svf)f=f.filter(function(c){return c.service_type===svf;});
