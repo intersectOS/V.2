@@ -165,13 +165,14 @@ async function doLogin(){
       var d2=r2.data||[];
       if(Array.isArray(d2)&&d2.length>0){
         var dbPass=d2[0].portal_password;
-        if(dbPass===pass||dbPass==pass||(dbPass&&dbPass.trim()===pass.trim())){
+        if(dbPass&&dbPass.trim()===pass.trim()){
           var rec2=d2[0];
+          var recStr=JSON.stringify(rec2);
           try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
-          try{localStorage.setItem('ix_portal_data',JSON.stringify(rec2));}catch(e){}
+          try{localStorage.setItem('ix_portal_data',recStr);}catch(e){}
+          // Also store in sessionStorage as fallback
+          try{sessionStorage.setItem('ix_portal_data',recStr);sessionStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
           window.location.href='team.html';return;
-        } else {
-          showErr('Password mismatch: db='+JSON.stringify(dbPass)+' entered='+JSON.stringify(pass));return;
         }
       }
       showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
