@@ -1120,7 +1120,27 @@ window.addEventListener('DOMContentLoaded',function(){
   var stored=null;
   try{stored=localStorage.getItem('ix_portal_data');}catch(e){}
   if(!stored){try{stored=sessionStorage.getItem('ix_portal_data');}catch(e){}}
-  if(!stored){return showError();}
+  if(!stored){
+    // Try loading from URL param
+    var urlParams=new URLSearchParams(window.location.search);
+    var uid=urlParams.get('uid');
+    if(uid){
+      // Fetch from Supabase directly
+      var SB='https://zmiywdpfdvllsxalklrv.supabase.co';
+      var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+      fetch(SB+'/rest/v1/ix_people?id=eq.'+uid+'&limit=1',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}})
+        .then(function(r){return r.json();})
+        .then(function(data){
+          if(Array.isArray(data)&&data.length>0){
+            memberData=data[0];
+            try{localStorage.setItem('ix_portal_data',JSON.stringify(memberData));}catch(e){}
+            render();
+          } else {showError();}
+        }).catch(function(){showError();});
+      return;
+    }
+    return showError();
+  }
   try{
     memberData=JSON.parse(stored);
     if(!memberData||!memberData.name)return showError();

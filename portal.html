@@ -170,9 +170,9 @@ async function doLogin(){
           var recStr=JSON.stringify(rec2);
           try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
           try{localStorage.setItem('ix_portal_data',recStr);}catch(e){}
-          // Also store in sessionStorage as fallback
           try{sessionStorage.setItem('ix_portal_data',recStr);sessionStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
-          window.location.href='team.html';return;
+          // Pass ID via URL as extra fallback
+          window.location.href='team.html?uid='+rec2.id+'&utype='+(rec2.person_type||'employee');return;
         }
       }
       showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
