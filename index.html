@@ -1195,15 +1195,50 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 </div></div>
 
 <!-- TASK -->
-<div class="mo" id="m-task"><div class="modal">
+<div class="mo" id="m-task"><div class="modal modal-lg">
   <div class="mtit" id="tsk-modal-title">📌 New Task</div>
-  <div class="fg"><label class="fl">Title *</label><input class="fi" id="tsk-t"></div>
-  <div class="fgrid"><div class="fg"><label class="fl">Project</label><select class="fs" id="tsk-proj"></select></div><div class="fg"><label class="fl">Assignees (select multiple)</label>
-    <div id="tsk-assignees-wrap" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:120px;overflow-y:auto;"></div>
-  </div></div>
-  <div class="fgrid"><div class="fg"><label class="fl">Status</label><select class="fs" id="tsk-status"><option>To Do</option><option>In Progress</option><option>Review</option><option>Done</option></select></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="tsk-pri"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select></div></div>
-  <div class="fgrid"><div class="fg"><label class="fl">Deadline</label><input class="fi" id="tsk-d" type="date"></div><div class="fg"><label class="fl">Notes</label><input class="fi" id="tsk-n"></div></div>
-  <div class="mfoot"><button class="btn bo" onclick="cm('m-task')">Cancel</button><button class="btn bg" onclick="saveTask()">💾 Save</button></div>
+  <input type="hidden" id="tsk-edit-id">
+
+  <!-- Basic Info -->
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Task Title *</label><input class="fi" id="tsk-t" placeholder="e.g. Saudi Market Entry — Al Tamimi"></div>
+    <div class="fg"><label class="fl">Priority</label>
+      <select class="fs" id="tsk-pri">
+        <option value="high">🔴 High</option>
+        <option value="medium" selected>🟡 Medium</option>
+        <option value="low">🟢 Low</option>
+      </select>
+    </div>
+  </div>
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Client (optional)</label>
+      <select class="fs" id="tsk-client"><option value="">— No Client —</option></select>
+    </div>
+    <div class="fg"><label class="fl">Project (optional)</label>
+      <select class="fs" id="tsk-proj"><option value="">— No Project —</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Description</label>
+    <textarea class="fta" id="tsk-d" placeholder="Task overview and objectives..."></textarea>
+  </div>
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Deadline</label><input class="fi" type="date" id="tsk-deadline"></div>
+    <div class="fg"><label class="fl">Focal Point (Overall Responsible)</label>
+      <select class="fs" id="tsk-focal"><option value="">— Select Focal Point —</option></select>
+    </div>
+  </div>
+
+  <!-- Sub-tasks -->
+  <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
+    <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:10px;">📋 Sub-tasks / Assignments</div>
+    <div id="subtasks-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+    <button class="btn bbo bsm" onclick="addSubtaskRow()" style="width:100%;font-size:11px;">+ Add Sub-task</button>
+  </div>
+
+  <div class="mfoot">
+    <button class="btn bo" onclick="cm('m-task')" style="padding:8px 14px;">Cancel</button>
+    <button class="btn bg" onclick="saveTask()" style="padding:8px 20px;">💾 Save Task</button>
+  </div>
 </div></div>
 
 <!-- SERVICE CATALOG MODAL -->
@@ -3347,43 +3382,129 @@ function renderTasks(){
   }).join('');
 }
 
-function openTaskModal(){
-  document.getElementById('m-task').dataset.editId='';
-  document.getElementById('tsk-modal-title').textContent='📌 New Task';
-  ['tsk-t','tsk-d','tsk-n'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
-  var ps=document.getElementById('tsk-proj');if(ps)ps.innerHTML='<option value="">— No Project —</option>'+AProj.map(function(p){return '<option value="'+p.name+'">'+p.name+'</option>';}).join('');
-  // Populate assignees as checkboxes
-  var awrap=document.getElementById('tsk-assignees-wrap');
-  if(awrap){
-    awrap.innerHTML=APeople.map(function(p){
-      return '<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;margin-bottom:2px;background:var(--card);border:1px solid var(--border);">'
-        +'<input type="checkbox" class="tsk-ass-cb" value="'+p.id+'|'+p.name+'" style="width:14px;height:14px;accent-color:var(--teal);"> '
-        +'<span style="font-weight:600;">'+p.name+'</span>'
-        +(p.role?'<span style="color:var(--ink3);font-size:10px;margin-left:auto;">'+p.role+'</span>':'')
-      +'</label>';
-    }).join('');
+var _subtaskCount=0;
+
+function addSubtaskRow(title, assignee){
+  _subtaskCount++;
+  var id='st-'+_subtaskCount;
+  var peopleOpts='<option value="">— Assignee —</option>'+APeople.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+  var row=document.createElement('div');
+  row.id=id;
+  row.style.cssText='display:flex;gap:6px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;';
+  row.innerHTML='<input class="fi st-title" placeholder="Sub-task description..." style="flex:1;margin:0;" value="'+(title||'')+'"><select class="fs st-assignee" style="width:150px;margin:0;">'+(peopleOpts)+'</select><button class="btn bsm" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);flex-shrink:0;" onclick="this.parentElement.remove()">✕</button>';
+  document.getElementById('subtasks-list').appendChild(row);
+  if(assignee){var sel=row.querySelector('.st-assignee');if(sel)sel.value=assignee;}
+}
+
+function openTaskModal(editId){
+  _subtaskCount=0;
+  document.getElementById('tsk-edit-id').value=editId||'';
+  document.getElementById('tsk-modal-title').textContent=editId?'✏️ Edit Task':'📌 New Task';
+  document.getElementById('subtasks-list').innerHTML='';
+  ['tsk-t','tsk-d'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  var dEl=document.getElementById('tsk-deadline');if(dEl)dEl.value='';
+  // Populate dropdowns
+  var ps=document.getElementById('tsk-proj');
+  if(ps)ps.innerHTML='<option value="">— No Project —</option>'+AProj.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+'</option>';}).join('');
+  var cs=document.getElementById('tsk-client');
+  if(cs)cs.innerHTML='<option value="">— No Client —</option>'+AC.map(function(c){return '<option value="'+c.id+'|'+c.name+'">'+c.name+'</option>';}).join('');
+  var fs=document.getElementById('tsk-focal');
+  if(fs)fs.innerHTML='<option value="">— Select Focal Point —</option>'+APeople.map(function(p){return '<option value="'+p.id+'|'+p.name+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+  if(editId){
+    var task=ATasks.find(function(t){return t.id===editId;});
+    if(task){
+      document.getElementById('tsk-t').value=task.title||'';
+      document.getElementById('tsk-d').value=task.description||'';
+      if(dEl)dEl.value=task.deadline||'';
+      var priEl=document.getElementById('tsk-pri');if(priEl)priEl.value=task.priority||'medium';
+      if(fs&&task.focal_point_id)fs.value=task.focal_point_id+'|'+(task.focal_point_name||'');
+      if(cs&&task.client_id)cs.value=task.client_id+'|'+(task.client_name||'');
+      // Load subtasks
+      sb.from('ix_subtasks').select('*').eq('task_id',editId).order('created_at').then(function(r){
+        if(r.data)r.data.forEach(function(st){addSubtaskRow(st.title,st.assignee_id?st.assignee_id+'|'+st.assignee_name:null);});
+      });
+    }
+  } else {
+    addSubtaskRow();
   }
   om('m-task');
 }
 
 async function saveTask(){
-  var title=document.getElementById('tsk-t').value.trim();if(!title)return toast('Enter title','error');
-  var editId=document.getElementById('m-task').dataset.editId||'';
-  var task={title:title,project_name:document.getElementById('tsk-proj').value,assignee:document.getElementById('tsk-ass').value||null,status:document.getElementById('tsk-status').value,priority:document.getElementById('tsk-pri').value,deadline:document.getElementById('tsk-d').value,notes:document.getElementById('tsk-n').value.trim()};
-  if(editId){
-    if(sb){var ru=await sb.from('ix_tasks').update(task).eq('id',editId).select().single();if(ru.error)return toast('Error: '+ru.error.message,'error');var xi=ATasks.findIndex(function(x){return x.id===editId;});if(xi>=0)ATasks[xi]=ru.data;}
-    else{var xi=ATasks.findIndex(function(x){return x.id===editId;});if(xi>=0)Object.assign(ATasks[xi],task);}
-    cm('m-task');renderTasks();renderProjects();toast('✅ Updated','success');
-  } else {
-    task.done=false;
-    if(sb){var r=await sb.from('ix_tasks').insert(task).select().single();if(r.error)return toast('Error: '+r.error.message,'error');ATasks.unshift(r.data);}
-    else{task.id='local-'+Date.now();task.created_at=new Date().toISOString();ATasks.unshift(task);}
-    cm('m-task');['tsk-t','tsk-d','tsk-n'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
-    renderTasks();renderProjects();toast('✅ Task added','success');
-  }
+  var title=document.getElementById('tsk-t').value.trim();
+  if(!title)return toast('Enter task title','error');
+  var editId=document.getElementById('tsk-edit-id').value;
+  var projVal=document.getElementById('tsk-proj').value;
+  var clientVal=document.getElementById('tsk-client').value;
+  var focalVal=document.getElementById('tsk-focal').value;
+  var projParts=projVal?projVal.split('|'):['',''];
+  var clientParts=clientVal?clientVal.split('|'):['',''];
+  var focalParts=focalVal?focalVal.split('|'):['',''];
+  // Get subtasks
+  var subtasks=[];
+  document.querySelectorAll('#subtasks-list > div').forEach(function(row){
+    var t=row.querySelector('.st-title');
+    var a=row.querySelector('.st-assignee');
+    if(t&&t.value.trim()){
+      var aParts=a&&a.value?a.value.split('|'):['',''];
+      subtasks.push({title:t.value.trim(),assignee_id:aParts[0]||null,assignee_name:aParts[1]||null});
+    }
+  });
+  var assigneeNames=subtasks.map(function(s){return s.assignee_name;}).filter(Boolean);
+  var uniqueAssignees=[...new Set(assigneeNames)];
+  var body={
+    title:title,
+    description:document.getElementById('tsk-d').value.trim()||null,
+    priority:document.getElementById('tsk-pri').value,
+    deadline:document.getElementById('tsk-deadline').value||null,
+    project_id:projParts[0]||null,
+    project_name:projParts[1]||null,
+    client_id:clientParts[0]||null,
+    client_name:clientParts[1]||null,
+    focal_point_id:focalParts[0]||null,
+    focal_point_name:focalParts[1]||null,
+    assignee:uniqueAssignees.join(', ')||null,
+    members:subtasks.length?JSON.stringify(subtasks):null,
+    status:'To Do'
+  };
+  try{
+    var taskId=null;
+    if(editId){
+      var r=await sb.from('ix_tasks').update(body).eq('id',editId).select().single();
+      if(r.error){toast('Error: '+r.error.message,'error');return;}
+      taskId=editId;
+      var i2=ATasks.findIndex(function(t){return t.id===editId;});
+      if(i2>=0)ATasks[i2]=r.data;
+      // Delete old subtasks
+      await sb.from('ix_subtasks').delete().eq('task_id',editId);
+    } else {
+      var r=await sb.from('ix_tasks').insert(body).select().single();
+      if(r.error){toast('Error: '+r.error.message,'error');return;}
+      taskId=r.data.id;
+      ATasks.unshift(r.data);
+    }
+    // Insert subtasks
+    if(subtasks.length&&taskId){
+      var stInsert=subtasks.map(function(st){return {task_id:taskId,title:st.title,assignee_id:st.assignee_id||null,assignee_name:st.assignee_name||null,status:'To Do'};});
+      await sb.from('ix_subtasks').insert(stInsert);
+    }
+    cm('m-task');
+    renderTasks();
+    // Notify all assignees
+    subtasks.forEach(function(st){
+      if(st.assignee_id){
+        var p=APeople.find(function(x){return x.id===st.assignee_id;});
+        if(p&&p.telegram_chat_id){
+          tgNotifTo(p.telegram_chat_id,'📌 New Task Assigned','*'+title+'*\n\nYour part: '+st.title+(clientParts[1]?' · '+clientParts[1]:''));
+        }
+      }
+    });
+    tgNotif('📌','Task Saved','*'+title+'*'+(focalParts[1]?' — Focal: '+focalParts[1]:''));
+    toast('✅ Task saved!','success');
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
-function getFilteredTasks(){var pf=document.getElementById('tf-proj')&&document.getElementById('tf-proj').value;var sf=document.getElementById('tf-status')&&document.getElementById('tf-status').value;var f=ATasks;if(pf)f=f.filter(function(t){return t.project_name===pf;});if(sf)f=f.filter(function(t){return t.status===sf;});return f;}
+
 async function updateTask(i,status){var f=getFilteredTasks();var task=f[i];if(!task)return;task.status=status;task.done=status==='Done';if(sb&&!task.id.startsWith('local-'))await sb.from('ix_tasks').update({status:status,done:task.done}).eq('id',task.id);renderTasks();renderProjects();}
 async function delTask(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_tasks').delete().eq('id',id);ATasks=ATasks.filter(function(t){return t.id!==id;});renderTasks();renderProjects();toast('Deleted','success');}
 
@@ -4535,6 +4656,49 @@ async function toggleServiceActive(id, makeActive){
     renderCatalog();
     toast(makeActive?'✅ Activated':'⏸ Paused','success');
   }catch(e){toast('Error','error');}
+}
+
+async function openTaskDetail(taskId){
+  var task=ATasks.find(function(t){return t.id===taskId;});if(!task)return;
+  var titleEl=document.getElementById('td-title');
+  if(titleEl)titleEl.textContent='📌 '+task.title;
+  var body=document.getElementById('td-body');if(!body)return;
+  // Load subtasks
+  var r=await sb.from('ix_subtasks').select('*').eq('task_id',taskId).order('created_at');
+  var subtasks=r.data||[];
+  var prioC={high:'var(--red)',medium:'var(--gold)',low:'#22c55e'};
+  var html='';
+  // Header info
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">';
+  html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:10px;color:var(--ink3);">Status</div><div style="font-size:13px;font-weight:700;">'+task.status+'</div></div>';
+  html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:10px;color:var(--ink3);">Priority</div><div style="font-size:13px;font-weight:700;color:'+(prioC[task.priority]||'var(--ink2)')+';">'+( task.priority||'—')+'</div></div>';
+  html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:10px;color:var(--ink3);">Deadline</div><div style="font-size:13px;font-weight:700;">'+(task.deadline||'—')+'</div></div>';
+  html+='</div>';
+  if(task.focal_point_name)html+='<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:10px;margin-bottom:12px;"><span style="font-size:11px;color:var(--gold);font-weight:700;">⭐ Focal Point: </span><span style="font-size:13px;font-weight:700;">'+task.focal_point_name+'</span></div>';
+  if(task.client_name)html+='<div style="font-size:12px;color:var(--gold);margin-bottom:8px;">📁 Client: '+task.client_name+'</div>';
+  if(task.description)html+='<div style="background:var(--card2);border-radius:8px;padding:10px;font-size:12px;color:var(--ink2);margin-bottom:12px;line-height:1.6;">'+task.description+'</div>';
+  // Subtasks
+  html+='<div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📋 Sub-tasks ('+subtasks.length+')</div>';
+  if(subtasks.length){
+    var done=subtasks.filter(function(s){return s.status==='Done';}).length;
+    var pct=Math.round(done/subtasks.length*100);
+    html+='<div style="background:var(--card2);border-radius:20px;height:6px;margin-bottom:10px;overflow:hidden;">';
+    html+='<div style="background:var(--grad);height:100%;width:'+pct+'%;border-radius:20px;transition:width .3s;"></div></div>';
+    html+='<div style="font-size:11px;color:var(--ink3);text-align:right;margin-bottom:10px;">'+done+'/'+subtasks.length+' completed ('+pct+'%)</div>';
+    subtasks.forEach(function(st){
+      var isDone=st.status==='Done';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;background:var(--card2);border:1px solid '+(isDone?'rgba(34,197,94,.2)':'var(--border)')+';border-radius:8px;padding:10px 12px;margin-bottom:6px;">'
+        +'<div><div style="font-size:13px;font-weight:600;'+(isDone?'text-decoration:line-through;color:var(--ink3);':'')+'">'+st.title+'</div>'
+        +(st.assignee_name?'<div style="font-size:11px;color:var(--ink3);">👤 '+st.assignee_name+'</div>':'')
+        +'</div>'
+        +'<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:'+(isDone?'rgba(34,197,94,.1)':'rgba(245,158,11,.1)')+';color:'+(isDone?'#22c55e':'var(--gold)')+';">'+st.status+'</span>'
+      +'</div>';
+    });
+  } else {
+    html+='<div style="text-align:center;color:var(--ink3);padding:16px;">No sub-tasks yet</div>';
+  }
+  body.innerHTML=html;
+  om('m-task-detail');
 }
 
 function populateContractClients(){

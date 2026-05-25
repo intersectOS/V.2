@@ -2170,6 +2170,60 @@ async function submitTaskSupport(){
   }
 }
 
+async function markSubtaskDone(subtaskId, taskId, btn){
+  if(!confirm('Mark this sub-task as Done?'))return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_subtasks?id=eq.'+subtaskId,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({status:'Done',updated_at:new Date().toISOString()})
+    });
+    // Add update
+    await fetch(SB+'/rest/v1/ix_workflow',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        title:'✅ Sub-task completed',
+        description:memberData.name+' completed their assignment',
+        created_by:memberData.name,
+        client_id:'00000000-0000-0000-0000-000000000000',
+        client_name:'_task_'+taskId,
+        show_to_client:false,
+        status:'task_update'
+      })
+    });
+    sendTG('✅ *Sub-task Done*\n\nBy: '+memberData.name);
+    toast('✅ Marked as Done!','ts');
+    loadExpTasks();
+  }catch(e){toast('Error','te');}
+}
+
+async function closeFocalTask(taskId, btn){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  // Check all subtasks are done
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_subtasks?task_id=eq.'+taskId,{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var subs=await r.json();
+    var pending=Array.isArray(subs)?subs.filter(function(s){return s.status!=='Done';}).length:0;
+    if(pending>0){
+      toast(pending+' sub-task(s) still pending — all must be done first','te');
+      return;
+    }
+    if(!confirm('Close this task? All sub-tasks are completed.'))return;
+    await fetch(SB+'/rest/v1/ix_tasks?id=eq.'+taskId,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({status:'Done',updated_at:new Date().toISOString()})
+    });
+    sendTG('🔒 *Task Closed*\n\nBy Focal Point: '+memberData.name);
+    toast('🔒 Task closed!','ts');
+    loadExpTasks();
+  }catch(e){toast('Error','te');}
+}
+
 async function checkTodayAttendance(personId){
   if(!personId||!memberData)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
@@ -2276,11 +2330,30 @@ async function loadExpTasks(){
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   try{
-    // Tasks assigned to this expert
-    var r=await fetch(SB+'/rest/v1/ix_tasks?assignee=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+    // Get subtasks assigned to me
+    var rSt=await fetch(SB+'/rest/v1/ix_subtasks?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
-    var tasks=await r.json();
+    var mySubtasks=await rSt.json();
+    mySubtasks=Array.isArray(mySubtasks)?mySubtasks:[];
+    // Get parent tasks
+    var taskIds=[...new Set(mySubtasks.map(function(s){return s.task_id;}))];
+    var tasks=[];
+    if(taskIds.length){
+      var rT=await fetch(SB+'/rest/v1/ix_tasks?id=in.('+taskIds.join(',')+')',{
+        headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+      });
+      tasks=await rT.json();
+      tasks=Array.isArray(tasks)?tasks:[];
+    }
+    // Also tasks where I'm focal point
+    var rFocal=await fetch(SB+'/rest/v1/ix_tasks?focal_point_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var focalTasks=await rFocal.json();
+    focalTasks=Array.isArray(focalTasks)?focalTasks:[];
+    // Merge
+    focalTasks.forEach(function(ft){if(!tasks.find(function(t){return t.id===ft.id;}))tasks.push(ft);});
     // Also get requests assigned to them
     var r2=await fetch(SB+'/rest/v1/ix_requests?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
@@ -2300,22 +2373,45 @@ async function loadExpTasks(){
       el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No tasks assigned yet</div>';
       return;
     }
-    var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',done:'pgr',Completed:'pgr'};
+    var sc={'To Do':'pgo','In Progress':'ptl','Done':'pg',Completed:'pgr'};
     var html='';
     if(tasks.length){
-      html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;">Tasks</div>';
+      html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:8px;">My Tasks ('+tasks.length+')</div>';
       tasks.forEach(function(t){
-        html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;">'
-          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
-            +'<div style="font-size:13px;font-weight:600;">'+t.title+'</div>'
-            +'<span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span>'
-          +'</div>'
-          +(t.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+t.client_name+'</div>':'')
-          +(t.deadline?'<div style="font-size:10px;color:var(--ink3);">Due: '+t.deadline+'</div>':'')
-          +(t.description?'<div style="font-size:11px;color:var(--ink2);margin-top:4px;">'+t.description.slice(0,80)+'</div>':'')
-          +(t.members?'<div style="font-size:10px;color:var(--teal);margin-top:4px;">👥 '+JSON.parse(t.members||'[]').join(', ')+'</div>':'')
-          +'<button class="btn bsm" style="width:100%;margin-top:8px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;font-size:11px;" data-tid="'+t.id+'" data-ttitle="'+t.title.replace(/"/g,'')+'" onclick="openTaskSupportModal(this.dataset.tid,this.dataset.ttitle)">🤝 Request Support</button>'
-        +'</div>';
+        var isFocal=t.focal_point_name===memberData.name;
+        var mySubts=mySubtasks.filter(function(s){return s.task_id===t.id;});
+        // Get all subtasks for this task to show team
+        var members=[];try{var parsed=JSON.parse(t.members||'[]');members=parsed.map(function(m){return typeof m==='string'?m:m.name;});}catch(e){}
+        html+='<div style="background:var(--card2);border:1px solid '+(isFocal?'rgba(245,158,11,.3)':'var(--border)')+';border-radius:10px;padding:12px;margin-bottom:9px;">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">';
+        html+='<div><div style="font-size:13px;font-weight:700;">'+t.title+'</div>';
+        if(isFocal)html+='<span style="font-size:10px;background:rgba(245,158,11,.1);color:var(--gold);padding:2px 8px;border-radius:8px;">⭐ You are Focal Point</span>';
+        html+='</div><span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span></div>';
+        if(t.client_name)html+='<div style="font-size:11px;color:var(--gold);margin-bottom:4px;">📁 '+t.client_name+'</div>';
+        if(t.deadline)html+='<div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">📅 Due: '+t.deadline+'</div>';
+        if(members.length)html+='<div style="font-size:11px;color:var(--teal);margin-bottom:6px;">👥 Team: '+members.join(' · ')+'</div>';
+        // My subtasks
+        if(mySubts.length){
+          html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;">';
+          html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);margin-bottom:6px;">MY ASSIGNMENTS</div>';
+          mySubts.forEach(function(st){
+            html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">';
+            html+='<div style="font-size:12px;font-weight:600;">'+(st.status==='Done'?'<s style="color:var(--ink3);">'+st.title+'</s>':st.title)+'</div>';
+            if(st.status!=='Done'){
+              html+='<button class="btn bsm" style="font-size:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;" data-sid="'+st.id+'" data-tid="'+t.id+'" onclick="markSubtaskDone(this.dataset.sid,this.dataset.tid,this)">✅ Mark Done</button>';
+            } else {
+              html+='<span style="font-size:10px;color:#22c55e;">✅ Done</span>';
+            }
+            html+='</div>';
+          });
+          html+='</div>';
+        }
+        // Focal point can close whole task
+        if(isFocal&&t.status!=='Done'){
+          html+='<button class="btn bsm" style="width:100%;margin-bottom:6px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;font-size:11px;" data-tid="'+t.id+'" onclick="closeFocalTask(this.dataset.tid,this)">🔒 Close Entire Task (Focal Point)</button>';
+        }
+        html+='<button class="btn bsm" style="width:100%;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;font-size:11px;" data-tid="'+t.id+'" data-ttitle="'+t.title.replace(/"/g,'')+'" onclick="openTaskSupportModal(this.dataset.tid,this.dataset.ttitle)">🤝 Request Support</button>';
+        html+='</div>';
       });
     }
     if(reqs.length){
@@ -3407,6 +3503,60 @@ async function submitTaskSupport(){
   }
 }
 
+async function markSubtaskDone(subtaskId, taskId, btn){
+  if(!confirm('Mark this sub-task as Done?'))return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    await fetch(SB+'/rest/v1/ix_subtasks?id=eq.'+subtaskId,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({status:'Done',updated_at:new Date().toISOString()})
+    });
+    // Add update
+    await fetch(SB+'/rest/v1/ix_workflow',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        title:'✅ Sub-task completed',
+        description:memberData.name+' completed their assignment',
+        created_by:memberData.name,
+        client_id:'00000000-0000-0000-0000-000000000000',
+        client_name:'_task_'+taskId,
+        show_to_client:false,
+        status:'task_update'
+      })
+    });
+    sendTG('✅ *Sub-task Done*\n\nBy: '+memberData.name);
+    toast('✅ Marked as Done!','ts');
+    loadExpTasks();
+  }catch(e){toast('Error','te');}
+}
+
+async function closeFocalTask(taskId, btn){
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  // Check all subtasks are done
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_subtasks?task_id=eq.'+taskId,{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var subs=await r.json();
+    var pending=Array.isArray(subs)?subs.filter(function(s){return s.status!=='Done';}).length:0;
+    if(pending>0){
+      toast(pending+' sub-task(s) still pending — all must be done first','te');
+      return;
+    }
+    if(!confirm('Close this task? All sub-tasks are completed.'))return;
+    await fetch(SB+'/rest/v1/ix_tasks?id=eq.'+taskId,{
+      method:'PATCH',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({status:'Done',updated_at:new Date().toISOString()})
+    });
+    sendTG('🔒 *Task Closed*\n\nBy Focal Point: '+memberData.name);
+    toast('🔒 Task closed!','ts');
+    loadExpTasks();
+  }catch(e){toast('Error','te');}
+}
+
 async function checkTodayAttendance(personId){
   if(!personId||!memberData)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
@@ -3513,11 +3663,30 @@ async function loadExpTasks(){
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   try{
-    // Tasks assigned to this expert
-    var r=await fetch(SB+'/rest/v1/ix_tasks?assignee=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+    // Get subtasks assigned to me
+    var rSt=await fetch(SB+'/rest/v1/ix_subtasks?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
-    var tasks=await r.json();
+    var mySubtasks=await rSt.json();
+    mySubtasks=Array.isArray(mySubtasks)?mySubtasks:[];
+    // Get parent tasks
+    var taskIds=[...new Set(mySubtasks.map(function(s){return s.task_id;}))];
+    var tasks=[];
+    if(taskIds.length){
+      var rT=await fetch(SB+'/rest/v1/ix_tasks?id=in.('+taskIds.join(',')+')',{
+        headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+      });
+      tasks=await rT.json();
+      tasks=Array.isArray(tasks)?tasks:[];
+    }
+    // Also tasks where I'm focal point
+    var rFocal=await fetch(SB+'/rest/v1/ix_tasks?focal_point_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var focalTasks=await rFocal.json();
+    focalTasks=Array.isArray(focalTasks)?focalTasks:[];
+    // Merge
+    focalTasks.forEach(function(ft){if(!tasks.find(function(t){return t.id===ft.id;}))tasks.push(ft);});
     // Also get requests assigned to them
     var r2=await fetch(SB+'/rest/v1/ix_requests?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
@@ -3537,22 +3706,45 @@ async function loadExpTasks(){
       el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No tasks assigned yet</div>';
       return;
     }
-    var sc={Pending:'pgo',Accepted:'pg','In Progress':'ptl',done:'pgr',Completed:'pgr'};
+    var sc={'To Do':'pgo','In Progress':'ptl','Done':'pg',Completed:'pgr'};
     var html='';
     if(tasks.length){
-      html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;">Tasks</div>';
+      html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:8px;">My Tasks ('+tasks.length+')</div>';
       tasks.forEach(function(t){
-        html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;">'
-          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
-            +'<div style="font-size:13px;font-weight:600;">'+t.title+'</div>'
-            +'<span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span>'
-          +'</div>'
-          +(t.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+t.client_name+'</div>':'')
-          +(t.deadline?'<div style="font-size:10px;color:var(--ink3);">Due: '+t.deadline+'</div>':'')
-          +(t.description?'<div style="font-size:11px;color:var(--ink2);margin-top:4px;">'+t.description.slice(0,80)+'</div>':'')
-          +(t.members?'<div style="font-size:10px;color:var(--teal);margin-top:4px;">👥 '+JSON.parse(t.members||'[]').join(', ')+'</div>':'')
-          +'<button class="btn bsm" style="width:100%;margin-top:8px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;font-size:11px;" data-tid="'+t.id+'" data-ttitle="'+t.title.replace(/"/g,'')+'" onclick="openTaskSupportModal(this.dataset.tid,this.dataset.ttitle)">🤝 Request Support</button>'
-        +'</div>';
+        var isFocal=t.focal_point_name===memberData.name;
+        var mySubts=mySubtasks.filter(function(s){return s.task_id===t.id;});
+        // Get all subtasks for this task to show team
+        var members=[];try{var parsed=JSON.parse(t.members||'[]');members=parsed.map(function(m){return typeof m==='string'?m:m.name;});}catch(e){}
+        html+='<div style="background:var(--card2);border:1px solid '+(isFocal?'rgba(245,158,11,.3)':'var(--border)')+';border-radius:10px;padding:12px;margin-bottom:9px;">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">';
+        html+='<div><div style="font-size:13px;font-weight:700;">'+t.title+'</div>';
+        if(isFocal)html+='<span style="font-size:10px;background:rgba(245,158,11,.1);color:var(--gold);padding:2px 8px;border-radius:8px;">⭐ You are Focal Point</span>';
+        html+='</div><span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span></div>';
+        if(t.client_name)html+='<div style="font-size:11px;color:var(--gold);margin-bottom:4px;">📁 '+t.client_name+'</div>';
+        if(t.deadline)html+='<div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">📅 Due: '+t.deadline+'</div>';
+        if(members.length)html+='<div style="font-size:11px;color:var(--teal);margin-bottom:6px;">👥 Team: '+members.join(' · ')+'</div>';
+        // My subtasks
+        if(mySubts.length){
+          html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;">';
+          html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);margin-bottom:6px;">MY ASSIGNMENTS</div>';
+          mySubts.forEach(function(st){
+            html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">';
+            html+='<div style="font-size:12px;font-weight:600;">'+(st.status==='Done'?'<s style="color:var(--ink3);">'+st.title+'</s>':st.title)+'</div>';
+            if(st.status!=='Done'){
+              html+='<button class="btn bsm" style="font-size:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;" data-sid="'+st.id+'" data-tid="'+t.id+'" onclick="markSubtaskDone(this.dataset.sid,this.dataset.tid,this)">✅ Mark Done</button>';
+            } else {
+              html+='<span style="font-size:10px;color:#22c55e;">✅ Done</span>';
+            }
+            html+='</div>';
+          });
+          html+='</div>';
+        }
+        // Focal point can close whole task
+        if(isFocal&&t.status!=='Done'){
+          html+='<button class="btn bsm" style="width:100%;margin-bottom:6px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;font-size:11px;" data-tid="'+t.id+'" onclick="closeFocalTask(this.dataset.tid,this)">🔒 Close Entire Task (Focal Point)</button>';
+        }
+        html+='<button class="btn bsm" style="width:100%;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;font-size:11px;" data-tid="'+t.id+'" data-ttitle="'+t.title.replace(/"/g,'')+'" onclick="openTaskSupportModal(this.dataset.tid,this.dataset.ttitle)">🤝 Request Support</button>';
+        html+='</div>';
       });
     }
     if(reqs.length){
