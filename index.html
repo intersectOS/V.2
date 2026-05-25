@@ -4224,7 +4224,7 @@ function openPersonModal(editId){
     document.getElementById('m-person').dataset.editId='';
     document.getElementById('person-modal-title').textContent='👤 Add to People Directory';
     // Clear all fields
-    ['pp-name','pp-role','pp-specs','pp-nat','pp-langs','pp-res','pp-bio','pp-email','pp-phone','pp-wa','pp-cv','pp-photo','pp-rh','pp-rm','pp-ry','pp-ph','pp-pm','pp-py'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    ['pp-name','pp-role','pp-specs','pp-nat','pp-langs','pp-res','pp-bio','pp-email','pp-phone','pp-wa','pp-cv','pp-photo','pp-rh','pp-rm','pp-ry','pp-ph','pp-pm','pp-py','pp-username','pp-pass','pp-avail'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
     var sp=document.getElementById('pp-show-photo'),mp=document.getElementById('pp-marketplace');
     if(sp)sp.checked=true;if(mp)mp.checked=false;
     document.getElementById('pp-type').value='employee';
@@ -4239,6 +4239,8 @@ function openPersonModal(editId){
     document.getElementById('pp-type').value=p.person_type||'employee';
     document.getElementById('pp-fw').style.display=p.person_type==='freelancer'?'block':'none';
     document.getElementById('pp-ftype').value=p.freelancer_type||'';
+    var ppu=document.getElementById('pp-username');if(ppu)ppu.value=p.username||'';
+    var ppp=document.getElementById('pp-pass');if(ppp)ppp.value=p.portal_password||'';
     document.getElementById('pp-role').value=p.role||'';
     document.getElementById('pp-specs').value=p.specializations||'';
     document.getElementById('pp-nat').value=p.nationality||'';
