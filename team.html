@@ -1117,13 +1117,30 @@ function doLogout(){try{localStorage.removeItem('ix_portal_data');localStorage.r
 
 window.addEventListener('DOMContentLoaded',function(){
   initLang();
+  // Always check URL ?uid= first (fresh login from portal)
+  var urlParams=new URLSearchParams(window.location.search);
+  var uid=urlParams.get('uid');
+  if(uid){
+    var SB2='https://zmiywdpfdvllsxalklrv.supabase.co';
+    var KEY2='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+    fetch(SB2+'/rest/v1/ix_people?id=eq.'+uid+'&limit=1',{headers:{'apikey':KEY2,'Authorization':'Bearer '+KEY2}})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if(Array.isArray(data)&&data.length>0){
+          memberData=data[0];
+          try{localStorage.setItem('ix_portal_data',JSON.stringify(memberData));}catch(e){}
+          try{sessionStorage.setItem('ix_portal_data',JSON.stringify(memberData));}catch(e){}
+          render();
+        } else {showError();}
+      }).catch(function(){showError();});
+    return;
+  }
   var stored=null;
   try{stored=localStorage.getItem('ix_portal_data');}catch(e){}
   if(!stored){try{stored=sessionStorage.getItem('ix_portal_data');}catch(e){}}
   if(!stored){
-    // Try loading from URL param
-    var urlParams=new URLSearchParams(window.location.search);
-    var uid=urlParams.get('uid');
+    var urlParams2=new URLSearchParams(window.location.search);
+    var uid=urlParams2.get('uid');
     if(uid){
       // Fetch from Supabase directly
       var SB='https://zmiywdpfdvllsxalklrv.supabase.co';
