@@ -1194,6 +1194,62 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
   <div class="mfoot"><button class="btn bo" onclick="cm('m-task')">Cancel</button><button class="btn bg" onclick="saveTask()">💾 Save</button></div>
 </div></div>
 
+<!-- PARTNER MODAL -->
+<div class="mo" id="m-partner"><div class="modal modal-lg">
+  <div class="mtit" id="partner-modal-title">🤝 Add Partner</div>
+  <input type="hidden" id="pt-id">
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Partner Type *</label>
+      <select class="fs" id="pt-type" onchange="togglePartnerTypeFields()">
+        <option value="success_partner">🤝 Success Partner</option>
+        <option value="strategic">⚙️ Strategic Partner</option>
+        <option value="jv">🏦 JV Partner</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Name *</label><input class="fi" id="pt-name" placeholder="Company name"></div>
+  </div>
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Industry</label><input class="fi" id="pt-industry" placeholder="e.g. Legal"></div>
+    <div class="fg"><label class="fl">Country</label><input class="fi" id="pt-country" placeholder="e.g. UAE"></div>
+  </div>
+  <div class="fg"><label class="fl">Account Manager</label>
+    <select class="fs" id="pt-am"><option value="">— No AM —</option></select>
+  </div>
+  <div class="fg"><label class="fl">Added by</label><input class="fi" id="pt-addedby"></div>
+  <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
+    <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:9px;">🔐 Portal Login</div>
+    <div class="fgrid">
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="pt-username" dir="ltr"></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="pt-pass" dir="ltr"></div>
+    </div>
+  </div>
+  <div id="pt-jv-wrap" style="display:none;background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
+    <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:8px;">🏦 JV Details</div>
+    <div class="fgrid">
+      <div class="fg"><label class="fl">Equity %</label><input class="fi" type="number" id="pt-equity"></div>
+      <div class="fg"><label class="fl">JV Type</label>
+        <select class="fs" id="pt-jv-type"><option value="company_wide">🏢 Company-Wide</option><option value="project_specific">📁 Project-Specific</option></select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">JV Agreement Link</label><input class="fi" type="url" id="pt-jv-link" dir="ltr"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.1);border-radius:8px;padding:10px;margin-top:6px;">
+      <div style="font-size:12px;font-weight:600;">Show JV details to AM</div>
+      <input type="checkbox" id="pt-jv-show-am">
+    </div>
+  </div>
+  <div id="pt-strategic-wrap" style="display:none;background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
+    <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:8px;">⚙️ Strategic Details</div>
+    <div class="fg"><label class="fl">Specialization</label><input class="fi" id="pt-specialization"></div>
+  </div>
+  <div class="fg"><label class="fl">Internal Notes</label><textarea class="fta" id="pt-notes-i"></textarea></div>
+  <div class="fg"><label class="fl">Notes (visible to partner)</label><textarea class="fta" id="pt-notes-c"></textarea></div>
+  <div class="fg"><label class="fl">Drive Link</label><input class="fi" type="url" id="pt-drive" dir="ltr"></div>
+  <div class="mfoot">
+    <button class="btn bo" onclick="cm('m-partner')" style="padding:8px 14px;">Cancel</button>
+    <button class="btn bg" onclick="savePartner()" style="padding:8px 20px;">💾 Save Partner</button>
+  </div>
+</div></div>
+
 <script>
 // INTERSECT PartnerOS — Complete Clean JS
 // No duplicates, fully tested
