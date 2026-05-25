@@ -625,18 +625,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 
 <!-- TASK SUPPORT MODAL -->
 <div class="mo" id="m-task-support"><div class="modal">
-  <div class="mti">🤝 Request Task Support</div>
+  <div class="mti">🤝 Request Support</div>
   <input type="hidden" id="support-task-id">
   <div id="support-task-title" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;font-weight:600;"></div>
-  <div class="fg"><label class="fl">Who do you need support from?</label>
-    <div id="support-people-list" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:150px;overflow-y:auto;"></div>
+
+  <!-- Support Type -->
+  <div class="fg"><label class="fl">Type of Support</label>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+      <label style="display:flex;align-items:center;gap:8px;background:var(--card2);border:2px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;" id="sup-type-person-lbl">
+        <input type="radio" name="sup-type" value="person" checked onchange="toggleSupportType()" style="width:14px;height:14px;">
+        <div><div style="font-size:12px;font-weight:700;">👤 Request help from a team member</div>
+        <div style="font-size:11px;color:var(--ink3);">Assign someone to assist you directly</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;background:var(--card2);border:2px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;" id="sup-type-assign-lbl">
+        <input type="radio" name="sup-type" value="assign" onchange="toggleSupportType()" style="width:14px;height:14px;">
+        <div><div style="font-size:12px;font-weight:700;">➕ Request management to assign someone</div>
+        <div style="font-size:11px;color:var(--ink3);">Ask admin to officially assign a team member</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;background:var(--card2);border:2px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;" id="sup-type-logistics-lbl">
+        <input type="radio" name="sup-type" value="logistics" onchange="toggleSupportType()" style="width:14px;height:14px;">
+        <div><div style="font-size:12px;font-weight:700;">📦 Request logistics / material support</div>
+        <div style="font-size:11px;color:var(--ink3);">Need something from management (tools, access, resources)</div></div>
+      </label>
+    </div>
   </div>
-  <div class="fg"><label class="fl">Describe what you need *</label>
-    <textarea class="fta" id="support-desc" placeholder="What specific help do you need from them?"></textarea>
+
+  <!-- Person select (for type=person) -->
+  <div id="sup-people-wrap" class="fg">
+    <label class="fl">Select Team Member(s)</label>
+    <div id="support-people-list" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:130px;overflow-y:auto;"></div>
+  </div>
+
+  <div class="fg"><label class="fl" id="sup-desc-label">Describe what you need *</label>
+    <textarea class="fta" id="support-desc" placeholder="Describe your request in detail..."></textarea>
   </div>
   <div class="mft">
     <button class="btn bbo" onclick="closeModal('m-task-support')" style="padding:8px 14px;">Cancel</button>
-    <button class="btn bbg" onclick="submitTaskSupport()" style="padding:8px 20px;">🤝 Send Request</button>
+    <button class="btn bbg" onclick="submitTaskSupport()" style="padding:8px 20px;">📤 Send Request</button>
   </div>
 </div></div>
 
@@ -2035,6 +2060,24 @@ async function loadMyAttendance(){
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
 }
 
+function toggleSupportType(){
+  var type=document.querySelector('input[name="sup-type"]:checked').value;
+  var peopleWrap=document.getElementById('sup-people-wrap');
+  var descLabel=document.getElementById('sup-desc-label');
+  var descEl=document.getElementById('support-desc');
+  // Style radio labels
+  document.getElementById('sup-type-person-lbl').style.borderColor=type==='person'?'var(--teal)':'var(--border)';
+  document.getElementById('sup-type-assign-lbl').style.borderColor=type==='assign'?'#a78bfa':'var(--border)';
+  document.getElementById('sup-type-logistics-lbl').style.borderColor=type==='logistics'?'var(--gold)':'var(--border)';
+  if(peopleWrap)peopleWrap.style.display=type==='person'?'block':'none';
+  if(descLabel){
+    if(type==='person')descLabel.textContent='What do you need from them? *';
+    else if(type==='assign')descLabel.textContent='Why do you need additional team support? *';
+    else descLabel.textContent='What do you need? (tools, access, resources...) *';
+  }
+  if(descEl)descEl.placeholder=type==='logistics'?'e.g. Need access to the design software, need a printer...':'Describe what you need...';
+}
+
 async function openTaskSupportModal(taskId, taskTitle){
   document.getElementById('support-task-id').value=taskId;
   var titleEl=document.getElementById('support-task-title');
@@ -2062,47 +2105,69 @@ async function submitTaskSupport(){
   var taskId=document.getElementById('support-task-id').value;
   var taskTitle=document.getElementById('support-task-title').textContent.replace('📌 ','');
   var desc=document.getElementById('support-desc').value.trim();
+  var type=document.querySelector('input[name="sup-type"]:checked').value;
   if(!desc){toast('Describe what you need','te');return;}
-  var selected=[];
-  document.querySelectorAll('#support-people-list input:checked').forEach(function(cb){
-    var parts=cb.value.split('|');
-    selected.push({id:parts[0],name:parts[1]});
-  });
-  if(!selected.length){toast('Select at least one person','te');return;}
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var names=selected.map(function(s){return s.name;}).join(', ');
   var body={
-    title:'[Task Support] '+taskTitle+' — '+memberData.name,
-    description:desc,
     requested_by:memberData.name,
-    assignee_name:names,
-    context_type:'task_support',
+    context_type:'task_support_'+type,
     context_value:taskId,
     status:'Pending',
     priority:'medium',
     show_to_client:false
   };
-  try{
-    var r=await fetch(SB+'/rest/v1/ix_requests',{
-      method:'POST',
-      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify(body)
+  if(type==='person'){
+    var selected=[];
+    document.querySelectorAll('#support-people-list input:checked').forEach(function(cb){
+      var parts=cb.value.split('|');selected.push({id:parts[0],name:parts[1]});
     });
-    if(r.ok){
-      // Notify each selected person
-      for(var i=0;i<selected.length;i++){
-        var rp=await fetch(SB+'/rest/v1/ix_people?id=eq.'+selected[i].id+'&select=telegram_chat_id',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
-        var rpd=await rp.json();
-        if(Array.isArray(rpd)&&rpd[0]&&rpd[0].telegram_chat_id){
-          tgNotifTo(rpd[0].telegram_chat_id,'🤝 Support Request','*'+memberData.name+'* needs your help on:\n*'+taskTitle+'*\n\n'+desc.slice(0,100));
+    if(!selected.length){toast('Select at least one person','te');return;}
+    var names=selected.map(function(s){return s.name;}).join(', ');
+    body.title='[Task Support] '+taskTitle+' — '+memberData.name;
+    body.description=desc;
+    body.assignee_name=names;
+    body.assignee_type='team';
+    try{
+      var r=await fetch(SB+'/rest/v1/ix_requests',{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
+      if(r.ok){
+        for(var i=0;i<selected.length;i++){
+          var rp=await fetch(SB+'/rest/v1/ix_people?id=eq.'+selected[i].id+'&select=telegram_chat_id',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+          var rpd=await rp.json();
+          if(Array.isArray(rpd)&&rpd[0]&&rpd[0].telegram_chat_id){
+            tgNotifTo(rpd[0].telegram_chat_id,'🤝 Support Request','*'+memberData.name+'* needs your help on:\n*'+taskTitle+'*\n\n'+desc.slice(0,100));
+          }
         }
-      }
-      closeModal('m-task-support');
-      sendTG('🤝 *Task Support Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\nTo: '+names+'\n\n'+desc.slice(0,80));
-      toast('✅ Support request sent to '+names,'ts');
-    }else{toast('Error sending request','te');}
-  }catch(e){toast('Error: '+e.message,'te');}
+        closeModal('m-task-support');
+        sendTG('🤝 *Task Support Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\nTo: '+names+'\n\n'+desc.slice(0,80));
+        toast('✅ Request sent to '+names,'ts');
+      }else{toast('Error','te');}
+    }catch(e){toast('Error','te');}
+  } else if(type==='assign'){
+    body.title='[Assign Request] '+taskTitle+' — '+memberData.name;
+    body.description=desc;
+    body.assignee_type='management';
+    try{
+      var r2=await fetch(SB+'/rest/v1/ix_requests',{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
+      if(r2.ok){
+        closeModal('m-task-support');
+        sendTG('➕ *Assignment Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\n\n'+desc.slice(0,80));
+        toast('✅ Request sent to management','ts');
+      }else{toast('Error','te');}
+    }catch(e){toast('Error','te');}
+  } else {
+    body.title='[Logistics Request] '+taskTitle+' — '+memberData.name;
+    body.description=desc;
+    body.assignee_type='management';
+    try{
+      var r3=await fetch(SB+'/rest/v1/ix_requests',{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
+      if(r3.ok){
+        closeModal('m-task-support');
+        sendTG('📦 *Logistics Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\n\n'+desc.slice(0,80));
+        toast('✅ Request sent to management','ts');
+      }else{toast('Error','te');}
+    }catch(e){toast('Error','te');}
+  }
 }
 
 async function checkTodayAttendance(personId){
@@ -3232,6 +3297,24 @@ async function loadMyAttendance(){
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
 }
 
+function toggleSupportType(){
+  var type=document.querySelector('input[name="sup-type"]:checked').value;
+  var peopleWrap=document.getElementById('sup-people-wrap');
+  var descLabel=document.getElementById('sup-desc-label');
+  var descEl=document.getElementById('support-desc');
+  // Style radio labels
+  document.getElementById('sup-type-person-lbl').style.borderColor=type==='person'?'var(--teal)':'var(--border)';
+  document.getElementById('sup-type-assign-lbl').style.borderColor=type==='assign'?'#a78bfa':'var(--border)';
+  document.getElementById('sup-type-logistics-lbl').style.borderColor=type==='logistics'?'var(--gold)':'var(--border)';
+  if(peopleWrap)peopleWrap.style.display=type==='person'?'block':'none';
+  if(descLabel){
+    if(type==='person')descLabel.textContent='What do you need from them? *';
+    else if(type==='assign')descLabel.textContent='Why do you need additional team support? *';
+    else descLabel.textContent='What do you need? (tools, access, resources...) *';
+  }
+  if(descEl)descEl.placeholder=type==='logistics'?'e.g. Need access to the design software, need a printer...':'Describe what you need...';
+}
+
 async function openTaskSupportModal(taskId, taskTitle){
   document.getElementById('support-task-id').value=taskId;
   var titleEl=document.getElementById('support-task-title');
@@ -3259,47 +3342,69 @@ async function submitTaskSupport(){
   var taskId=document.getElementById('support-task-id').value;
   var taskTitle=document.getElementById('support-task-title').textContent.replace('📌 ','');
   var desc=document.getElementById('support-desc').value.trim();
+  var type=document.querySelector('input[name="sup-type"]:checked').value;
   if(!desc){toast('Describe what you need','te');return;}
-  var selected=[];
-  document.querySelectorAll('#support-people-list input:checked').forEach(function(cb){
-    var parts=cb.value.split('|');
-    selected.push({id:parts[0],name:parts[1]});
-  });
-  if(!selected.length){toast('Select at least one person','te');return;}
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var names=selected.map(function(s){return s.name;}).join(', ');
   var body={
-    title:'[Task Support] '+taskTitle+' — '+memberData.name,
-    description:desc,
     requested_by:memberData.name,
-    assignee_name:names,
-    context_type:'task_support',
+    context_type:'task_support_'+type,
     context_value:taskId,
     status:'Pending',
     priority:'medium',
     show_to_client:false
   };
-  try{
-    var r=await fetch(SB+'/rest/v1/ix_requests',{
-      method:'POST',
-      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify(body)
+  if(type==='person'){
+    var selected=[];
+    document.querySelectorAll('#support-people-list input:checked').forEach(function(cb){
+      var parts=cb.value.split('|');selected.push({id:parts[0],name:parts[1]});
     });
-    if(r.ok){
-      // Notify each selected person
-      for(var i=0;i<selected.length;i++){
-        var rp=await fetch(SB+'/rest/v1/ix_people?id=eq.'+selected[i].id+'&select=telegram_chat_id',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
-        var rpd=await rp.json();
-        if(Array.isArray(rpd)&&rpd[0]&&rpd[0].telegram_chat_id){
-          tgNotifTo(rpd[0].telegram_chat_id,'🤝 Support Request','*'+memberData.name+'* needs your help on:\n*'+taskTitle+'*\n\n'+desc.slice(0,100));
+    if(!selected.length){toast('Select at least one person','te');return;}
+    var names=selected.map(function(s){return s.name;}).join(', ');
+    body.title='[Task Support] '+taskTitle+' — '+memberData.name;
+    body.description=desc;
+    body.assignee_name=names;
+    body.assignee_type='team';
+    try{
+      var r=await fetch(SB+'/rest/v1/ix_requests',{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
+      if(r.ok){
+        for(var i=0;i<selected.length;i++){
+          var rp=await fetch(SB+'/rest/v1/ix_people?id=eq.'+selected[i].id+'&select=telegram_chat_id',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+          var rpd=await rp.json();
+          if(Array.isArray(rpd)&&rpd[0]&&rpd[0].telegram_chat_id){
+            tgNotifTo(rpd[0].telegram_chat_id,'🤝 Support Request','*'+memberData.name+'* needs your help on:\n*'+taskTitle+'*\n\n'+desc.slice(0,100));
+          }
         }
-      }
-      closeModal('m-task-support');
-      sendTG('🤝 *Task Support Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\nTo: '+names+'\n\n'+desc.slice(0,80));
-      toast('✅ Support request sent to '+names,'ts');
-    }else{toast('Error sending request','te');}
-  }catch(e){toast('Error: '+e.message,'te');}
+        closeModal('m-task-support');
+        sendTG('🤝 *Task Support Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\nTo: '+names+'\n\n'+desc.slice(0,80));
+        toast('✅ Request sent to '+names,'ts');
+      }else{toast('Error','te');}
+    }catch(e){toast('Error','te');}
+  } else if(type==='assign'){
+    body.title='[Assign Request] '+taskTitle+' — '+memberData.name;
+    body.description=desc;
+    body.assignee_type='management';
+    try{
+      var r2=await fetch(SB+'/rest/v1/ix_requests',{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
+      if(r2.ok){
+        closeModal('m-task-support');
+        sendTG('➕ *Assignment Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\n\n'+desc.slice(0,80));
+        toast('✅ Request sent to management','ts');
+      }else{toast('Error','te');}
+    }catch(e){toast('Error','te');}
+  } else {
+    body.title='[Logistics Request] '+taskTitle+' — '+memberData.name;
+    body.description=desc;
+    body.assignee_type='management';
+    try{
+      var r3=await fetch(SB+'/rest/v1/ix_requests',{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
+      if(r3.ok){
+        closeModal('m-task-support');
+        sendTG('📦 *Logistics Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\n\n'+desc.slice(0,80));
+        toast('✅ Request sent to management','ts');
+      }else{toast('Error','te');}
+    }catch(e){toast('Error','te');}
+  }
 }
 
 async function checkTodayAttendance(personId){

@@ -3352,7 +3352,17 @@ function openTaskModal(){
   document.getElementById('tsk-modal-title').textContent='📌 New Task';
   ['tsk-t','tsk-d','tsk-n'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var ps=document.getElementById('tsk-proj');if(ps)ps.innerHTML='<option value="">— No Project —</option>'+AProj.map(function(p){return '<option value="'+p.name+'">'+p.name+'</option>';}).join('');
-  var as=document.getElementById('tsk-ass');if(as){var opts='<option value="">— Unassigned —</option>';APeople.forEach(function(x){opts+='<option value="'+x.name+'">'+x.name+(x.role?' · '+x.role:'')+'</option>';});as.innerHTML=opts;}
+  // Populate assignees as checkboxes
+  var awrap=document.getElementById('tsk-assignees-wrap');
+  if(awrap){
+    awrap.innerHTML=APeople.map(function(p){
+      return '<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;margin-bottom:2px;background:var(--card);border:1px solid var(--border);">'
+        +'<input type="checkbox" class="tsk-ass-cb" value="'+p.id+'|'+p.name+'" style="width:14px;height:14px;accent-color:var(--teal);"> '
+        +'<span style="font-weight:600;">'+p.name+'</span>'
+        +(p.role?'<span style="color:var(--ink3);font-size:10px;margin-left:auto;">'+p.role+'</span>':'')
+      +'</label>';
+    }).join('');
+  }
   om('m-task');
 }
 
