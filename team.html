@@ -2072,6 +2072,8 @@ async function checkIn(){
         title:'[ATTENDANCE] '+today,
         description:timeStr+' · '+(memberData.role||memberData.person_type||'Team'),
         created_by:memberData.name,
+        client_id:'00000000-0000-0000-0000-000000000000',
+        client_name:'_attendance_',
         show_to_client:false,
         status:'attendance'
       })
@@ -3195,6 +3197,8 @@ async function checkIn(){
         title:'[ATTENDANCE] '+today,
         description:timeStr+' · '+(memberData.role||memberData.person_type||'Team'),
         created_by:memberData.name,
+        client_id:'00000000-0000-0000-0000-000000000000',
+        client_name:'_attendance_',
         show_to_client:false,
         status:'attendance'
       })
