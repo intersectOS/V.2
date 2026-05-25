@@ -175,6 +175,7 @@ async function doLogin(){
         var d2b=await r2b.json();
         d2=Array.isArray(d2b)?d2b.filter(function(p){return p.username===user;}):[];
       }
+      showErr('d2='+JSON.stringify(d2).slice(0,150));return;
       if(Array.isArray(d2)&&d2.length>0&&d2[0].portal_password===pass){
         var rec2=d2[0];
         try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
