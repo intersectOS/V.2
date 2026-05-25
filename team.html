@@ -1251,6 +1251,8 @@ async function loadTeamData(){
   document.getElementById('wf-client').innerHTML='<option value="">— Select Client —</option>'+clients.map(function(c){return '<option value="'+c.id+'|'+c.name+'">'+c.name+'</option>';}).join('');
   document.getElementById('rq-client').innerHTML=clOpts;
   renderClients(clients);renderTasks(tasks);renderTeamReqs(reqs);renderMeetings(meetings);
+  // Check attendance on every load
+  checkTodayAttendance(memberData.id);
 }
 
 function renderClients(clients){
@@ -1943,7 +1945,7 @@ async function checkInExpert(){
   if(!memberData)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var today=new Date().toISOString().split('T')[0];
+  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
   try{
     var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
@@ -1989,7 +1991,7 @@ async function loadMyAttendance(){
     });
     var html='';
     // Summary
-    var today=new Date().toISOString().split('T')[0];
+    var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
     var thisMonth=records.filter(function(r){return r.date&&r.date.startsWith(new Date().toISOString().slice(0,7));}).length;
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">'
       +'<div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;text-align:center;">'
@@ -2017,17 +2019,25 @@ async function loadMyAttendance(){
 }
 
 async function checkTodayAttendance(personId){
+  if(!personId)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var today=new Date().toISOString().split('T')[0];
+  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
   try{
     var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+personId+'&date=eq.'+today,{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var existing=await r.json();
+    var btn=document.getElementById('checkin-btn');
+    var expBtn=document.getElementById('exp-checkin-btn');
     if(Array.isArray(existing)&&existing.length>0){
-      var btn=document.getElementById('checkin-btn');
-      if(btn){btn.textContent='✅ Checked In '+new Date(existing[0].check_in_time).toLocaleTimeString();btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+      var timeStr=new Date(existing[0].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+      if(btn){btn.textContent='✅ '+timeStr;btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+      if(expBtn){expBtn.textContent='✅ '+timeStr;expBtn.style.background='rgba(34,197,94,.2)';expBtn.disabled=true;}
+    } else {
+      // Reset button if new day
+      if(btn){btn.textContent='✅ Check In';btn.style.background='rgba(34,197,94,.1)';btn.disabled=false;}
+      if(expBtn){expBtn.textContent='✅ Check In';expBtn.style.background='rgba(34,197,94,.1)';expBtn.disabled=false;}
     }
   }catch(e){}
 }
@@ -2036,7 +2046,7 @@ async function checkIn(){
   if(!memberData||!memberData.id){toast('Not logged in','te');return;}
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var today=new Date().toISOString().split('T')[0];
+  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
   // ALWAYS check DB first regardless of button state
   try{
     var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
@@ -2066,6 +2076,9 @@ async function checkIn(){
     // Send TG notification to management
     sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+new Date().toLocaleTimeString());
     toast('✅ Checked in!','ts');
+    // Reload attendance history if tab is open
+    var attTab=document.getElementById('tp-my-attendance');
+    if(attTab&&attTab.classList.contains('on'))loadMyAttendance();
   }catch(e){
     var btn3=document.getElementById('checkin-btn');
     if(btn3)btn3.disabled=false;
@@ -3049,7 +3062,7 @@ async function checkInExpert(){
   if(!memberData)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var today=new Date().toISOString().split('T')[0];
+  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
   try{
     var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
@@ -3095,7 +3108,7 @@ async function loadMyAttendance(){
     });
     var html='';
     // Summary
-    var today=new Date().toISOString().split('T')[0];
+    var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
     var thisMonth=records.filter(function(r){return r.date&&r.date.startsWith(new Date().toISOString().slice(0,7));}).length;
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">'
       +'<div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;text-align:center;">'
@@ -3123,17 +3136,25 @@ async function loadMyAttendance(){
 }
 
 async function checkTodayAttendance(personId){
+  if(!personId)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var today=new Date().toISOString().split('T')[0];
+  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
   try{
     var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+personId+'&date=eq.'+today,{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var existing=await r.json();
+    var btn=document.getElementById('checkin-btn');
+    var expBtn=document.getElementById('exp-checkin-btn');
     if(Array.isArray(existing)&&existing.length>0){
-      var btn=document.getElementById('checkin-btn');
-      if(btn){btn.textContent='✅ Checked In '+new Date(existing[0].check_in_time).toLocaleTimeString();btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+      var timeStr=new Date(existing[0].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+      if(btn){btn.textContent='✅ '+timeStr;btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+      if(expBtn){expBtn.textContent='✅ '+timeStr;expBtn.style.background='rgba(34,197,94,.2)';expBtn.disabled=true;}
+    } else {
+      // Reset button if new day
+      if(btn){btn.textContent='✅ Check In';btn.style.background='rgba(34,197,94,.1)';btn.disabled=false;}
+      if(expBtn){expBtn.textContent='✅ Check In';expBtn.style.background='rgba(34,197,94,.1)';expBtn.disabled=false;}
     }
   }catch(e){}
 }
@@ -3142,7 +3163,7 @@ async function checkIn(){
   if(!memberData||!memberData.id){toast('Not logged in','te');return;}
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var today=new Date().toISOString().split('T')[0];
+  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
   // ALWAYS check DB first regardless of button state
   try{
     var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
@@ -3172,6 +3193,9 @@ async function checkIn(){
     // Send TG notification to management
     sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+new Date().toLocaleTimeString());
     toast('✅ Checked in!','ts');
+    // Reload attendance history if tab is open
+    var attTab=document.getElementById('tp-my-attendance');
+    if(attTab&&attTab.classList.contains('on'))loadMyAttendance();
   }catch(e){
     var btn3=document.getElementById('checkin-btn');
     if(btn3)btn3.disabled=false;
