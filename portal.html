@@ -162,7 +162,7 @@ async function doLogin(){
     // Team / Expert / Consultant / Freelancer
     if(selectedRole==='team'||selectedRole==='expert'){
       var SB='https://rppwppxyhmuicgemmecu.supabase.co';
-      var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+      var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwcHdwcHh5aG11aWNnZW1tZWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NjgxMzksImV4cCI6MjA5NDQ0NDEzOX0.QCbXlBlZ3C4uXEfM1xA0O8zBxoIz24sXrg4Sj9vx8t8';
       var r2=await fetch(SB+'/rest/v1/ix_people?select=*&username=eq.'+encodeURIComponent(user),{
         headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Accept':'application/json','Accept-Profile':'public'}
       });
@@ -175,7 +175,6 @@ async function doLogin(){
         var d2b=await r2b.json();
         d2=Array.isArray(d2b)?d2b.filter(function(p){return p.username===user;}):[];
       }
-      showErr('d2='+JSON.stringify(d2).slice(0,150));return;
       if(Array.isArray(d2)&&d2.length>0&&d2[0].portal_password===pass){
         var rec2=d2[0];
         try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
