@@ -86,6 +86,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <div class="role-icon">🌟</div>
       <div class="role-name">Expert</div>
     </div>
+    <div class="role-btn" onclick="selectRole('consultant',this)">
+      <div class="role-icon">🎓</div>
+      <div class="role-name">Consultant</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('freelancer',this)">
+      <div class="role-icon">💼</div>
+      <div class="role-name">Freelancer</div>
+    </div>
     <div class="role-btn" onclick="selectRole('coordinator',this)">
       <div class="role-icon">📋</div>
       <div class="role-name">Coordinator</div>
@@ -160,9 +168,16 @@ async function doLogin(){
     }
 
     // Team / Expert / Consultant / Freelancer
-    if(selectedRole==='team'||selectedRole==='expert'){
-      var r2=await sb.from('ix_people').select('*').eq('username',user).limit(1);
+    if(selectedRole==='team'||selectedRole==='expert'||selectedRole==='consultant'||selectedRole==='freelancer'){
+      // Map role to person_type
+      var ptype=selectedRole==='team'?'employee':selectedRole;
+      var r2=await sb.from('ix_people').select('*').eq('username',user).eq('person_type',ptype).limit(1);
       var d2=r2.data||[];
+      // Fallback: no type filter if empty
+      if(!d2.length){
+        var r2b=await sb.from('ix_people').select('*').eq('username',user).limit(1);
+        d2=r2b.data||[];
+      }
       if(Array.isArray(d2)&&d2.length>0){
         var dbPass=d2[0].portal_password;
         if(dbPass&&dbPass.trim()===pass.trim()){
@@ -172,7 +187,10 @@ async function doLogin(){
           try{localStorage.setItem('ix_portal_data',recStr);}catch(e){}
           try{sessionStorage.setItem('ix_portal_data',recStr);sessionStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
           // Pass ID via URL as extra fallback
-          window.location.href='team.html?uid='+rec2.id+'&utype='+(rec2.person_type||'employee');return;
+          var ptype2=rec2.person_type||'employee';
+          var destMap={expert:'expert.html',consultant:'consultant.html',freelancer:'freelancer.html',employee:'team.html'};
+          var dest=destMap[ptype2]||'team.html';
+          window.location.href=dest+'?uid='+rec2.id+'&utype='+ptype2;return;
         }
       }
       showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;

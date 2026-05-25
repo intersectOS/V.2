@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<style>
+:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;}
+.hero{border-bottom:1px solid var(--border);padding:18px 20px 14px;}
+.hero-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.brand{font-size:10px;letter-spacing:3px;color:var(--ink3);text-transform:uppercase;font-family:'Syne',sans-serif;}
+.logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
+.av{width:38px;height:38px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:'Syne',sans-serif;}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:7px 13px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;}
+.tab.on{background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.2);color:var(--teal);}
+.tp{display:none;padding:14px 16px;}
+.tp.on{display:block;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);}
+.pt{font-size:13px;font-weight:700;}
+.pb{padding:14px;}
+.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}
+.fta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;resize:vertical;min-height:70px;}
+.fs{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.fl{font-size:11px;font-weight:600;color:var(--ink3);}
+.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.bbg{background:var(--grad);border-color:transparent;color:#fff;}
+.bbo{background:transparent;border-color:var(--border);color:var(--ink2);}
+.bsm{padding:5px 10px;font-size:11px;}
+.bw{width:100%;padding:11px;font-size:13px;}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.pgo{background:rgba(245,158,11,.1);color:var(--gold);}
+.pg{background:rgba(34,197,94,.1);color:#22c55e;}
+.pr{background:rgba(239,68,68,.1);color:var(--red);}
+.pgr{background:rgba(74,82,112,.2);color:var(--ink3);}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center;}
+</style>
+<title>Intersect · Success Partner Portal</title></head>
+<body>
+
+<div id="loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;">
+  <div style="font-size:32px;">⏳</div>
+  <div style="font-size:13px;color:var(--ink3);">Loading...</div>
+</div>
+<div id="error-sc" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;padding:24px;text-align:center;">
+  <div style="font-size:48px;">🚫</div>
+  <div style="font-family:Syne;font-size:18px;font-weight:700;color:var(--red);">Access Denied</div>
+  <div style="font-size:13px;color:var(--ink3);">Please <a href="portal.html" style="color:var(--teal);">login first</a></div>
+</div>
+<div id="main" style="display:none;">
+  <div class="hero">
+    <div class="hero-top">
+      <div><div class="brand">INTERSECT</div><div style="font-size:10px;color:var(--gold);">🤝 Success Partner</div></div>
+      <button class="logout-btn" onclick="doLogout()">→ Logout</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="av" id="sp-av" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">SP</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;" id="sp-name">Partner</div>
+        <div style="font-size:11px;color:var(--gold);">🤝 Success Partner</div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs" style="padding:10px 16px 0;">
+    <button class="tab on" onclick="showTab('sp-overview',this)">📊 Overview</button>
+    <button class="tab" onclick="showTab('sp-refer',this)">➕ Refer Client</button>
+    <button class="tab" onclick="showTab('sp-companies',this)">🏢 My Referrals</button>
+    <button class="tab" onclick="showTab('sp-requests',this)">📋 Requests</button>
+    <button class="tab" onclick="showTab('sp-news',this)">📰 News</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="tp on" id="tp-sp-overview">
+    <div id="sp-overview-content"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+  </div>
+
+  <!-- REFER -->
+  <div class="tp" id="tp-sp-refer">
+    <div class="panel">
+      <div class="ph"><div class="pt">➕ Refer a New Client</div></div>
+      <div class="pb">
+        <div style="background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:9px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--gold);">⚠️ Referrals require management approval before being added.</div>
+        <div class="fg"><label class="fl">Company Name *</label><input class="fi" id="sp-ref-name" placeholder="e.g. Aramco"></div>
+        <div class="fg"><label class="fl">Industry</label><input class="fi" id="sp-ref-ind" placeholder="e.g. Energy"></div>
+        <div class="fg"><label class="fl">Country</label><input class="fi" id="sp-ref-country" placeholder="e.g. Saudi Arabia"></div>
+        <div class="fg"><label class="fl">Contact Person</label><input class="fi" id="sp-ref-contact" placeholder="Name and phone/email"></div>
+        <div class="fg"><label class="fl">Service Needed</label>
+          <select class="fs" id="sp-ref-svc">
+            <option value="Soft Landing">🛬 Soft Landing</option>
+            <option value="Business Development">📈 Business Development</option>
+            <option value="Office Rental">🏢 Office Rental</option>
+            <option value="Shared Services">🤝 Shared Services</option>
+            <option value="Full Package">📦 Full Package</option>
+            <option value="Other">📋 Other</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="sp-ref-notes" placeholder="Any additional context..."></textarea></div>
+        <button class="btn bbg bw" onclick="submitReferral()">📤 Submit Referral</button>
+        <div id="sp-ref-success" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:12px;color:#22c55e;text-align:center;">✅ Referral submitted! Management will review and follow up.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY REFERRALS -->
+  <div class="tp" id="tp-sp-companies">
+    <div class="panel">
+      <div class="ph"><div class="pt">🏢 My Referrals</div><button class="btn bbo bsm" onclick="loadMyReferrals()">↻</button></div>
+      <div class="pb" id="sp-referrals-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- REQUESTS -->
+  <div class="tp" id="tp-sp-requests">
+    <div class="panel">
+      <div class="ph"><div class="pt">📋 My Requests</div><button class="btn bbo bsm" onclick="loadSpRequests()">↻</button></div>
+      <div class="pb" id="sp-reqs-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- NEWS -->
+  <div class="tp" id="tp-sp-news">
+    <div class="panel">
+      <div class="ph"><div class="pt">📰 News</div><button class="btn bbo bsm" onclick="loadSpNews()">↻</button></div>
+      <div class="pb" id="sp-news-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+
+var SB_URL='https://zmiywdpfdvllsxalklrv.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+var TG_TOKEN='8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0';
+var TG_MGMT='851323429';
+var sb=null;
+var partnerData=null;
+
+try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
+
+function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
+function doLogout(){try{localStorage.removeItem('ix_portal_data');localStorage.removeItem('ix_portal_type');sessionStorage.removeItem('ix_portal_data');}catch(e){}window.location.href='portal.html';}
+function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.style.background=type==='ts'?'rgba(34,197,94,.9)':type==='te'?'rgba(239,68,68,.9)':'rgba(6,182,212,.9)';t.style.color='#fff';t.style.opacity='1';setTimeout(function(){t.style.opacity='0';},3000);}
+function showTab(n,el){document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});var tp=document.getElementById('tp-'+n);if(tp)tp.classList.add('on');if(el)el.classList.add('on');onTabSwitch(n);}
+function sendTG(msg){fetch('https://api.telegram.org/bot'+TG_TOKEN+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_MGMT,text:msg,parse_mode:'Markdown'})}).catch(function(){});}
+
+document.addEventListener('DOMContentLoaded',function(){
+  var stored=null;
+  try{stored=localStorage.getItem('ix_portal_data');}catch(e){}
+  if(!stored){try{stored=sessionStorage.getItem('ix_portal_data');}catch(e){}}
+  if(!stored){
+    var uid=new URLSearchParams(window.location.search).get('uid');
+    if(uid){
+      fetch(SB_URL+'/rest/v1/ix_partners?id=eq.'+uid+'&limit=1',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}})
+        .then(function(r){return r.json();})
+        .then(function(d){if(Array.isArray(d)&&d.length){partnerData=d[0];try{localStorage.setItem('ix_portal_data',JSON.stringify(d[0]));}catch(e){}render();}else showError();})
+        .catch(showError);
+      return;
+    }
+    return showError();
+  }
+  try{partnerData=JSON.parse(stored);if(!partnerData||!partnerData.name)return showError();render();}catch(e){showError();}
+});
+
+function render(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('main').style.display='block';
+  var p=partnerData;
+  var init=(p.name||'SP').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  document.getElementById('sp-av').textContent=init;
+  document.getElementById('sp-name').textContent=p.name;
+  loadOverview();loadMyReferrals();
+}
+
+function onTabSwitch(n){
+  if(n==='sp-companies')loadMyReferrals();
+  if(n==='sp-requests')loadSpRequests();
+  if(n==='sp-news')loadSpNews();
+}
+
+async function loadOverview(){
+  var el=document.getElementById('sp-overview-content');if(!el)return;
+  var p=partnerData;
+  var html='<div style="background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:16px;margin-bottom:14px;">';
+  html+='<div style="font-size:22px;font-weight:800;font-family:Syne;margin-bottom:4px;">'+p.name+'</div>';
+  html+='<div style="font-size:12px;color:var(--gold);">🤝 Success Partner</div>';
+  if(p.industry)html+='<div style="font-size:12px;color:var(--ink2);margin-top:6px;">'+p.industry+(p.country?' · '+p.country:'')+'</div>';
+  if(p.specialization)html+='<div style="font-size:12px;color:var(--teal);margin-top:4px;">💡 '+p.specialization+'</div>';
+  html+='</div>';
+  if(p.notes_client)html+='<div class="panel"><div class="pb"><div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px;">NOTES FROM INTERSECT</div><div style="font-size:13px;color:var(--ink2);line-height:1.6;">'+p.notes_client+'</div></div></div>';
+  el.innerHTML=html;
+}
+
+async function submitReferral(){
+  var name=document.getElementById('sp-ref-name').value.trim();
+  if(!name){toast('Enter company name','te');return;}
+  var body={
+    title:'[Partner Referral] '+name+' — '+partnerData.name,
+    description:'Industry: '+(document.getElementById('sp-ref-ind').value||'—')
+      +'\nCountry: '+(document.getElementById('sp-ref-country').value||'—')
+      +'\nContact: '+(document.getElementById('sp-ref-contact').value||'—')
+      +'\nService: '+document.getElementById('sp-ref-svc').value
+      +'\nNotes: '+(document.getElementById('sp-ref-notes').value||'—'),
+    requested_by:partnerData.name,
+    context_type:'partner_referral',
+    context_value:JSON.stringify({name:name,partner_id:partnerData.id,partner_name:partnerData.name,service:document.getElementById('sp-ref-svc').value}),
+    status:'Pending',priority:'high',show_to_client:false,assignee_type:'management'
+  };
+  try{
+    await sb.from('ix_requests').insert(body);
+    ['sp-ref-name','sp-ref-ind','sp-ref-country','sp-ref-contact','sp-ref-notes'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    var s=document.getElementById('sp-ref-success');if(s)s.style.display='block';
+    sendTG('🤝 *Partner Referral*\n\nFrom: '+partnerData.name+'\nClient: '+name+'\nService: '+document.getElementById('sp-ref-svc').value);
+    toast('✅ Referral submitted!','ts');
+  }catch(e){toast('Error','te');}
+}
+
+async function loadMyReferrals(){
+  var el=document.getElementById('sp-referrals-list');if(!el)return;
+  try{
+    var r=await sb.from('ix_requests').select('*').eq('requested_by',partnerData.name).eq('context_type','partner_referral').order('created_at',{ascending:false});
+    var items=r.data||[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No referrals yet</div>';return;}
+    var sc={Pending:'pgo',Completed:'pg',Rejected:'pr'};
+    el.innerHTML=items.map(function(r){
+      var data={};try{data=JSON.parse(r.context_value||'{}');}catch(e){}
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:13px;font-weight:700;">'+(data.name||r.title.replace('[Partner Referral] ','').split(' — ')[0])+'</div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'
+        +(r.reply?'<div style="font-size:11px;color:var(--teal);">💬 '+r.reply.slice(0,80)+'</div>':'')
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:16px;">Error</div>';}
+}
+
+async function loadSpRequests(){
+  var el=document.getElementById('sp-reqs-list');if(!el)return;
+  try{
+    var r=await sb.from('ix_requests').select('*').eq('requested_by',partnerData.name).not('context_type','eq','partner_referral').order('created_at',{ascending:false});
+    var items=r.data||[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">No requests</div>';return;}
+    var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
+    el.innerHTML=items.map(function(r){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:7px;">'
+        +'<div style="display:flex;justify-content:space-between;"><div style="font-size:12px;font-weight:600;">'+r.title.slice(0,50)+'</div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'
+        +(r.reply?'<div style="font-size:11px;color:var(--teal);margin-top:4px;">💬 '+r.reply.slice(0,80)+'</div>':'')
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){}
+}
+
+async function loadSpNews(){
+  var el=document.getElementById('sp-news-list');if(!el)return;
+  try{
+    var r=await sb.from('ix_news').select('*').order('created_at',{ascending:false}).limit(20);
+    var items=r.data||[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No news</div>';return;}
+    el.innerHTML=items.map(function(n){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:9px;padding:12px;margin-bottom:8px;">'
+        +'<div style="font-size:13px;font-weight:700;margin-bottom:5px;">'+n.title+'</div>'
+        +'<div style="font-size:12px;color:var(--ink2);line-height:1.6;">'+n.content+'</div>'
+        +(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:5px;">'+new Date(n.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){}
+}
+</script>
+</body>
+</html>

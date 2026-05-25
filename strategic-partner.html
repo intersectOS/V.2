@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intersect · Strategic Partner Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<style>:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;}.hero{border-bottom:1px solid var(--border);padding:18px 20px 14px;}.hero-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}.brand{font-size:10px;letter-spacing:3px;color:var(--ink3);text-transform:uppercase;font-family:'Syne',sans-serif;}.logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:'Syne',sans-serif;}.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}.tab{padding:7px 13px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}.tab.on{background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.2);color:#a78bfa;}.tp{display:none;padding:14px 16px;}.tp.on{display:block;}.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}.ph{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);}.pt{font-size:13px;font-weight:700;}.pb{padding:14px;}.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}.fta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;resize:vertical;min-height:70px;}.fs{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}.fl{font-size:11px;font-weight:600;color:var(--ink3);}.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}.bbg{background:var(--grad);border-color:transparent;color:#fff;}.bbo{background:transparent;border-color:var(--border);color:var(--ink2);}.bsm{padding:5px 10px;font-size:11px;}.bw{width:100%;padding:11px;font-size:13px;}.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}.pgo{background:rgba(245,158,11,.1);color:var(--gold);}.pg{background:rgba(34,197,94,.1);color:#22c55e;}.pr{background:rgba(239,68,68,.1);color:var(--red);}.pgr{background:rgba(74,82,112,.2);color:var(--ink3);}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center;}</style>
+</head>
+<body>
+<div id="loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;"><div style="font-size:32px;">⏳</div><div style="font-size:13px;color:var(--ink3);">Loading...</div></div>
+<div id="error-sc" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;padding:24px;text-align:center;"><div style="font-size:48px;">🚫</div><div style="font-family:Syne;font-size:18px;font-weight:700;color:var(--red);">Access Denied</div><div style="font-size:13px;color:var(--ink3);">Please <a href="portal.html" style="color:var(--teal);">login first</a></div></div>
+
+<div id="main" style="display:none;">
+  <div class="hero">
+    <div class="hero-top">
+      <div><div class="brand">INTERSECT</div><div style="font-size:10px;color:#a78bfa;">⚙️ Strategic Partner</div></div>
+      <button class="logout-btn" onclick="doLogout()">→ Logout</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="av" id="stp-av">ST</div>
+      <div><div style="font-size:16px;font-weight:700;" id="stp-name">Partner</div><div style="font-size:11px;color:#a78bfa;">⚙️ Strategic Partner</div></div>
+    </div>
+  </div>
+  <div class="tabs" style="padding:10px 16px 0;">
+    <button class="tab on" onclick="showTab('stp-overview',this)">📊 Overview</button>
+    <button class="tab" onclick="showTab('stp-assignments',this)">📁 Assignments</button>
+    <button class="tab" onclick="showTab('stp-updates',this)">🔄 Updates</button>
+    <button class="tab" onclick="showTab('stp-requests',this)">📋 Requests</button>
+    <button class="tab" onclick="showTab('stp-news',this)">📰 News</button>
+  </div>
+
+  <div class="tp on" id="tp-stp-overview">
+    <div id="stp-overview-content"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+  </div>
+
+  <div class="tp" id="tp-stp-assignments">
+    <div class="panel">
+      <div class="ph"><div class="pt">📁 My Assignments</div><button class="btn bbo bsm" onclick="loadAssignments()">↻</button></div>
+      <div class="pb" id="stp-assignments-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+    </div>
+  </div>
+
+  <div class="tp" id="tp-stp-updates">
+    <div class="panel">
+      <div class="ph"><div class="pt">🔄 Submit Update</div></div>
+      <div class="pb">
+        <div class="fg"><label class="fl">Related Assignment</label><select class="fs" id="stp-upd-proj"><option value="">— Select —</option></select></div>
+        <div class="fg"><label class="fl">Update *</label><textarea class="fta" id="stp-upd-text" placeholder="Progress update, achievements, blockers..."></textarea></div>
+        <button class="btn bbg bw" onclick="submitUpdate()">💾 Submit Update</button>
+        <div id="stp-upd-sent" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:12px;color:#22c55e;text-align:center;">✅ Update submitted!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tp" id="tp-stp-requests">
+    <div class="panel">
+      <div class="ph"><div class="pt">📋 My Requests</div><button class="btn bbo bsm" onclick="loadRequests()">↻</button></div>
+      <div class="pb" id="stp-reqs-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+    </div>
+  </div>
+
+  <div class="tp" id="tp-stp-news">
+    <div class="panel">
+      <div class="ph"><div class="pt">📰 News</div><button class="btn bbo bsm" onclick="loadNews()">↻</button></div>
+      <div class="pb" id="stp-news-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var SB_URL='https://zmiywdpfdvllsxalklrv.supabase.co';var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';var TG_TOKEN='8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0';var TG_MGMT='851323429';
+var sb=null;var partnerData=null;
+try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
+function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
+function doLogout(){try{localStorage.removeItem('ix_portal_data');sessionStorage.removeItem('ix_portal_data');}catch(e){}window.location.href='portal.html';}
+function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.style.background=type==='ts'?'rgba(34,197,94,.9)':type==='te'?'rgba(239,68,68,.9)':'rgba(124,58,237,.9)';t.style.color='#fff';t.style.opacity='1';setTimeout(function(){t.style.opacity='0';},3000);}
+function showTab(n,el){document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});var tp=document.getElementById('tp-'+n);if(tp)tp.classList.add('on');if(el)el.classList.add('on');if(n==='stp-assignments')loadAssignments();if(n==='stp-requests')loadRequests();if(n==='stp-news')loadNews();}
+function sendTG(msg){fetch('https://api.telegram.org/bot'+TG_TOKEN+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_MGMT,text:msg,parse_mode:'Markdown'})}).catch(function(){});}
+document.addEventListener('DOMContentLoaded',function(){var stored=null;try{stored=localStorage.getItem('ix_portal_data');}catch(e){}if(!stored){try{stored=sessionStorage.getItem('ix_portal_data');}catch(e){}}if(!stored){return showError();}try{partnerData=JSON.parse(stored);if(!partnerData||!partnerData.name)return showError();render();}catch(e){showError();}});
+function render(){
+  document.getElementById('loading').style.display='none';document.getElementById('main').style.display='block';
+  var p=partnerData;
+  var init=(p.name||'ST').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  document.getElementById('stp-av').textContent=init;document.getElementById('stp-name').textContent=p.name;
+  // Overview
+  var el=document.getElementById('stp-overview-content');
+  if(el){var html='<div style="background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.2);border-radius:12px;padding:16px;margin-bottom:14px;">';html+='<div style="font-size:22px;font-weight:800;font-family:Syne;margin-bottom:4px;">'+p.name+'</div>';html+='<div style="font-size:12px;color:#a78bfa;">⚙️ Strategic Partner</div>';if(p.specialization)html+='<div style="font-size:12px;color:var(--teal);margin-top:6px;">💡 '+p.specialization+'</div>';if(p.industry)html+='<div style="font-size:12px;color:var(--ink2);margin-top:4px;">'+p.industry+(p.country?' · '+p.country:'')+'</div>';html+='</div>';if(p.notes_client)html+='<div class="panel"><div class="pb"><div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px;">NOTES FROM INTERSECT</div><div style="font-size:13px;color:var(--ink2);line-height:1.6;">'+p.notes_client+'</div></div></div>';el.innerHTML=html;}
+  loadAssignments();
+}
+async function loadAssignments(){
+  var el=document.getElementById('stp-assignments-list');if(!el)return;
+  try{
+    var r=await sb.from('ix_partner_projects').select('*').eq('partner_id',partnerData.id).order('created_at',{ascending:false});
+    var items=r.data||[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No assignments yet</div>';return;}
+    var sel=document.getElementById('stp-upd-proj');
+    if(sel)sel.innerHTML='<option value="">— Select —</option>'+items.map(function(a){return '<option value="'+a.id+'">'+a.title+(a.client_name?' ('+a.client_name+')':'')+'</option>';}).join('');
+    var sc={Active:'pg',Completed:'pgr','On Hold':'pgo'};
+    el.innerHTML=items.map(function(a){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:13px;font-weight:700;">'+a.title+'</div><span class="pill '+(sc[a.status]||'pgr')+'">'+a.status+'</span></div>'
+        +(a.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+a.client_name+'</div>':'')
+        +(a.notes?'<div style="font-size:12px;color:var(--ink2);margin-top:5px;">'+a.notes.slice(0,100)+'</div>':'')
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:16px;">Error</div>';}
+}
+async function submitUpdate(){
+  var text=document.getElementById('stp-upd-text').value.trim();
+  if(!text){toast('Write your update','te');return;}
+  var projSel=document.getElementById('stp-upd-proj').value;
+  try{
+    await sb.from('ix_requests').insert({title:'[Strategic Update] '+partnerData.name,description:text,requested_by:partnerData.name,context_type:'strategic_update',context_value:projSel||null,status:'Pending',priority:'medium',show_to_client:false});
+    document.getElementById('stp-upd-text').value='';
+    var s=document.getElementById('stp-upd-sent');if(s){s.style.display='block';setTimeout(function(){s.style.display='none';},3000);}
+    sendTG('🔄 *Strategic Update*\n\nFrom: '+partnerData.name+'\n\n'+text.slice(0,100));
+    toast('✅ Update submitted!','ts');
+  }catch(e){toast('Error','te');}
+}
+async function loadRequests(){
+  var el=document.getElementById('stp-reqs-list');if(!el)return;
+  try{
+    var r=await sb.from('ix_requests').select('*').eq('requested_by',partnerData.name).order('created_at',{ascending:false});
+    var items=r.data||[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">No requests</div>';return;}
+    var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
+    el.innerHTML=items.map(function(r){return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:7px;"><div style="display:flex;justify-content:space-between;"><div style="font-size:12px;font-weight:600;">'+r.title.slice(0,50)+'</div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'+(r.reply?'<div style="font-size:11px;color:var(--teal);margin-top:4px;">💬 '+r.reply.slice(0,80)+'</div>':'')+'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">'+new Date(r.created_at).toLocaleDateString()+'</div></div>';}).join('');
+  }catch(e){}
+}
+async function loadNews(){
+  var el=document.getElementById('stp-news-list');if(!el)return;
+  try{var r=await sb.from('ix_news').select('*').order('created_at',{ascending:false}).limit(20);var items=r.data||[];if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No news</div>';return;}el.innerHTML=items.map(function(n){return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:9px;padding:12px;margin-bottom:8px;"><div style="font-size:13px;font-weight:700;margin-bottom:5px;">'+n.title+'</div><div style="font-size:12px;color:var(--ink2);line-height:1.6;">'+n.content+'</div>'+(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')+'<div style="font-size:10px;color:var(--ink3);margin-top:5px;">'+new Date(n.created_at).toLocaleDateString()+'</div></div>';}).join('');}catch(e){}
+}
+</script>
+</body></html>
