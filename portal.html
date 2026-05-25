@@ -163,12 +163,16 @@ async function doLogin(){
     if(selectedRole==='team'||selectedRole==='expert'){
       var r2=await sb.from('ix_people').select('*').eq('username',user).limit(1);
       var d2=r2.data||[];
-      showErr('Debug: data='+JSON.stringify(d2).slice(0,80)+' err='+(r2.error?r2.error.message:'none'));return;
-      if(Array.isArray(d2)&&d2.length>0&&d2[0].portal_password===pass){
-        var rec2=d2[0];
-        try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
-        try{localStorage.setItem('ix_portal_data',JSON.stringify(rec2));}catch(e){}
-        window.location.href='team.html';return;
+      if(Array.isArray(d2)&&d2.length>0){
+        var dbPass=d2[0].portal_password;
+        if(dbPass===pass||dbPass==pass||(dbPass&&dbPass.trim()===pass.trim())){
+          var rec2=d2[0];
+          try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
+          try{localStorage.setItem('ix_portal_data',JSON.stringify(rec2));}catch(e){}
+          window.location.href='team.html';return;
+        } else {
+          showErr('Password mismatch: db='+JSON.stringify(dbPass)+' entered='+JSON.stringify(pass));return;
+        }
       }
       showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
     }
