@@ -1119,6 +1119,7 @@ window.addEventListener('DOMContentLoaded',function(){
   initLang();
   var stored=null;
   try{stored=localStorage.getItem('ix_portal_data');}catch(e){}
+  if(!stored){try{stored=sessionStorage.getItem('ix_portal_data');}catch(e){}}
   if(!stored){return showError();}
   try{
     memberData=JSON.parse(stored);
