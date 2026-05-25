@@ -171,6 +171,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTab('team-news',this)">📰 News</button>
         <button class="tab" onclick="showTab('my-attendance',this)">📋 My Attendance</button>
       </div>
+      <!-- MY ATTENDANCE TAB -->
+      <div class="tp" id="tp-my-attendance">
+        <div class="panel">
+          <div class="ph">
+            <div class="pt">📋 My Attendance History</div>
+            <button class="btn bbo bsm" onclick="loadMyAttendance()" style="font-size:10px;">↻ Refresh</button>
+          </div>
+          <div class="pb" id="my-att-list">
+            <div style="text-align:center;color:var(--ink3);padding:16px;">Loading...</div>
+          </div>
+        </div>
+      </div>
+
       <div class="tp on" id="tp-clients">
         <div class="panel"><div class="ph"><div class="pt">🏢 Assigned Clients</div></div>
         <div class="pb" id="cl-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No clients assigned</div></div></div>
@@ -1207,7 +1220,7 @@ function render(){
   setTimeout(function(){loadInbox();},1000);
   setTimeout(function(){checkTeamNotifs(m.name);},1500);
   // Check if already checked in today
-  setTimeout(function(){checkTodayAttendance(m.id);},500);
+  checkTodayAttendance(m.id);
 }
 
 // ── TEAM DATA ──
@@ -2021,20 +2034,18 @@ async function checkTodayAttendance(personId){
 
 async function checkIn(){
   if(!memberData||!memberData.id){toast('Not logged in','te');return;}
-  // Prevent double click
-  var btn=document.getElementById('checkin-btn');
-  if(btn&&btn.disabled){toast('Already checked in today','ts');return;}
-  if(btn)btn.disabled=true;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   var today=new Date().toISOString().split('T')[0];
-  // Check if already checked in today
+  // ALWAYS check DB first regardless of button state
   try{
     var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var existing=await r.json();
     if(Array.isArray(existing)&&existing.length>0){
+      var btn=document.getElementById('checkin-btn');
+      if(btn){btn.textContent='✅ '+new Date(existing[0].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
       toast('Already checked in today at '+new Date(existing[0].check_in_time).toLocaleTimeString(),'ts');
       return;
     }
@@ -3129,20 +3140,18 @@ async function checkTodayAttendance(personId){
 
 async function checkIn(){
   if(!memberData||!memberData.id){toast('Not logged in','te');return;}
-  // Prevent double click
-  var btn=document.getElementById('checkin-btn');
-  if(btn&&btn.disabled){toast('Already checked in today','ts');return;}
-  if(btn)btn.disabled=true;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   var today=new Date().toISOString().split('T')[0];
-  // Check if already checked in today
+  // ALWAYS check DB first regardless of button state
   try{
     var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var existing=await r.json();
     if(Array.isArray(existing)&&existing.length>0){
+      var btn=document.getElementById('checkin-btn');
+      if(btn){btn.textContent='✅ '+new Date(existing[0].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
       toast('Already checked in today at '+new Date(existing[0].check_in_time).toLocaleTimeString(),'ts');
       return;
     }
