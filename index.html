@@ -2333,6 +2333,9 @@ function renderPeople(){
 
 async function savePerson(){
   var n=document.getElementById('pp-name').value.trim();if(!n)return toast('Enter name','error');
+  // Debug check
+  var errEl=document.getElementById('dash-err-display');
+  if(!sb){if(errEl){errEl.textContent='Supabase not initialized! CDN may have failed to load.';errEl.style.display='block';}toast('DB not connected','error');return;}
   var editId=document.getElementById('m-person').dataset.editId||'';
   var code=document.getElementById('pp-code').value.trim()||'PP-'+Date.now().toString(36).toUpperCase();
   var showPhoto=document.getElementById('pp-show-photo');
@@ -2370,13 +2373,37 @@ async function savePerson(){
   if(!p.rate_yearly_price)delete p.rate_yearly_price;
   if(editId){
     // UPDATE mode
-    if(sb){var ru=await sb.from('ix_people').update(p).eq('id',editId).select().single();if(ru.error)return toast('Error: '+ru.error.message,'error');var idx=APeople.findIndex(function(x){return x.id===editId;});if(idx>=0)APeople[idx]=ru.data;}
-    else{var idx=APeople.findIndex(function(x){return x.id===editId;});if(idx>=0)Object.assign(APeople[idx],p);}
-    cm('m-person');renderPeople();toast('✅ Updated','success');
+    try{
+      var ru=await fetch('https://rppwppxyhmuicgemmecu.supabase.co/rest/v1/ix_people?id=eq.'+editId,{
+        method:'PATCH',
+        headers:{'apikey':'sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz','Authorization':'Bearer sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz','Content-Type':'application/json','Prefer':'return=representation'},
+        body:JSON.stringify(p)
+      });
+      var rdu=await ru.json();
+      if(!ru.ok)return toast('Error: '+(rdu.message||'Update failed'),'error');
+      var saved2=Array.isArray(rdu)?rdu[0]:rdu;
+      var idx2=APeople.findIndex(function(x){return x.id===editId;});
+      if(idx2>=0)APeople[idx2]=saved2||p;
+    }catch(e){toast('Error: '+e.message,'error');return;}
   } else {
     // INSERT mode
-    if(sb){var r=await sb.from('ix_people').insert(p).select().single();if(r.error)return toast('Error: '+r.error.message,'error');APeople.unshift(r.data);}
-    else{p.id='local-'+Date.now();p.created_at=new Date().toISOString();APeople.unshift(p);}
+    // Always use fetch directly
+  try{
+    var rr=await fetch('https://rppwppxyhmuicgemmecu.supabase.co/rest/v1/ix_people',{
+      method:'POST',
+      headers:{'apikey':'sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz','Authorization':'Bearer sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz','Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(p)
+    });
+    var rd=await rr.json();
+    if(!rr.ok){
+      var errEl=document.getElementById('dash-err-display');
+      if(errEl){errEl.textContent='Insert Error: '+(rd.message||rd.hint||JSON.stringify(rd).slice(0,80));errEl.style.display='block';}
+      return toast('Error saving','error');
+    }
+    var saved=Array.isArray(rd)?rd[0]:rd;
+    if(saved&&saved.id)APeople.unshift(saved);
+    else{p.id='local-'+Date.now();APeople.unshift(p);}
+  }catch(e){toast('Error: '+e.message,'error');return;}
     cm('m-person');renderPeople();
     var base=localStorage.getItem('ix_base_url')||'https://intersectos.github.io/V.2';
     var portal=base+'/portal.html';
