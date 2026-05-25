@@ -899,16 +899,28 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
   <div class="fg"><label class="fl">Service *</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:5px;" id="svc-checks">
       <label style="display:flex;align-items:center;gap:6px;background:var(--card2);border:2px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" id="svc-sl-lbl">
-        <input type="radio" name="cl-svc-radio" value="Soft Landing" style="width:14px;height:14px;" onchange="document.querySelectorAll('#svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card2)';});this.checked&&(document.getElementById('svc-sl-lbl').style.borderColor='var(--teal)',document.getElementById('svc-sl-lbl').style.background='rgba(6,182,212,.08)');">
+        <input type="checkbox" class="svc-cb" value="Soft Landing" style="width:14px;height:14px;" onchange="toggleSvcLabel('svc-sl-lbl','var(--teal)','rgba(6,182,212,.08)',this)">
         🛬 Soft Landing
       </label>
       <label style="display:flex;align-items:center;gap:6px;background:var(--card2);border:2px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" id="svc-bd-lbl">
-        <input type="radio" name="cl-svc-radio" value="Business Development" style="width:14px;height:14px;" onchange="document.querySelectorAll('#svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card2)';});this.checked&&(document.getElementById('svc-bd-lbl').style.borderColor='#a78bfa',document.getElementById('svc-bd-lbl').style.background='rgba(124,58,237,.08)');">
+        <input type="checkbox" class="svc-cb" value="Business Development" style="width:14px;height:14px;" onchange="toggleSvcLabel('svc-bd-lbl','#a78bfa','rgba(124,58,237,.08)',this)">
         📈 Business Development
       </label>
+      <label style="display:flex;align-items:center;gap:6px;background:var(--card2);border:2px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" id="svc-office-lbl">
+        <input type="checkbox" class="svc-cb" value="Office Rental" style="width:14px;height:14px;" onchange="toggleSvcLabel('svc-office-lbl','#f97316','rgba(249,115,22,.08)',this)">
+        🏢 Office Rental
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;background:var(--card2);border:2px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" id="svc-shared-lbl">
+        <input type="checkbox" class="svc-cb" value="Shared Services" style="width:14px;height:14px;" onchange="toggleSvcLabel('svc-shared-lbl','#06b6d4','rgba(6,182,212,.08)',this)">
+        🤝 Shared Services
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;background:var(--card2);border:2px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" id="svc-pkg-lbl">
+        <input type="checkbox" class="svc-cb" value="Full Package" style="width:14px;height:14px;" onchange="toggleSvcLabel('svc-pkg-lbl','#22c55e','rgba(34,197,94,.08)',this)">
+        📦 Full Package
+      </label>
       <label style="display:flex;align-items:center;gap:6px;background:var(--card2);border:2px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;" id="svc-ot-lbl">
-        <input type="radio" name="cl-svc-radio" value="Other" style="width:14px;height:14px;" onchange="document.querySelectorAll('#svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card2)';});this.checked&&(document.getElementById('svc-ot-lbl').style.borderColor='var(--gold)',document.getElementById('svc-ot-lbl').style.background='rgba(245,158,11,.08)');var w=document.getElementById('svc-other-wrap');if(w)w.style.display=this.checked?'block':'none';">
-        📦 Other
+        <input type="checkbox" class="svc-cb" value="Other" style="width:14px;height:14px;" onchange="toggleSvcLabel('svc-ot-lbl','var(--gold)','rgba(245,158,11,.08)',this);document.getElementById('svc-other-wrap').style.display=this.checked?'block':'none';">
+        📋 Other
       </label>
     </div>
     <div id="svc-other-wrap" style="display:none;margin-top:8px;"><input class="fi" id="svc-other-text" placeholder="Describe service..."></div>
