@@ -1508,8 +1508,8 @@ function applyDashTranslations(){
   if(ssTitle)ssTitle.textContent=dt('client_sources');
 }
 
-var SB_URL_HC = 'https://rppwppxyhmuicgemmecu.supabase.co';
-var SB_KEY_HC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwcHdwcHh5aG11aWNnZW1tZWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NjgxMzksImV4cCI6MjA5NDQ0NDEzOX0.QCbXlBlZ3C4uXEfM1xA0O8zBxoIz24sXrg4Sj9vx8t8';
+var SB_URL_HC = 'https://zmiywdpfdvllsxalklrv.supabase.co';
+var SB_KEY_HC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
 
 // Storage
 var PK='ix_pass', LK='ix_lang', BK='ix_base';
@@ -2374,9 +2374,9 @@ async function savePerson(){
   if(editId){
     // UPDATE mode
     try{
-      var ru=await fetch('https://rppwppxyhmuicgemmecu.supabase.co/rest/v1/ix_people?id=eq.'+editId,{
+      var ru=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_people?id=eq.'+editId,{
         method:'PATCH',
-        headers:{'apikey':'sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz','Authorization':'Bearer sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz','Content-Type':'application/json','Prefer':'return=representation'},
+        headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
         body:JSON.stringify(p)
       });
       var rdu=await ru.json();
@@ -2389,9 +2389,9 @@ async function savePerson(){
     // INSERT mode
     // Always use fetch directly
   try{
-    var rr=await fetch('https://rppwppxyhmuicgemmecu.supabase.co/rest/v1/ix_people',{
+    var rr=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_people',{
       method:'POST',
-      headers:{'apikey':'sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz','Authorization':'Bearer sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz','Content-Type':'application/json','Prefer':'return=representation'},
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
       body:JSON.stringify(p)
     });
     var rd=await rr.json();
