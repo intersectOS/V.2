@@ -2060,17 +2060,24 @@ async function checkIn(){
       return;
     }
     // Check in
-    await fetch(SB+'/rest/v1/ix_attendance',{
+    var insertBody={
+      person_id:memberData.id||null,
+      person_name:memberData.name,
+      person_role:memberData.role||memberData.person_type||'Team',
+      date:today,
+      check_in_time:new Date().toISOString()
+    };
+    var insertR=await fetch(SB+'/rest/v1/ix_attendance',{
       method:'POST',
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify({
-        person_id:memberData.id,
-        person_name:memberData.name,
-        person_role:memberData.role||memberData.person_type||'Team',
-        date:today,
-        check_in_time:new Date().toISOString()
-      })
+      body:JSON.stringify(insertBody)
     });
+    var insertData=await insertR.json();
+    if(!insertR.ok){
+      toast('DB Error: '+(insertData.message||insertData.hint||JSON.stringify(insertData).slice(0,50)),'te');
+      var btn3=document.getElementById('checkin-btn');if(btn3)btn3.disabled=false;
+      return;
+    }
     var btn2=document.getElementById('checkin-btn');
     if(btn2){btn2.textContent='✅ '+new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn2.style.background='rgba(34,197,94,.2)';btn2.disabled=true;}
     // Send TG notification to management
@@ -3177,17 +3184,24 @@ async function checkIn(){
       return;
     }
     // Check in
-    await fetch(SB+'/rest/v1/ix_attendance',{
+    var insertBody={
+      person_id:memberData.id||null,
+      person_name:memberData.name,
+      person_role:memberData.role||memberData.person_type||'Team',
+      date:today,
+      check_in_time:new Date().toISOString()
+    };
+    var insertR=await fetch(SB+'/rest/v1/ix_attendance',{
       method:'POST',
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify({
-        person_id:memberData.id,
-        person_name:memberData.name,
-        person_role:memberData.role||memberData.person_type||'Team',
-        date:today,
-        check_in_time:new Date().toISOString()
-      })
+      body:JSON.stringify(insertBody)
     });
+    var insertData=await insertR.json();
+    if(!insertR.ok){
+      toast('DB Error: '+(insertData.message||insertData.hint||JSON.stringify(insertData).slice(0,50)),'te');
+      var btn3=document.getElementById('checkin-btn');if(btn3)btn3.disabled=false;
+      return;
+    }
     var btn2=document.getElementById('checkin-btn');
     if(btn2){btn2.textContent='✅ '+new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn2.style.background='rgba(34,197,94,.2)';btn2.disabled=true;}
     // Send TG notification to management
