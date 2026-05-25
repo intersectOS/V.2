@@ -1973,7 +1973,7 @@ async function loadMyAttendance(){
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   try{
-    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&order=check_in_time.desc&limit=30',{
+    var r=await fetch(SB+'/rest/v1/ix_workflow?context_type=eq.attendance&created_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc&limit=30',{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var records=await r.json();
@@ -1984,7 +1984,7 @@ async function loadMyAttendance(){
     // Group by month
     var grouped={};
     records.forEach(function(rec){
-      var d=new Date(rec.check_in_time);
+      var d=new Date(rec.created_at);
       var month=d.toLocaleString('default',{month:'long',year:'numeric'});
       if(!grouped[month])grouped[month]=[];
       grouped[month].push(rec);
@@ -1992,7 +1992,7 @@ async function loadMyAttendance(){
     var html='';
     // Summary
     var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
-    var thisMonth=records.filter(function(r){return r.date&&r.date.startsWith(new Date().toISOString().slice(0,7));}).length;
+    var thisMonth=records.filter(function(r){return r.created_at&&r.created_at.startsWith(new Date().toISOString().slice(0,7));}).length;
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">'
       +'<div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;text-align:center;">'
         +'<div style="font-size:22px;font-weight:800;color:var(--teal);font-family:Syne;">'+records.length+'</div>'
@@ -2006,8 +2006,8 @@ async function loadMyAttendance(){
     Object.keys(grouped).forEach(function(month){
       html+='<div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:10px;">'+month+'</div>';
       grouped[month].forEach(function(rec){
-        var d=new Date(rec.check_in_time);
-        var isToday=rec.date===today;
+        var d=new Date(rec.created_at);
+        var sNow=new Date();var sSaudi=new Date(sNow.getTime()+3*60*60000);var today2=sSaudi.toISOString().split('T')[0];var isToday=rec.context_value===today2;
         html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:'+(isToday?'rgba(34,197,94,.06)':'var(--card2)')+';border:1px solid '+(isToday?'rgba(34,197,94,.2)':'var(--border)')+';border-radius:8px;margin-bottom:5px;">'
           +'<div><div style="font-size:13px;font-weight:600;">'+d.toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'})+(isToday?' <span style="font-size:10px;color:#22c55e;">Today</span>':'')+'</div></div>'
           +'<div style="font-size:14px;font-weight:700;color:'+(isToday?'#22c55e':'var(--teal)')+';">'+d.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})+'</div>'
@@ -2019,23 +2019,24 @@ async function loadMyAttendance(){
 }
 
 async function checkTodayAttendance(personId){
-  if(!personId)return;
+  if(!personId||!memberData)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
+  var now=new Date();
+  var saudiTime=new Date(now.getTime()+3*60*60000);
+  var today=saudiTime.toISOString().split('T')[0];
   try{
-    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+personId+'&date=eq.'+today,{
+    var r=await fetch(SB+'/rest/v1/ix_workflow?context_type=eq.attendance&context_value=eq.'+today+'&created_by=eq.'+encodeURIComponent(memberData.name),{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var existing=await r.json();
     var btn=document.getElementById('checkin-btn');
     var expBtn=document.getElementById('exp-checkin-btn');
     if(Array.isArray(existing)&&existing.length>0){
-      var timeStr=new Date(existing[0].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
-      if(btn){btn.textContent='✅ '+timeStr;btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
-      if(expBtn){expBtn.textContent='✅ '+timeStr;expBtn.style.background='rgba(34,197,94,.2)';expBtn.disabled=true;}
+      var t=new Date(existing[0].created_at).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+      if(btn){btn.textContent='✅ '+t;btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+      if(expBtn){expBtn.textContent='✅ '+t;expBtn.style.background='rgba(34,197,94,.2)';expBtn.disabled=true;}
     } else {
-      // Reset button if new day
       if(btn){btn.textContent='✅ Check In';btn.style.background='rgba(34,197,94,.1)';btn.disabled=false;}
       if(expBtn){expBtn.textContent='✅ Check In';expBtn.style.background='rgba(34,197,94,.1)';expBtn.disabled=false;}
     }
@@ -2046,50 +2047,50 @@ async function checkIn(){
   if(!memberData||!memberData.id){toast('Not logged in','te');return;}
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
-  // ALWAYS check DB first regardless of button state
+  var now=new Date();
+  var saudiTime=new Date(now.getTime()+3*60*60000);
+  var today=saudiTime.toISOString().split('T')[0];
+  var timeStr=now.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
   try{
-    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
+    // Check if already checked in today using ix_workflow (existing table)
+    var r=await fetch(SB+'/rest/v1/ix_workflow?context_type=eq.attendance&context_value=eq.'+today+'&created_by=eq.'+encodeURIComponent(memberData.name),{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var existing=await r.json();
     if(Array.isArray(existing)&&existing.length>0){
+      var t=new Date(existing[0].created_at).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
       var btn=document.getElementById('checkin-btn');
-      if(btn){btn.textContent='✅ '+new Date(existing[0].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
-      toast('Already checked in today at '+new Date(existing[0].check_in_time).toLocaleTimeString(),'ts');
+      if(btn){btn.textContent='✅ '+t;btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+      toast('Already checked in today at '+t,'ts');
       return;
     }
-    // Check in
-    var insertBody={
-      person_id:memberData.id||null,
-      person_name:memberData.name,
-      person_role:memberData.role||memberData.person_type||'Team',
-      date:today,
-      check_in_time:new Date().toISOString()
-    };
-    var insertR=await fetch(SB+'/rest/v1/ix_attendance',{
+    // Save check-in to ix_workflow
+    var insertR=await fetch(SB+'/rest/v1/ix_workflow',{
       method:'POST',
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify(insertBody)
+      body:JSON.stringify({
+        title:'✅ Check In — '+memberData.name,
+        description:timeStr+' · '+(memberData.role||memberData.person_type||'Team'),
+        created_by:memberData.name,
+        context_type:'attendance',
+        context_value:today,
+        show_to_client:false,
+        status:'Active'
+      })
     });
-    var insertData=await insertR.json();
     if(!insertR.ok){
-      toast('DB Error: '+(insertData.message||insertData.hint||JSON.stringify(insertData).slice(0,50)),'te');
-      var btn3=document.getElementById('checkin-btn');if(btn3)btn3.disabled=false;
+      var err=await insertR.json();
+      toast('Error: '+(err.message||err.hint||'Failed'),'te');
       return;
     }
     var btn2=document.getElementById('checkin-btn');
-    if(btn2){btn2.textContent='✅ '+new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn2.style.background='rgba(34,197,94,.2)';btn2.disabled=true;}
-    // Send TG notification to management
-    sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+new Date().toLocaleTimeString());
-    toast('✅ Checked in!','ts');
-    // Reload attendance history if tab is open
+    if(btn2){btn2.textContent='✅ '+timeStr;btn2.style.background='rgba(34,197,94,.2)';btn2.disabled=true;}
+    sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+timeStr);
+    toast('✅ Checked in at '+timeStr,'ts');
     var attTab=document.getElementById('tp-my-attendance');
     if(attTab&&attTab.classList.contains('on'))loadMyAttendance();
   }catch(e){
-    var btn3=document.getElementById('checkin-btn');
-    if(btn3)btn3.disabled=false;
-    toast('Error checking in','te');
+    toast('Error: '+e.message,'te');
   }
 }
 
@@ -3097,7 +3098,7 @@ async function loadMyAttendance(){
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   try{
-    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&order=check_in_time.desc&limit=30',{
+    var r=await fetch(SB+'/rest/v1/ix_workflow?context_type=eq.attendance&created_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc&limit=30',{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var records=await r.json();
@@ -3108,7 +3109,7 @@ async function loadMyAttendance(){
     // Group by month
     var grouped={};
     records.forEach(function(rec){
-      var d=new Date(rec.check_in_time);
+      var d=new Date(rec.created_at);
       var month=d.toLocaleString('default',{month:'long',year:'numeric'});
       if(!grouped[month])grouped[month]=[];
       grouped[month].push(rec);
@@ -3116,7 +3117,7 @@ async function loadMyAttendance(){
     var html='';
     // Summary
     var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
-    var thisMonth=records.filter(function(r){return r.date&&r.date.startsWith(new Date().toISOString().slice(0,7));}).length;
+    var thisMonth=records.filter(function(r){return r.created_at&&r.created_at.startsWith(new Date().toISOString().slice(0,7));}).length;
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">'
       +'<div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;text-align:center;">'
         +'<div style="font-size:22px;font-weight:800;color:var(--teal);font-family:Syne;">'+records.length+'</div>'
@@ -3130,8 +3131,8 @@ async function loadMyAttendance(){
     Object.keys(grouped).forEach(function(month){
       html+='<div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:10px;">'+month+'</div>';
       grouped[month].forEach(function(rec){
-        var d=new Date(rec.check_in_time);
-        var isToday=rec.date===today;
+        var d=new Date(rec.created_at);
+        var sNow=new Date();var sSaudi=new Date(sNow.getTime()+3*60*60000);var today2=sSaudi.toISOString().split('T')[0];var isToday=rec.context_value===today2;
         html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:'+(isToday?'rgba(34,197,94,.06)':'var(--card2)')+';border:1px solid '+(isToday?'rgba(34,197,94,.2)':'var(--border)')+';border-radius:8px;margin-bottom:5px;">'
           +'<div><div style="font-size:13px;font-weight:600;">'+d.toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'})+(isToday?' <span style="font-size:10px;color:#22c55e;">Today</span>':'')+'</div></div>'
           +'<div style="font-size:14px;font-weight:700;color:'+(isToday?'#22c55e':'var(--teal)')+';">'+d.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})+'</div>'
@@ -3143,23 +3144,24 @@ async function loadMyAttendance(){
 }
 
 async function checkTodayAttendance(personId){
-  if(!personId)return;
+  if(!personId||!memberData)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
+  var now=new Date();
+  var saudiTime=new Date(now.getTime()+3*60*60000);
+  var today=saudiTime.toISOString().split('T')[0];
   try{
-    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+personId+'&date=eq.'+today,{
+    var r=await fetch(SB+'/rest/v1/ix_workflow?context_type=eq.attendance&context_value=eq.'+today+'&created_by=eq.'+encodeURIComponent(memberData.name),{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var existing=await r.json();
     var btn=document.getElementById('checkin-btn');
     var expBtn=document.getElementById('exp-checkin-btn');
     if(Array.isArray(existing)&&existing.length>0){
-      var timeStr=new Date(existing[0].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
-      if(btn){btn.textContent='✅ '+timeStr;btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
-      if(expBtn){expBtn.textContent='✅ '+timeStr;expBtn.style.background='rgba(34,197,94,.2)';expBtn.disabled=true;}
+      var t=new Date(existing[0].created_at).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+      if(btn){btn.textContent='✅ '+t;btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+      if(expBtn){expBtn.textContent='✅ '+t;expBtn.style.background='rgba(34,197,94,.2)';expBtn.disabled=true;}
     } else {
-      // Reset button if new day
       if(btn){btn.textContent='✅ Check In';btn.style.background='rgba(34,197,94,.1)';btn.disabled=false;}
       if(expBtn){expBtn.textContent='✅ Check In';expBtn.style.background='rgba(34,197,94,.1)';expBtn.disabled=false;}
     }
@@ -3170,50 +3172,50 @@ async function checkIn(){
   if(!memberData||!memberData.id){toast('Not logged in','te');return;}
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-  var now=new Date();var saudiOffset=3*60;var saudiTime=new Date(now.getTime()+saudiOffset*60000);var today=saudiTime.toISOString().split('T')[0];
-  // ALWAYS check DB first regardless of button state
+  var now=new Date();
+  var saudiTime=new Date(now.getTime()+3*60*60000);
+  var today=saudiTime.toISOString().split('T')[0];
+  var timeStr=now.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
   try{
-    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&date=eq.'+today,{
+    // Check if already checked in today using ix_workflow (existing table)
+    var r=await fetch(SB+'/rest/v1/ix_workflow?context_type=eq.attendance&context_value=eq.'+today+'&created_by=eq.'+encodeURIComponent(memberData.name),{
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
     });
     var existing=await r.json();
     if(Array.isArray(existing)&&existing.length>0){
+      var t=new Date(existing[0].created_at).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
       var btn=document.getElementById('checkin-btn');
-      if(btn){btn.textContent='✅ '+new Date(existing[0].check_in_time).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
-      toast('Already checked in today at '+new Date(existing[0].check_in_time).toLocaleTimeString(),'ts');
+      if(btn){btn.textContent='✅ '+t;btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+      toast('Already checked in today at '+t,'ts');
       return;
     }
-    // Check in
-    var insertBody={
-      person_id:memberData.id||null,
-      person_name:memberData.name,
-      person_role:memberData.role||memberData.person_type||'Team',
-      date:today,
-      check_in_time:new Date().toISOString()
-    };
-    var insertR=await fetch(SB+'/rest/v1/ix_attendance',{
+    // Save check-in to ix_workflow
+    var insertR=await fetch(SB+'/rest/v1/ix_workflow',{
       method:'POST',
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify(insertBody)
+      body:JSON.stringify({
+        title:'✅ Check In — '+memberData.name,
+        description:timeStr+' · '+(memberData.role||memberData.person_type||'Team'),
+        created_by:memberData.name,
+        context_type:'attendance',
+        context_value:today,
+        show_to_client:false,
+        status:'Active'
+      })
     });
-    var insertData=await insertR.json();
     if(!insertR.ok){
-      toast('DB Error: '+(insertData.message||insertData.hint||JSON.stringify(insertData).slice(0,50)),'te');
-      var btn3=document.getElementById('checkin-btn');if(btn3)btn3.disabled=false;
+      var err=await insertR.json();
+      toast('Error: '+(err.message||err.hint||'Failed'),'te');
       return;
     }
     var btn2=document.getElementById('checkin-btn');
-    if(btn2){btn2.textContent='✅ '+new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn2.style.background='rgba(34,197,94,.2)';btn2.disabled=true;}
-    // Send TG notification to management
-    sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+new Date().toLocaleTimeString());
-    toast('✅ Checked in!','ts');
-    // Reload attendance history if tab is open
+    if(btn2){btn2.textContent='✅ '+timeStr;btn2.style.background='rgba(34,197,94,.2)';btn2.disabled=true;}
+    sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+timeStr);
+    toast('✅ Checked in at '+timeStr,'ts');
     var attTab=document.getElementById('tp-my-attendance');
     if(attTab&&attTab.classList.contains('on'))loadMyAttendance();
   }catch(e){
-    var btn3=document.getElementById('checkin-btn');
-    if(btn3)btn3.disabled=false;
-    toast('Error checking in','te');
+    toast('Error: '+e.message,'te');
   }
 }
 

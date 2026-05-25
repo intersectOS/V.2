@@ -4225,26 +4225,35 @@ async function loadAttendance(){
 
   // Populate person filter
   var pfSel=document.getElementById('att-person-filter');
-  if(pfSel&&APeople.length){
-    var curVal=pfSel.value;
-    pfSel.innerHTML='<option value="">👥 All Team</option>'+APeople.map(function(p){return '<option value="'+p.name+'">'+p.name+'</option>';}).join('');
-    pfSel.value=curVal;
-  }
+  // Load actual attendees from ix_workflow
+  try{
+    var rNames=await sb.from('ix_workflow').select('created_by').eq('context_type','attendance');
+    if(!rNames.error&&rNames.data){
+      var names=[...new Set(rNames.data.map(function(r){return r.created_by;}))].filter(Boolean);
+      if(pfSel){
+        var curVal=pfSel.value;
+        pfSel.innerHTML='<option value="">👥 All Team</option>'+names.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('');
+        pfSel.value=curVal;
+      }
+    }
+  }catch(e){}
 
   try{
     // Load data based on view
-    var query=sb.from('ix_attendance').select('*').order('check_in_time',{ascending:true});
-    if(view==='day'){query=query.eq('date',date);}
-    else if(view==='month'){var monthStart=date.slice(0,7)+'-01';query=query.gte('date',monthStart);}
-    else{query=query.order('check_in_time',{ascending:false}).limit(200);}
-    if(personFilter)query=query.eq('person_name',personFilter);
+    var query=sb.from('ix_workflow').select('*').eq('context_type','attendance').order('created_at',{ascending:true});
+    if(view==='day'){query=query.eq('context_value',date);}
+    else if(view==='month'){var monthStart=date.slice(0,7)+'-01';query=query.gte('created_at',monthStart);}
+    else{query=query.order('created_at',{ascending:false}).limit(200);}
+    if(personFilter)query=query.eq('created_by',personFilter);
     var r=await query;
     var records=r.data||[];
+    // Map fields for compatibility
+    records=records.map(function(rec){return {person_name:rec.created_by,person_role:rec.description?rec.description.split('·')[1]||'Team':'Team',check_in_time:rec.created_at,date:rec.context_value,id:rec.id};});
 
     // Load this month for KPIs
     var monthStart2=today.slice(0,7)+'-01';
-    var rMonth=await sb.from('ix_attendance').select('*').gte('date',monthStart2);
-    var monthRecs=rMonth.data||[];
+    var rMonth=await sb.from('ix_workflow').select('*').eq('context_type','attendance').gte('created_at',monthStart2);
+    var monthRecs=(rMonth.data||[]).map(function(rec){return {person_name:rec.created_by,check_in_time:rec.created_at,date:rec.context_value};});
     var todayRecs=monthRecs.filter(function(x){return x.date===today;});
 
     // Avg check-in time
