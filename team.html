@@ -139,6 +139,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
           🔔
           <span id="tm-notif-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;"></span>
         </button>
+        <button id="checkin-btn" onclick="checkIn()" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">✅ Check In</button>
         <button class="logout-btn" id="tm-logout" onclick="doLogout()">→ Logout</button>
       </div>
     </div>
@@ -457,25 +458,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <!-- ADD CLIENT TAB -->
       <div class="tp" id="tp-add-client">
         <div class="panel">
-          <div class="ph"><div class="pt">➕ Add New Client</div></div>
+          <div class="ph"><div class="pt">➕ Request: Add New Client</div></div>
           <div class="pb">
-            <div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.15);border-radius:9px;padding:11px;margin-bottom:14px;font-size:12px;color:#22c55e;">
-              ℹ️ Clients you add here will appear in the main dashboard and be assigned to you automatically.
+            <div style="background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.2);border-radius:9px;padding:11px;margin-bottom:14px;font-size:12px;color:var(--gold);">
+              ⚠️ Requests require management approval before the client is added to the system.
             </div>
             <div class="fg"><label class="fl">Company Name *</label><input class="fi" id="nc-name" placeholder="e.g. Aramco"></div>
             <div class="fg"><label class="fl">Industry</label><input class="fi" id="nc-industry" placeholder="e.g. Energy"></div>
             <div class="fg"><label class="fl">Country</label><input class="fi" id="nc-country" placeholder="e.g. Saudi Arabia"></div>
-            <div class="fg"><label class="fl">Service Type (select all that apply)</label>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;" id="nc-svc-checks">
-                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Soft Landing"> Soft Landing</label>
-                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Strategic Partnership"> Strategic Partnership</label>
-                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Market Entry"> Market Entry</label>
-                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Investment"> Investment</label>
-                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Joint Venture"> Joint Venture</label>
-                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Consulting"> Consulting</label>
-                <label style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:12px;"><input type="checkbox" value="Other" onchange="this.closest('.fg').querySelector('.nc-other-field').style.display=this.checked?'block':'none'"> Other</label>
+            <div class="fg"><label class="fl">Service *</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:5px;" id="nc-svc-checks">
+                <label style="display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;" id="nc-sl-lbl">
+                  <input type="radio" name="nc-svc-radio" value="Soft Landing" onchange="document.querySelectorAll('#nc-svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card)';});this.checked&&(document.getElementById('nc-sl-lbl').style.borderColor='var(--teal)',document.getElementById('nc-sl-lbl').style.background='rgba(6,182,212,.08)');">
+                  🛬 Soft Landing
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;" id="nc-bd-lbl">
+                  <input type="radio" name="nc-svc-radio" value="Business Development" onchange="document.querySelectorAll('#nc-svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card)';});this.checked&&(document.getElementById('nc-bd-lbl').style.borderColor='#a78bfa',document.getElementById('nc-bd-lbl').style.background='rgba(124,58,237,.08)');">
+                  📈 Business Development
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;" id="nc-ot-lbl">
+                  <input type="radio" name="nc-svc-radio" value="Other" onchange="document.querySelectorAll('#nc-svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card)';});this.checked&&(document.getElementById('nc-ot-lbl').style.borderColor='var(--gold)',document.getElementById('nc-ot-lbl').style.background='rgba(245,158,11,.08)');var w=document.getElementById('nc-other-wrap');if(w)w.style.display=this.checked?'block':'none';">
+                  📦 Other
+                </label>
               </div>
-              <input class="fi nc-other-field" placeholder="Describe other service..." style="display:none;margin-top:6px;">
+              <div id="nc-other-wrap" style="display:none;margin-top:6px;"><input class="fi" id="nc-other-text" placeholder="Describe service..."></div>
             </div>
             <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="nc-notes" placeholder="Any initial notes..."></textarea></div>
             <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:12px;">
@@ -485,8 +491,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
                 <div class="fg"><label class="fl">Password</label><input class="fi" id="nc-pass" placeholder="e.g. Aramco@2026" dir="ltr"></div>
               </div>
             </div>
-            <button class="btn bbg bw" onclick="addClientFromPortal()">➕ Add Client</button>
-            <div id="nc-success" style="display:none;margin-top:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;font-size:13px;color:#22c55e;text-align:center;"></div>
+            <div class="fg"><label class="fl">Additional Notes</label><textarea class="fta" id="nc-extra-notes" placeholder="Why this client? Any context for management..."></textarea></div>
+            <button class="btn bbg bw" onclick="requestAddClient()">📤 Submit for Approval</button>
+            <div id="nc-success" style="display:none;margin-top:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;font-size:13px;color:#22c55e;text-align:center;">
+              ✅ Request submitted! Management will review and add the client.
+            </div>
           </div>
         </div>
         <div class="panel">
@@ -1389,6 +1398,55 @@ async function updateAvail(){
     try{localStorage.setItem('ix_portal_data',JSON.stringify(memberData));}catch(e){}
     toast('✅ Availability updated','ts');
   }catch(e){toast('Error','te');}
+}
+
+async function requestAddClient(){
+  if(!memberData)return;
+  var name=document.getElementById('nc-name')&&document.getElementById('nc-name').value.trim();
+  if(!name){toast('Enter company name','te');return;}
+  var svcSel=document.querySelector('#nc-svc-checks input[type=radio]:checked');
+  var svc=svcSel?svcSel.value==='Other'?(document.getElementById('nc-other-text')&&document.getElementById('nc-other-text').value.trim()||'Other'):svcSel.value:'';
+  var industry=document.getElementById('nc-industry')&&document.getElementById('nc-industry').value.trim();
+  var country=document.getElementById('nc-country')&&document.getElementById('nc-country').value.trim();
+  var notes=document.getElementById('nc-notes')&&document.getElementById('nc-notes').value.trim();
+  var extraNotes=document.getElementById('nc-extra-notes')&&document.getElementById('nc-extra-notes').value.trim();
+  var username=document.getElementById('nc-username')&&document.getElementById('nc-username').value.trim();
+  var pass=document.getElementById('nc-pass')&&document.getElementById('nc-pass').value.trim();
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var clientData={name:name,industry:industry,country:country,service_type:svc,notes_internal:notes,username:username,portal_password:pass,added_by:memberData.name,main_am_name:memberData.name,main_am_id:memberData.id,client_source:'from_team',source_person_id:memberData.id,source_person_name:memberData.name};
+  var body={
+    title:'[Client Request] Add: '+name,
+    description:[svc?'Service: '+svc:'',industry?'Industry: '+industry:'',country?'Country: '+country:'',notes?'Notes: '+notes:'',extraNotes?'Reason: '+extraNotes:''].filter(Boolean).join('\n'),
+    requested_by:memberData.name,
+    assignee_type:'management',
+    status:'Pending',
+    priority:'high',
+    context_type:'add_client',
+    context_value:JSON.stringify(clientData),
+    show_to_client:false
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('nc-name').value='';
+      document.getElementById('nc-industry').value='';
+      document.getElementById('nc-country').value='';
+      if(document.getElementById('nc-notes'))document.getElementById('nc-notes').value='';
+      if(document.getElementById('nc-extra-notes'))document.getElementById('nc-extra-notes').value='';
+      if(document.getElementById('nc-username'))document.getElementById('nc-username').value='';
+      if(document.getElementById('nc-pass'))document.getElementById('nc-pass').value='';
+      document.querySelectorAll('#nc-svc-checks input').forEach(function(rb){rb.checked=false;});
+      document.querySelectorAll('#nc-svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card)';});
+      var succ=document.getElementById('nc-success');if(succ)succ.style.display='block';
+      sendTG('📋 *Client Request*\n\nBy: '+memberData.name+'\nClient: '+name+(svc?'\nService: '+svc:''));
+      toast('✅ Request submitted for approval!','ts');
+    } else {toast('Error submitting request','te');}
+  }catch(e){toast('Error: '+e.message,'te');}
 }
 
 async function addClientFromPortal(){
