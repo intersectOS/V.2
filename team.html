@@ -169,6 +169,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTab('team-marketplace',this)">🛒 Services</button>
         <button class="tab" onclick="showTab('my-sent',this)">📋 My Requests</button>
         <button class="tab" onclick="showTab('team-news',this)">📰 News</button>
+        <button class="tab" onclick="showTab('my-attendance',this)">📋 My Attendance</button>
       </div>
       <div class="tp on" id="tp-clients">
         <div class="panel"><div class="ph"><div class="pt">🏢 Assigned Clients</div></div>
@@ -1951,6 +1952,57 @@ async function checkInExpert(){
   }catch(e){toast('Error','te');}
 }
 
+async function loadMyAttendance(){
+  if(!memberData)return;
+  var el=document.getElementById('my-att-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&order=check_in_time.desc&limit=30',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var records=await r.json();
+    if(!Array.isArray(records)||!records.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No attendance records yet</div>';
+      return;
+    }
+    // Group by month
+    var grouped={};
+    records.forEach(function(rec){
+      var d=new Date(rec.check_in_time);
+      var month=d.toLocaleString('default',{month:'long',year:'numeric'});
+      if(!grouped[month])grouped[month]=[];
+      grouped[month].push(rec);
+    });
+    var html='';
+    // Summary
+    var today=new Date().toISOString().split('T')[0];
+    var thisMonth=records.filter(function(r){return r.date&&r.date.startsWith(new Date().toISOString().slice(0,7));}).length;
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">'
+      +'<div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;text-align:center;">'
+        +'<div style="font-size:22px;font-weight:800;color:var(--teal);font-family:Syne;">'+records.length+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">Total Check-ins</div>'
+      +'</div>'
+      +'<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:9px;padding:12px;text-align:center;">'
+        +'<div style="font-size:22px;font-weight:800;color:#22c55e;font-family:Syne;">'+thisMonth+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">This Month</div>'
+      +'</div>'
+    +'</div>';
+    Object.keys(grouped).forEach(function(month){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:10px;">'+month+'</div>';
+      grouped[month].forEach(function(rec){
+        var d=new Date(rec.check_in_time);
+        var isToday=rec.date===today;
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:'+(isToday?'rgba(34,197,94,.06)':'var(--card2)')+';border:1px solid '+(isToday?'rgba(34,197,94,.2)':'var(--border)')+';border-radius:8px;margin-bottom:5px;">'
+          +'<div><div style="font-size:13px;font-weight:600;">'+d.toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'})+(isToday?' <span style="font-size:10px;color:#22c55e;">Today</span>':'')+'</div></div>'
+          +'<div style="font-size:14px;font-weight:700;color:'+(isToday?'#22c55e':'var(--teal)')+';">'+d.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})+'</div>'
+        +'</div>';
+      });
+    });
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
+}
+
 async function checkTodayAttendance(personId){
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
@@ -1968,7 +2020,11 @@ async function checkTodayAttendance(personId){
 }
 
 async function checkIn(){
-  if(!memberData)return;
+  if(!memberData||!memberData.id){toast('Not logged in','te');return;}
+  // Prevent double click
+  var btn=document.getElementById('checkin-btn');
+  if(btn&&btn.disabled){toast('Already checked in today','ts');return;}
+  if(btn)btn.disabled=true;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   var today=new Date().toISOString().split('T')[0];
@@ -1994,12 +2050,16 @@ async function checkIn(){
         check_in_time:new Date().toISOString()
       })
     });
-    var btn=document.getElementById('checkin-btn');
-    if(btn){btn.textContent='✅ Checked In';btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+    var btn2=document.getElementById('checkin-btn');
+    if(btn2){btn2.textContent='✅ '+new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn2.style.background='rgba(34,197,94,.2)';btn2.disabled=true;}
     // Send TG notification to management
     sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+new Date().toLocaleTimeString());
-    toast('✅ Checked in successfully!','ts');
-  }catch(e){toast('Error checking in','te');}
+    toast('✅ Checked in!','ts');
+  }catch(e){
+    var btn3=document.getElementById('checkin-btn');
+    if(btn3)btn3.disabled=false;
+    toast('Error checking in','te');
+  }
 }
 
 async function saveTelegramTeam(){
@@ -3000,6 +3060,57 @@ async function checkInExpert(){
   }catch(e){toast('Error','te');}
 }
 
+async function loadMyAttendance(){
+  if(!memberData)return;
+  var el=document.getElementById('my-att-list');if(!el)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_attendance?person_id=eq.'+memberData.id+'&order=check_in_time.desc&limit=30',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    var records=await r.json();
+    if(!Array.isArray(records)||!records.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No attendance records yet</div>';
+      return;
+    }
+    // Group by month
+    var grouped={};
+    records.forEach(function(rec){
+      var d=new Date(rec.check_in_time);
+      var month=d.toLocaleString('default',{month:'long',year:'numeric'});
+      if(!grouped[month])grouped[month]=[];
+      grouped[month].push(rec);
+    });
+    var html='';
+    // Summary
+    var today=new Date().toISOString().split('T')[0];
+    var thisMonth=records.filter(function(r){return r.date&&r.date.startsWith(new Date().toISOString().slice(0,7));}).length;
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">'
+      +'<div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;text-align:center;">'
+        +'<div style="font-size:22px;font-weight:800;color:var(--teal);font-family:Syne;">'+records.length+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">Total Check-ins</div>'
+      +'</div>'
+      +'<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:9px;padding:12px;text-align:center;">'
+        +'<div style="font-size:22px;font-weight:800;color:#22c55e;font-family:Syne;">'+thisMonth+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);">This Month</div>'
+      +'</div>'
+    +'</div>';
+    Object.keys(grouped).forEach(function(month){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:10px;">'+month+'</div>';
+      grouped[month].forEach(function(rec){
+        var d=new Date(rec.check_in_time);
+        var isToday=rec.date===today;
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:'+(isToday?'rgba(34,197,94,.06)':'var(--card2)')+';border:1px solid '+(isToday?'rgba(34,197,94,.2)':'var(--border)')+';border-radius:8px;margin-bottom:5px;">'
+          +'<div><div style="font-size:13px;font-weight:600;">'+d.toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'})+(isToday?' <span style="font-size:10px;color:#22c55e;">Today</span>':'')+'</div></div>'
+          +'<div style="font-size:14px;font-weight:700;color:'+(isToday?'#22c55e':'var(--teal)')+';">'+d.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})+'</div>'
+        +'</div>';
+      });
+    });
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
+}
+
 async function checkTodayAttendance(personId){
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
@@ -3017,7 +3128,11 @@ async function checkTodayAttendance(personId){
 }
 
 async function checkIn(){
-  if(!memberData)return;
+  if(!memberData||!memberData.id){toast('Not logged in','te');return;}
+  // Prevent double click
+  var btn=document.getElementById('checkin-btn');
+  if(btn&&btn.disabled){toast('Already checked in today','ts');return;}
+  if(btn)btn.disabled=true;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
   var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
   var today=new Date().toISOString().split('T')[0];
@@ -3043,12 +3158,16 @@ async function checkIn(){
         check_in_time:new Date().toISOString()
       })
     });
-    var btn=document.getElementById('checkin-btn');
-    if(btn){btn.textContent='✅ Checked In';btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
+    var btn2=document.getElementById('checkin-btn');
+    if(btn2){btn2.textContent='✅ '+new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});btn2.style.background='rgba(34,197,94,.2)';btn2.disabled=true;}
     // Send TG notification to management
     sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: '+(memberData.role||'Team')+'\nTime: '+new Date().toLocaleTimeString());
-    toast('✅ Checked in successfully!','ts');
-  }catch(e){toast('Error checking in','te');}
+    toast('✅ Checked in!','ts');
+  }catch(e){
+    var btn3=document.getElementById('checkin-btn');
+    if(btn3)btn3.disabled=false;
+    toast('Error checking in','te');
+  }
 }
 
 async function saveTelegramTeam(){
@@ -3453,6 +3572,7 @@ function showTabE(n,el){
   if(n==='exp-sent')loadExpSent();
   if(n==='exp-tasks')loadExpTasks();
   if(n==='exp-updates')loadExpTasks();
+  if(n==='my-attendance')loadMyAttendance();
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#expert-tabs .tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tpe-'+n).classList.add('on');
