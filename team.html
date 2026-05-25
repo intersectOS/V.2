@@ -184,108 +184,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         </div>
       </div>
 
-      <div class="tp on" id="tp-clients">
+      <div class="tp" id="tp-clients">
         <div class="panel"><div class="ph"><div class="pt">🏢 Assigned Clients</div></div>
         <div class="pb" id="cl-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No clients assigned</div></div></div>
       </div>
       <div class="tp" id="tp-tasks">
-        <div class="panel"><div class="ph"><div class="pt">📌 Action Items</div><span id="tk-badge" class="pill pgo">0</span></div>
-        <div class="pb" id="tk-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No tasks</div></div></div>
-      </div>
-      <div class="tp" id="tp-requests">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
-          <button class="btn bbg" onclick="openModal('m-req')">+ New Request</button>
-        </div>
-        <div class="panel"><div class="ph"><div class="pt">📋 Requests</div></div>
-        <div class="pb" id="rq-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No requests</div></div></div>
-      </div>
-      <div class="tp" id="tp-workflow">
-        <div class="panel"><div class="ph"><div class="pt">🔄 Add Workflow Update</div></div>
-        <div class="pb">
-          <div class="fg"><label class="fl">Client *</label><select class="fs" id="wf-client"><option value="">— Select —</option></select></div>
-          <div class="fg"><label class="fl">Update Title *</label><input class="fi" id="wf-title" placeholder="e.g. Contract sent for review"></div>
-          <div class="fg"><label class="fl">Description</label><textarea class="fta" id="wf-desc"></textarea></div>
-          <div class="fg"><label class="fl">Status</label>
-            <select class="fs" id="wf-status">
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Blocked">Blocked</option>
-            </select>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px;">
-            <input type="checkbox" id="wf-show" checked style="width:16px;height:16px;">
-            <label for="wf-show" style="font-size:12px;color:var(--ink2);">Visible to client</label>
-          </div>
-          <button class="btn bbg bw" onclick="saveWorkflow()">💾 Save Update</button>
-        </div></div>
-      </div>
-      <div class="tp" id="tp-meetings">
+        <!-- My Tasks New -->
         <div class="panel">
-          <div class="ph"><div class="pt">➕ Log Meeting</div></div>
-          <div class="pb">
-            <div class="fg"><label class="fl">Title *</label><input class="fi" id="mt-title-new" placeholder="e.g. Initial Discussion with Aramco"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
-              <div class="fg"><label class="fl">Organization *</label><input class="fi" id="mt-org-new" placeholder="Company name"></div>
-              <div class="fg"><label class="fl">Date *</label><input class="fi" type="date" id="mt-date-new"></div>
-            </div>
-            <div class="fg"><label class="fl">Meeting Type</label>
-              <select class="fs" id="mt-type-new">
-                <option value="Initial">Initial Meeting</option>
-                <option value="Follow-up">Follow-up</option>
-                <option value="Negotiation">Negotiation</option>
-                <option value="Technical">Technical</option>
-                <option value="Closing">Closing</option>
-              </select>
-            </div>
-            <div class="fg"><label class="fl">Attendees</label><input class="fi" id="mt-att-new" placeholder="Names separated by comma"></div>
-            <div class="fg"><label class="fl">Summary</label><textarea class="fta" id="mt-sum-new" placeholder="What was discussed..."></textarea></div>
-            <div class="fg"><label class="fl">Action Items</label><textarea class="fta" id="mt-acts-new" placeholder="Action items from this meeting..."></textarea></div>
-            <button class="btn bbg bw" onclick="saveMeetingFromPortal()">💾 Save Meeting</button>
-            <div id="mt-saved-msg" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Meeting saved!</div>
+          <div class="ph">
+            <div class="pt">📌 My Tasks</div>
+            <button class="btn bbo bsm" onclick="loadMyTasksNew()" style="font-size:10px;">↻ Refresh</button>
+          </div>
+          <div class="pb" id="my-tasks-new-list">
+            <div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div>
           </div>
         </div>
-        <div class="panel"><div class="ph"><div class="pt">📅 Recent Meetings</div></div>
-        <div class="pb" id="mt-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No meetings</div></div></div>
-      </div>
-    </div>
-
-    <!-- TABS FOR EXPERT -->
-    <div id="expert-tabs" style="display:none;">
-      <div class="tabs">
-        <button class="tab on" onclick="showTabE('requests',this)">📋 Requests</button>
-        <button class="tab" onclick="showTabE('profile',this)">👤 My Profile</button>
-        <button class="tab" onclick="showTabE('availability',this)">📅 Availability</button>
-        <button class="tab" onclick="showTabE('exp-projects',this)">📁 Projects</button>
-        <button class="tab" onclick="showTabE('exp-inbox',this)">🔔 Inbox</button>
-        <button class="tab" onclick="showTabE('exp-news',this)">📰 News</button>
-        <button class="tab" onclick="showTabE('exp-marketplace',this)">🛒 Services</button>
-        <button class="tab" onclick="showTabE('exp-sent',this)">📤 My Requests</button>
-        <button class="tab" onclick="showTabE('exp-tasks',this)">📌 My Tasks</button>
-        <button class="tab" onclick="showTabE('exp-updates',this)">🔄 Add Update</button>
-      </div>
-      <div class="tp on" id="tpe-requests">
-        <div class="panel">
-          <div class="ph"><div class="pt">📋 Client Requests for Experts</div></div>
-          <div class="pb" id="exp-reqs-list"><div style="text-align:center;color:var(--ink3);font-size:13px;padding:18px;">Loading...</div></div>
-        </div>
-      </div>
-      <div class="tp" id="tpe-profile">
-        <div class="panel"><div class="ph"><div class="pt">👤 My Profile</div></div>
-        <div class="pb" id="exp-profile-body"></div></div>
-      </div>
-      <div class="tp" id="tpe-availability">
-        <div class="panel"><div class="ph"><div class="pt">📅 Update Availability</div></div>
-        <div class="pb">
-          <div class="fg"><label class="fl">Status</label>
-            <select class="fs" id="avail-sel">
-              <option value="Available">🟢 Available</option>
-              <option value="Busy">🟡 Busy</option>
-              <option value="Unavailable">🔴 Unavailable</option>
-            </select>
-          </div>
-          <button class="btn bbg bw" onclick="updateAvail()">💾 Update</button>
-        </div></div>
-      </div>
 
       <!-- Expert Marketplace -->
       <div class="tp" id="tpe-exp-marketplace">
@@ -2324,6 +2237,92 @@ async function saveTelegramTeam(){
   }catch(e){toast('Error saving','te');}
 }
 
+async function loadMyTasksNew(){
+  var el=document.getElementById('my-tasks-new-list');if(!el)return;
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Get my subtasks
+    var rSt=await fetch(SB+'/rest/v1/ix_subtasks?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var mySubtasks=await rSt.json();
+    mySubtasks=Array.isArray(mySubtasks)?mySubtasks:[];
+    // Get parent tasks
+    var taskIds=[...new Set(mySubtasks.map(function(s){return s.task_id;}))];
+    var tasks=[];
+    if(taskIds.length){
+      var rT=await fetch(SB+'/rest/v1/ix_tasks?id=in.('+taskIds.join(',')+')',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+      var td=await rT.json();
+      tasks=Array.isArray(td)?td:[];
+    }
+    // Get focal tasks
+    var rFocal=await fetch(SB+'/rest/v1/ix_tasks?focal_point_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var focalTasks=await rFocal.json();
+    focalTasks=Array.isArray(focalTasks)?focalTasks:[];
+    focalTasks.forEach(function(ft){if(!tasks.find(function(t){return t.id===ft.id;}))tasks.push(ft);});
+    if(!tasks.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:30px;"><div style="font-size:36px;margin-bottom:10px;">📌</div><div>No tasks assigned yet</div></div>';
+      return;
+    }
+    var sc={'To Do':'pgo','In Progress':'ptl','Done':'pg',Completed:'pgr'};
+    var html='';
+    tasks.forEach(function(t){
+      var isFocal=t.focal_point_name===memberData.name;
+      var mySubts=mySubtasks.filter(function(s){return s.task_id===t.id;});
+      // Parse team members
+      var members=[];
+      try{var parsed=JSON.parse(t.members||'[]');members=parsed.map(function(m){return typeof m==='string'?m:(m.name||'');}).filter(Boolean);}catch(e){}
+      var prioC={high:'var(--red)',medium:'var(--gold)',low:'#22c55e'};
+      html+='<div style="background:var(--card2);border:1px solid '+(isFocal?'rgba(245,158,11,.4)':'var(--border)')+';border-radius:11px;padding:13px;margin-bottom:10px;">';
+      // Header
+      html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">';
+      html+='<div><div style="font-size:14px;font-weight:700;">'+t.title+'</div>';
+      if(isFocal)html+='<span style="font-size:10px;background:rgba(245,158,11,.15);color:var(--gold);padding:2px 8px;border-radius:8px;font-weight:700;">⭐ Focal Point</span>';
+      html+='</div>';
+      html+='<div style="display:flex;align-items:center;gap:5px;">';
+      if(t.priority)html+='<span style="font-size:11px;color:'+(prioC[t.priority]||'var(--ink3)')+';">●</span>';
+      html+='<span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span>';
+      html+='</div></div>';
+      // Info
+      if(t.client_name)html+='<div style="font-size:11px;color:var(--gold);margin-bottom:4px;">📁 '+t.client_name+'</div>';
+      if(t.deadline)html+='<div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">📅 Due: '+t.deadline+'</div>';
+      if(members.length)html+='<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">👥 Team: '+members.join(' · ')+'</div>';
+      // My sub-tasks
+      if(mySubts.length){
+        html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;">';
+        html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">My Assignments</div>';
+        mySubts.forEach(function(st){
+          html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding:6px;background:var(--card2);border-radius:6px;">';
+          html+='<div style="font-size:12px;font-weight:600;'+(st.status==='Done'?'text-decoration:line-through;color:var(--ink3);':'')+'">'+st.title+'</div>';
+          if(st.status==='Done'){
+            html+='<span style="font-size:10px;color:#22c55e;font-weight:700;">✅ Done</span>';
+          } else {
+            html+='<button class="btn bsm" style="font-size:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;" data-sid="'+st.id+'" data-tid="'+t.id+'" onclick="markSubtaskDone(this.dataset.sid,this.dataset.tid,this)">✅ Done</button>';
+          }
+          html+='</div>';
+        });
+        html+='</div>';
+      }
+      // Focal: show all subtasks progress + close button
+      if(isFocal){
+        var doneCnt=mySubtasks.filter(function(s){return s.task_id===t.id&&s.status==='Done';}).length;
+        var totalCnt=members.length||1;
+        html+='<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:8px;padding:8px;margin-bottom:8px;">';
+        html+='<div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;">⭐ Focal Point View</div>';
+        html+='<div style="font-size:12px;color:var(--ink2);">Check dashboard for full team progress</div>';
+        if(t.status!=='Done'){
+          html+='<button class="btn bsm" style="width:100%;margin-top:7px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;font-size:11px;" data-tid="'+t.id+'" onclick="closeFocalTask(this.dataset.tid,this)">🔒 Close Entire Task</button>';
+        }
+        html+='</div>';
+      }
+      // Support button
+      html+='<button class="btn bsm" style="width:100%;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;font-size:11px;" data-tid="'+t.id+'" data-ttitle="'+t.title.replace(/"/g,'\"')+'" onclick="openTaskSupportModal(this.dataset.tid,this.dataset.ttitle)">🤝 Request Support</button>';
+      html+='</div>';
+    });
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--red);padding:16px;">Error: '+e.message+'</div>';}
+}
+
 async function loadExpTasks(){
   if(!memberData)return;
   var el=document.getElementById('exp-tasks-list');if(!el)return;
@@ -3657,6 +3656,92 @@ async function saveTelegramTeam(){
   }catch(e){toast('Error saving','te');}
 }
 
+async function loadMyTasksNew(){
+  var el=document.getElementById('my-tasks-new-list');if(!el)return;
+  if(!memberData)return;
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    // Get my subtasks
+    var rSt=await fetch(SB+'/rest/v1/ix_subtasks?assignee_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var mySubtasks=await rSt.json();
+    mySubtasks=Array.isArray(mySubtasks)?mySubtasks:[];
+    // Get parent tasks
+    var taskIds=[...new Set(mySubtasks.map(function(s){return s.task_id;}))];
+    var tasks=[];
+    if(taskIds.length){
+      var rT=await fetch(SB+'/rest/v1/ix_tasks?id=in.('+taskIds.join(',')+')',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+      var td=await rT.json();
+      tasks=Array.isArray(td)?td:[];
+    }
+    // Get focal tasks
+    var rFocal=await fetch(SB+'/rest/v1/ix_tasks?focal_point_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var focalTasks=await rFocal.json();
+    focalTasks=Array.isArray(focalTasks)?focalTasks:[];
+    focalTasks.forEach(function(ft){if(!tasks.find(function(t){return t.id===ft.id;}))tasks.push(ft);});
+    if(!tasks.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:30px;"><div style="font-size:36px;margin-bottom:10px;">📌</div><div>No tasks assigned yet</div></div>';
+      return;
+    }
+    var sc={'To Do':'pgo','In Progress':'ptl','Done':'pg',Completed:'pgr'};
+    var html='';
+    tasks.forEach(function(t){
+      var isFocal=t.focal_point_name===memberData.name;
+      var mySubts=mySubtasks.filter(function(s){return s.task_id===t.id;});
+      // Parse team members
+      var members=[];
+      try{var parsed=JSON.parse(t.members||'[]');members=parsed.map(function(m){return typeof m==='string'?m:(m.name||'');}).filter(Boolean);}catch(e){}
+      var prioC={high:'var(--red)',medium:'var(--gold)',low:'#22c55e'};
+      html+='<div style="background:var(--card2);border:1px solid '+(isFocal?'rgba(245,158,11,.4)':'var(--border)')+';border-radius:11px;padding:13px;margin-bottom:10px;">';
+      // Header
+      html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">';
+      html+='<div><div style="font-size:14px;font-weight:700;">'+t.title+'</div>';
+      if(isFocal)html+='<span style="font-size:10px;background:rgba(245,158,11,.15);color:var(--gold);padding:2px 8px;border-radius:8px;font-weight:700;">⭐ Focal Point</span>';
+      html+='</div>';
+      html+='<div style="display:flex;align-items:center;gap:5px;">';
+      if(t.priority)html+='<span style="font-size:11px;color:'+(prioC[t.priority]||'var(--ink3)')+';">●</span>';
+      html+='<span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span>';
+      html+='</div></div>';
+      // Info
+      if(t.client_name)html+='<div style="font-size:11px;color:var(--gold);margin-bottom:4px;">📁 '+t.client_name+'</div>';
+      if(t.deadline)html+='<div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">📅 Due: '+t.deadline+'</div>';
+      if(members.length)html+='<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">👥 Team: '+members.join(' · ')+'</div>';
+      // My sub-tasks
+      if(mySubts.length){
+        html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;">';
+        html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">My Assignments</div>';
+        mySubts.forEach(function(st){
+          html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding:6px;background:var(--card2);border-radius:6px;">';
+          html+='<div style="font-size:12px;font-weight:600;'+(st.status==='Done'?'text-decoration:line-through;color:var(--ink3);':'')+'">'+st.title+'</div>';
+          if(st.status==='Done'){
+            html+='<span style="font-size:10px;color:#22c55e;font-weight:700;">✅ Done</span>';
+          } else {
+            html+='<button class="btn bsm" style="font-size:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;" data-sid="'+st.id+'" data-tid="'+t.id+'" onclick="markSubtaskDone(this.dataset.sid,this.dataset.tid,this)">✅ Done</button>';
+          }
+          html+='</div>';
+        });
+        html+='</div>';
+      }
+      // Focal: show all subtasks progress + close button
+      if(isFocal){
+        var doneCnt=mySubtasks.filter(function(s){return s.task_id===t.id&&s.status==='Done';}).length;
+        var totalCnt=members.length||1;
+        html+='<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:8px;padding:8px;margin-bottom:8px;">';
+        html+='<div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;">⭐ Focal Point View</div>';
+        html+='<div style="font-size:12px;color:var(--ink2);">Check dashboard for full team progress</div>';
+        if(t.status!=='Done'){
+          html+='<button class="btn bsm" style="width:100%;margin-top:7px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;font-size:11px;" data-tid="'+t.id+'" onclick="closeFocalTask(this.dataset.tid,this)">🔒 Close Entire Task</button>';
+        }
+        html+='</div>';
+      }
+      // Support button
+      html+='<button class="btn bsm" style="width:100%;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;font-size:11px;" data-tid="'+t.id+'" data-ttitle="'+t.title.replace(/"/g,'\"')+'" onclick="openTaskSupportModal(this.dataset.tid,this.dataset.ttitle)">🤝 Request Support</button>';
+      html+='</div>';
+    });
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--red);padding:16px;">Error: '+e.message+'</div>';}
+}
+
 async function loadExpTasks(){
   if(!memberData)return;
   var el=document.getElementById('exp-tasks-list');if(!el)return;
@@ -3953,9 +4038,10 @@ async function submitTeamStructure(){
 }
 
 function showTab(n,el){
-  document.querySelectorAll('#team-tabs .tp').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#team-tabs .tab').forEach(function(t){t.classList.remove('on');});
-  document.getElementById('tp-'+n).classList.add('on');
+  var tpEl=document.getElementById('tp-'+n);
+  if(tpEl)tpEl.classList.add('on');
   if(el)el.classList.add('on');
   if(n==='team-news')loadTeamNews();
   if(n==='add-client')loadMyAddedClients();
@@ -4081,6 +4167,7 @@ function showTabE(n,el){
   if(n==='exp-updates')loadExpTasks();
   if(n==='my-attendance')loadMyAttendance();
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tpe').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#expert-tabs .tab').forEach(function(t){t.classList.remove('on');});
   document.getElementById('tpe-'+n).classList.add('on');
   if(el)el.classList.add('on');

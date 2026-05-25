@@ -307,6 +307,16 @@ async function fetchSB(path){
   }catch(e){return [];}
 }
 
+async function tgNotifTo(chatId, title, body){
+  if(!chatId)return;
+  try{
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text:'*'+title+'*\n\n'+body,parse_mode:'Markdown'})
+    });
+  }catch(e){}
+}
+
 async function postSB(table, body){
   try{
     var r=await fetch(SB_URL+'/rest/v1/'+table,{
@@ -421,6 +431,10 @@ async function submitPartnerTicket(){
     document.getElementById('tkt-details').value='';
     toast('✅ Ticket submitted!','ts');
     loadTickets();
+    // Notify self confirmation
+    if(partnerData.telegram_chat_id){
+      tgNotifTo(partnerData.telegram_chat_id,'🎫 Ticket Submitted','Your ticket has been received.\n\n*'+subject+'*\n\nOur team will respond shortly.');
+    }
   } else {toast('Error submitting','te');}
 }
 
@@ -603,6 +617,10 @@ async function submitReferral(){
     sent.style.display='block';
     setTimeout(function(){sent.style.display='none';},6000);
     toast('✅ Referral submitted!','ts');
+    // Notify partner via their Telegram
+    if(partnerData.telegram_chat_id){
+      tgNotifTo(partnerData.telegram_chat_id,'✅ Referral Received','Your referral for *'+name+'* has been submitted. Our team will follow up shortly.');
+    }
   } else {
     toast('Error submitting referral','te');
   }
