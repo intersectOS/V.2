@@ -100,8 +100,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 </div>
 
 <script>
-var SB_URL='https://rppwppxyhmuicgemmecu.supabase.co';
-var SB_KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+var SB_URL='https://zmiywdpfdvllsxalklrv.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
 var sb=null, selectedRole='client';
 
 try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
@@ -161,8 +161,8 @@ async function doLogin(){
 
     // Team / Expert / Consultant / Freelancer
     if(selectedRole==='team'||selectedRole==='expert'){
-      var SB='https://rppwppxyhmuicgemmecu.supabase.co';
-      var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwcHdwcHh5aG11aWNnZW1tZWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NjgxMzksImV4cCI6MjA5NDQ0NDEzOX0.QCbXlBlZ3C4uXEfM1xA0O8zBxoIz24sXrg4Sj9vx8t8';
+      var SB='https://zmiywdpfdvllsxalklrv.supabase.co';
+      var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
       var r2=await fetch(SB+'/rest/v1/ix_people?select=*&username=eq.'+encodeURIComponent(user),{
         headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Accept':'application/json','Accept-Profile':'public'}
       });

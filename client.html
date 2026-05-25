@@ -490,8 +490,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 </div>
 
 <script>
-var SB_URL='https://rppwppxyhmuicgemmecu.supabase.co';
-var SB_KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+var SB_URL='https://zmiywdpfdvllsxalklrv.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
 var sb=null, clientData=null, allExperts=[], myReqs=[], currentRates={};
 
 try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
@@ -1079,8 +1079,8 @@ function renderFiles(c){
 async function saveTelegramIdClient(){
   var chatId=document.getElementById('tg-chat-id-cl').value.trim();
   if(!chatId){toast('Enter your Telegram Chat ID','te');return;}
-  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
-  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var SB='https://zmiywdpfdvllsxalklrv.supabase.co';
+  var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
   try{
     await fetch(SB+'/rest/v1/ix_clients_v2?id=eq.'+clientData.id,{
       method:'PATCH',
