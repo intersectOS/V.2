@@ -163,11 +163,18 @@ async function doLogin(){
     if(selectedRole==='team'||selectedRole==='expert'){
       var SB='https://rppwppxyhmuicgemmecu.supabase.co';
       var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
-      var r2=await fetch(SB+'/rest/v1/ix_people?username=eq.'+encodeURIComponent(user)+'&limit=1',{
-        headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+      var r2=await fetch(SB+'/rest/v1/ix_people?select=*&username=eq.'+encodeURIComponent(user),{
+        headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Accept':'application/json','Accept-Profile':'public'}
       });
       var d2=await r2.json();
-      showErr('DEBUG: '+JSON.stringify(d2).slice(0,100)+' | pass='+pass);return;
+      if(!Array.isArray(d2)||!d2.length){
+        // Fallback: load all and filter
+        var r2b=await fetch(SB+'/rest/v1/ix_people?select=id,name,username,portal_password,person_type,role,telegram_chat_id',{
+          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+        });
+        var d2b=await r2b.json();
+        d2=Array.isArray(d2b)?d2b.filter(function(p){return p.username===user;}):[];
+      }
       if(Array.isArray(d2)&&d2.length>0&&d2[0].portal_password===pass){
         var rec2=d2[0];
         try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
