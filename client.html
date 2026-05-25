@@ -1355,85 +1355,108 @@ var allServices=[], mpFilter='';
 
 async function loadMarketplace(){
   var el=document.getElementById('mp-list');if(!el)return;
+  if(!clientData)return;
   try{
     var r=await fetch(SB_URL+'/rest/v1/ix_services_catalog?is_active=eq.true&order=category.asc,name.asc',{
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
     });
     var svcs=await r.json();
     if(!Array.isArray(svcs)||!svcs.length){
-      el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:24px;">No services available yet</div>';
-      return;
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:30px;">No services available</div>';return;
     }
-    allServices=svcs;
-    // Build category filters
-    var cats=['All',...new Set(svcs.map(function(s){return s.category;}))];
-    var filterBar=document.getElementById('mp-filter-bar');
-    if(filterBar){
-      filterBar.innerHTML=cats.map(function(c){
-        var isAll=c==='All';
-        return '<button data-cat="'+c+'" onclick="filterMP(this.dataset.cat,this)" style="padding:5px 12px;border-radius:20px;border:1px solid '+(isAll?'rgba(6,182,212,.3)':'var(--border)')+';background:'+(isAll?'rgba(6,182,212,.1)':'var(--card2)')+';color:'+(isAll?'var(--teal)':'var(--ink2)')+';font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;">'+c+'</button>';
-      }).join('');
-    }
-    renderMarketplace(svcs);
-  }catch(e){
-    el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">Unable to load services</div>';
-  }
-}
-
-function filterMP(cat, btn){
-  mpFilter=cat==='All'?'':cat;
-  document.querySelectorAll('#mp-filter-bar button').forEach(function(b){
-    b.style.background='var(--card2)';b.style.color='var(--ink2)';b.style.borderColor='var(--border)';
-  });
-  btn.style.background='rgba(6,182,212,.1)';btn.style.color='var(--teal)';btn.style.borderColor='rgba(6,182,212,.3)';
-  renderMarketplace(mpFilter?allServices.filter(function(s){return s.category===mpFilter;}):allServices);
-}
-
-var _mpServices=[];
-function renderMarketplace(svcs){
-  _mpServices=svcs;
-  var el=document.getElementById('mp-list');if(!el)return;
-  var catColors={Print:'#06b6d4',Logistics:'#f59e0b',Travel:'#22c55e',Services:'#a78bfa',Events:'#f97316',General:'#6b7280'};
-  var grid=document.createElement('div');
-  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;';
-  svcs.forEach(function(s,i){
-    var cc=catColors[s.category]||'#6b7280';
-    var card=document.createElement('div');
-    card.style.cssText='background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;';
-    card.dataset.idx=i;
-    card.innerHTML='<div style="font-size:32px;margin-bottom:8px;">'+s.icon+'</div>'
-      +'<div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+s.name+'</div>'
-      +(s.description?'<div style="font-size:11px;color:var(--ink3);line-height:1.4;margin-bottom:8px;">'+s.description+'</div>':'')
-      +'<span style="font-size:9px;background:'+cc+'22;color:'+cc+';border:1px solid '+cc+'44;padding:2px 8px;border-radius:10px;font-weight:700;">'+s.category+'</span>'
-      +'<div style="margin-top:10px;background:var(--grad);border-radius:7px;padding:7px;font-size:11px;font-weight:700;color:#fff;">📋 Inquire</div>';
-    card.onclick=function(){
-      var svc=_mpServices[parseInt(this.dataset.idx)];
-      if(svc)openInquiry(svc.id,svc.name,svc.icon,svc.category);
+    // Group by category
+    var grouped={};
+    svcs.forEach(function(s){if(!grouped[s.category])grouped[s.category]=[];grouped[s.category].push(s);});
+    var catColors={Print:'#06b6d4',Coworking:'#f97316',Logistics:'#f59e0b',Travel:'#22c55e',Legal:'#a78bfa',HR:'#3b82f6',Translation:'#06b6d4',Events:'#f97316',IT:'#8b5cf6',General:'#6b7280'};
+    var priceLabel=function(s){
+      if(s.price_type==='free')return 'Free';
+      if(s.price_type==='quotation')return 'On Request';
+      if(s.price_type==='range')return 'SAR '+(s.price_min||'?')+' – '+(s.price_max||'?');
+      return s.price?'SAR '+parseFloat(s.price).toLocaleString()+(s.unit?' / '+s.unit:''):'On Request';
     };
-    card.onmouseover=function(){this.style.borderColor=cc;this.style.background=cc+'11';};
-    card.onmouseout=function(){this.style.borderColor='var(--border)';this.style.background='var(--card)';};
-    grid.appendChild(card);
-  });
-  el.innerHTML='';
-  el.appendChild(grid);
+    var html='';
+    Object.keys(grouped).forEach(function(cat){
+      var cc=catColors[cat]||'#6b7280';
+      html+='<div style="margin-bottom:16px;">'
+        +'<div style="font-size:11px;font-weight:700;color:'+cc+';text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;border-left:3px solid '+cc+';padding-left:8px;">'+cat+'</div>'
+        +'<div style="display:grid;grid-template-columns:1fr;gap:7px;">';
+      grouped[cat].forEach(function(s){
+        html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;">'
+          +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+            +'<div style="display:flex;align-items:center;gap:8px;">'
+              +'<span style="font-size:22px;">'+s.icon+'</span>'
+              +'<div><div style="font-size:13px;font-weight:700;">'+s.name+'</div>'
+              +(s.description?'<div style="font-size:11px;color:var(--ink2);">'+s.description+'</div>':'')
+              +'</div>'
+            +'</div>'
+            +'<div style="text-align:right;"><div style="font-size:12px;font-weight:700;color:var(--teal);">'+priceLabel(s)+'</div></div>'
+          +'</div>'
+          +'<textarea id="mp-note-'+s.id+'" class="fta" style="min-height:50px;margin-bottom:7px;" placeholder="Add notes, quantity, requirements..."></textarea>'
+          +'<button class="btn bbg bw" data-id="'+s.id+'" data-name="'+s.name+'" onclick="submitMpRequest(this.dataset.id,this.dataset.name)">📋 Request for Quotation</button>'
+        +'</div>';
+      });
+      html+='</div></div>';
+    });
+    // Other service
+    html+='<div style="background:rgba(6,182,212,.04);border:1px dashed rgba(6,182,212,.3);border-radius:10px;padding:14px;margin-top:8px;">'
+      +'<div style="font-size:13px;font-weight:700;margin-bottom:6px;">📋 Other Request</div>'
+      +'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;">Need something not listed above?</div>'
+      +'<input class="fi" id="mp-other-name" placeholder="What do you need?" style="margin-bottom:7px;">'
+      +'<textarea class="fta" id="mp-other-note" style="min-height:50px;margin-bottom:7px;" placeholder="Describe your requirements..."></textarea>'
+      +'<button class="btn bbg bw" onclick="submitMpOther()">📋 Submit Request</button>'
+    +'</div>';
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Unable to load</div>';}
 }
 
-function openInquiry(id, name, icon, category){
-  document.getElementById('inq-svc-id').value=id;
-  var infoEl=document.getElementById('inq-svc-info');
-  if(infoEl){
-    infoEl.innerHTML='<div style="display:flex;align-items:center;gap:10px;">'
-      +'<div style="font-size:28px;">'+icon+'</div>'
-      +'<div><div style="font-size:14px;font-weight:700;">'+name+'</div>'
-      +'<div style="font-size:11px;color:var(--ink3);">'+category+'</div></div>'
-    +'</div>';
-  }
-  document.getElementById('inq-desc').value='';
-  document.getElementById('inq-notes').value='';
-  document.getElementById('inq-file').value='';
-  document.getElementById('inq-timeline').value='This week';
-  openModal('m-inquiry');
+async function submitMpRequest(svcId, svcName){
+  var note=document.getElementById('mp-note-'+svcId)&&document.getElementById('mp-note-'+svcId).value.trim();
+  var body={
+    title:'[Service Request] '+svcName,
+    description:note||'Requesting quotation for: '+svcName,
+    client_id:clientData.id,client_name:clientData.name,
+    requested_by:clientData.name,
+    context_type:'service_inquiry',context_value:svcId,
+    status:'Pending',priority:'medium',show_to_client:false
+  };
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_requests',{
+      method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      if(document.getElementById('mp-note-'+svcId))document.getElementById('mp-note-'+svcId).value='';
+      toast('✅ Request submitted!','ts');
+      sendTG('🛒 *Service Request*\n\nFrom: '+clientData.name+'\nService: '+svcName+(note?'\n\n'+note:''));
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error','te');}
 }
+
+async function submitMpOther(){
+  var name=document.getElementById('mp-other-name')&&document.getElementById('mp-other-name').value.trim();
+  var note=document.getElementById('mp-other-note')&&document.getElementById('mp-other-note').value.trim();
+  if(!name&&!note){toast('Describe what you need','te');return;}
+  var body={
+    title:'[Service Request] Other: '+(name||'Custom Request'),
+    description:note||name,
+    client_id:clientData.id,client_name:clientData.name,
+    requested_by:clientData.name,
+    context_type:'service_inquiry_other',
+    status:'Pending',priority:'medium',show_to_client:false
+  };
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_requests',{
+      method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      if(document.getElementById('mp-other-name'))document.getElementById('mp-other-name').value='';
+      if(document.getElementById('mp-other-note'))document.getElementById('mp-other-note').value='';
+      toast('✅ Request submitted!','ts');
+    }else{toast('Error','te');}
+  }catch(e){toast('Error','te');}
+}
+
 
 async function submitInquiry(){
   var svcId=document.getElementById('inq-svc-id').value;
