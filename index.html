@@ -1776,6 +1776,7 @@ function renderClients(){
       +'<div style="display:flex;gap:5px;">'
         +'<button class="btn bg bsm" style="flex:1;" onclick="event.stopPropagation();copyPortalLink(\''+c.code+'\')">🔗 Portal</button>'
         +'<button class="btn bo bsm" data-id="'+c.id+'" onclick="event.stopPropagation();editClient(this.dataset.id)" title="Edit">✏️</button>'
+        +'<button class="btn bsm" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--gold);font-size:10px;" data-id="'+c.id+'" onclick="event.stopPropagation();convertClientToPartner(this.dataset.id)" title="Convert to Partner">🤝</button>'
         +'<button class="btn bd bsm" data-id="'+c.id+'" onclick="event.stopPropagation();delClient(this.dataset.id)">✕</button>'
       +'</div>'
     +'</div>';
@@ -4012,6 +4013,32 @@ async function loadAttendance(){
   }catch(e){
     el.innerHTML='<div style="text-align:center;color:var(--red);padding:16px;">Error loading attendance</div>';
   }
+}
+
+async function convertClientToPartner(clientId){
+  var c=AC.find(function(x){return x.id===clientId;});if(!c)return;
+  var ptype=c.client_type==='jv'?'jv':c.client_type==='strategic'?'strategic':'success_partner';
+  if(!confirm('Convert '+c.name+' to a Partner ('+ptype+')? This will move them to the Partners section.'))return;
+  try{
+    // Add to ix_partners
+    var body={
+      name:c.name,partner_type:ptype,industry:c.industry||null,country:c.country||null,
+      main_am_id:c.main_am_id||null,main_am_name:c.main_am_name||null,
+      added_by:c.added_by||null,username:c.username||null,portal_password:c.portal_password||null,
+      notes_internal:c.notes_internal||null,notes_client:c.notes_client||null,
+      drive_url:c.drive_url||null,jv_equity:c.jv_equity||null,jv_type:c.jv_type||null,
+      jv_link:c.jv_link||null,jv_show_am:c.jv_show_am||false,stage:'ACTIVE',health_score:100
+    };
+    var r=await sb.from('ix_partners').insert(body).select().single();
+    if(r.error){toast('Error: '+r.error.message,'error');return;}
+    APartners.unshift(r.data);
+    // Delete from clients
+    await sb.from('ix_clients_v2').delete().eq('id',clientId);
+    AC=AC.filter(function(x){return x.id!==clientId;});
+    renderClients();
+    toast('✅ Converted to Partner!','success');
+    tgNotif('🤝','Client Converted to Partner','*'+c.name+'* moved to Partners as '+ptype);
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 function populateContractClients(){
