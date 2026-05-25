@@ -2216,7 +2216,8 @@ function editClient(id){
 async function saveClient(){
   try{
   var n=document.getElementById('cl-name').value.trim();if(!n)return toast('Enter company name','error');
-  var code=document.getElementById('cl-code').value.trim()||'CL-'+Date.now();
+  var codeEl=document.getElementById('cl-code');
+  var code=(codeEl&&codeEl.value?codeEl.value.trim():'')||'CL-'+Date.now().toString(36).toUpperCase();
   var amSel=document.getElementById('cl-am');
   var amParts=amSel&&amSel.value?amSel.value.split('|'):['',''];
   var c={
