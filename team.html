@@ -623,6 +623,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   </div>
 </div></div>
 
+<!-- TASK SUPPORT MODAL -->
+<div class="mo" id="m-task-support"><div class="modal">
+  <div class="mti">🤝 Request Task Support</div>
+  <input type="hidden" id="support-task-id">
+  <div id="support-task-title" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;font-weight:600;"></div>
+  <div class="fg"><label class="fl">Who do you need support from?</label>
+    <div id="support-people-list" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:150px;overflow-y:auto;"></div>
+  </div>
+  <div class="fg"><label class="fl">Describe what you need *</label>
+    <textarea class="fta" id="support-desc" placeholder="What specific help do you need from them?"></textarea>
+  </div>
+  <div class="mft">
+    <button class="btn bbo" onclick="closeModal('m-task-support')" style="padding:8px 14px;">Cancel</button>
+    <button class="btn bbg" onclick="submitTaskSupport()" style="padding:8px 20px;">🤝 Send Request</button>
+  </div>
+</div></div>
+
 <!-- EXPERT OFFER MODAL -->
 <div class="mo" id="m-exp-offer"><div class="modal">
   <div class="mti">💼 Submit Proposal</div>
@@ -2018,6 +2035,76 @@ async function loadMyAttendance(){
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
 }
 
+async function openTaskSupportModal(taskId, taskTitle){
+  document.getElementById('support-task-id').value=taskId;
+  var titleEl=document.getElementById('support-task-title');
+  if(titleEl)titleEl.textContent='📌 '+taskTitle;
+  document.getElementById('support-desc').value='';
+  // Load people
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_people?select=id,name,role,person_type&order=name',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var people=await r.json();
+    var listEl=document.getElementById('support-people-list');
+    if(listEl&&Array.isArray(people)){
+      listEl.innerHTML=people.filter(function(p){return p.name!==memberData.name;}).map(function(p){
+        return '<label style="display:flex;align-items:center;gap:6px;padding:5px;cursor:pointer;font-size:12px;">'
+          +'<input type="checkbox" value="'+p.id+'|'+p.name+'" style="width:13px;height:13px;"> '+p.name+(p.role?' <span style="color:var(--ink3);font-size:10px;">· '+p.role+'</span>':'')
+        +'</label>';
+      }).join('');
+    }
+  }catch(e){}
+  openModal('m-task-support');
+}
+
+async function submitTaskSupport(){
+  var taskId=document.getElementById('support-task-id').value;
+  var taskTitle=document.getElementById('support-task-title').textContent.replace('📌 ','');
+  var desc=document.getElementById('support-desc').value.trim();
+  if(!desc){toast('Describe what you need','te');return;}
+  var selected=[];
+  document.querySelectorAll('#support-people-list input:checked').forEach(function(cb){
+    var parts=cb.value.split('|');
+    selected.push({id:parts[0],name:parts[1]});
+  });
+  if(!selected.length){toast('Select at least one person','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var names=selected.map(function(s){return s.name;}).join(', ');
+  var body={
+    title:'[Task Support] '+taskTitle+' — '+memberData.name,
+    description:desc,
+    requested_by:memberData.name,
+    assignee_name:names,
+    context_type:'task_support',
+    context_value:taskId,
+    status:'Pending',
+    priority:'medium',
+    show_to_client:false
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      // Notify each selected person
+      for(var i=0;i<selected.length;i++){
+        var rp=await fetch(SB+'/rest/v1/ix_people?id=eq.'+selected[i].id+'&select=telegram_chat_id',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+        var rpd=await rp.json();
+        if(Array.isArray(rpd)&&rpd[0]&&rpd[0].telegram_chat_id){
+          tgNotifTo(rpd[0].telegram_chat_id,'🤝 Support Request','*'+memberData.name+'* needs your help on:\n*'+taskTitle+'*\n\n'+desc.slice(0,100));
+        }
+      }
+      closeModal('m-task-support');
+      sendTG('🤝 *Task Support Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\nTo: '+names+'\n\n'+desc.slice(0,80));
+      toast('✅ Support request sent to '+names,'ts');
+    }else{toast('Error sending request','te');}
+  }catch(e){toast('Error: '+e.message,'te');}
+}
+
 async function checkTodayAttendance(personId){
   if(!personId||!memberData)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
@@ -2161,6 +2248,8 @@ async function loadExpTasks(){
           +(t.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+t.client_name+'</div>':'')
           +(t.deadline?'<div style="font-size:10px;color:var(--ink3);">Due: '+t.deadline+'</div>':'')
           +(t.description?'<div style="font-size:11px;color:var(--ink2);margin-top:4px;">'+t.description.slice(0,80)+'</div>':'')
+          +(t.members?'<div style="font-size:10px;color:var(--teal);margin-top:4px;">👥 '+JSON.parse(t.members||'[]').join(', ')+'</div>':'')
+          +'<button class="btn bsm" style="width:100%;margin-top:8px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;font-size:11px;" data-tid="'+t.id+'" data-ttitle="'+t.title.replace(/"/g,'')+'" onclick="openTaskSupportModal(this.dataset.tid,this.dataset.ttitle)">🤝 Request Support</button>'
         +'</div>';
       });
     }
@@ -3143,6 +3232,76 @@ async function loadMyAttendance(){
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
 }
 
+async function openTaskSupportModal(taskId, taskTitle){
+  document.getElementById('support-task-id').value=taskId;
+  var titleEl=document.getElementById('support-task-title');
+  if(titleEl)titleEl.textContent='📌 '+taskTitle;
+  document.getElementById('support-desc').value='';
+  // Load people
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_people?select=id,name,role,person_type&order=name',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    var people=await r.json();
+    var listEl=document.getElementById('support-people-list');
+    if(listEl&&Array.isArray(people)){
+      listEl.innerHTML=people.filter(function(p){return p.name!==memberData.name;}).map(function(p){
+        return '<label style="display:flex;align-items:center;gap:6px;padding:5px;cursor:pointer;font-size:12px;">'
+          +'<input type="checkbox" value="'+p.id+'|'+p.name+'" style="width:13px;height:13px;"> '+p.name+(p.role?' <span style="color:var(--ink3);font-size:10px;">· '+p.role+'</span>':'')
+        +'</label>';
+      }).join('');
+    }
+  }catch(e){}
+  openModal('m-task-support');
+}
+
+async function submitTaskSupport(){
+  var taskId=document.getElementById('support-task-id').value;
+  var taskTitle=document.getElementById('support-task-title').textContent.replace('📌 ','');
+  var desc=document.getElementById('support-desc').value.trim();
+  if(!desc){toast('Describe what you need','te');return;}
+  var selected=[];
+  document.querySelectorAll('#support-people-list input:checked').forEach(function(cb){
+    var parts=cb.value.split('|');
+    selected.push({id:parts[0],name:parts[1]});
+  });
+  if(!selected.length){toast('Select at least one person','te');return;}
+  var SB='https://rppwppxyhmuicgemmecu.supabase.co';
+  var KEY='sb_publishable_ELJltVdYvF4juilMVf3Ecw_CrSYmjuz';
+  var names=selected.map(function(s){return s.name;}).join(', ');
+  var body={
+    title:'[Task Support] '+taskTitle+' — '+memberData.name,
+    description:desc,
+    requested_by:memberData.name,
+    assignee_name:names,
+    context_type:'task_support',
+    context_value:taskId,
+    status:'Pending',
+    priority:'medium',
+    show_to_client:false
+  };
+  try{
+    var r=await fetch(SB+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      // Notify each selected person
+      for(var i=0;i<selected.length;i++){
+        var rp=await fetch(SB+'/rest/v1/ix_people?id=eq.'+selected[i].id+'&select=telegram_chat_id',{headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+        var rpd=await rp.json();
+        if(Array.isArray(rpd)&&rpd[0]&&rpd[0].telegram_chat_id){
+          tgNotifTo(rpd[0].telegram_chat_id,'🤝 Support Request','*'+memberData.name+'* needs your help on:\n*'+taskTitle+'*\n\n'+desc.slice(0,100));
+        }
+      }
+      closeModal('m-task-support');
+      sendTG('🤝 *Task Support Request*\n\nFrom: '+memberData.name+'\nTask: '+taskTitle+'\nTo: '+names+'\n\n'+desc.slice(0,80));
+      toast('✅ Support request sent to '+names,'ts');
+    }else{toast('Error sending request','te');}
+  }catch(e){toast('Error: '+e.message,'te');}
+}
+
 async function checkTodayAttendance(personId){
   if(!personId||!memberData)return;
   var SB='https://rppwppxyhmuicgemmecu.supabase.co';
@@ -3286,6 +3445,8 @@ async function loadExpTasks(){
           +(t.client_name?'<div style="font-size:11px;color:var(--gold);">📁 '+t.client_name+'</div>':'')
           +(t.deadline?'<div style="font-size:10px;color:var(--ink3);">Due: '+t.deadline+'</div>':'')
           +(t.description?'<div style="font-size:11px;color:var(--ink2);margin-top:4px;">'+t.description.slice(0,80)+'</div>':'')
+          +(t.members?'<div style="font-size:10px;color:var(--teal);margin-top:4px;">👥 '+JSON.parse(t.members||'[]').join(', ')+'</div>':'')
+          +'<button class="btn bsm" style="width:100%;margin-top:8px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;font-size:11px;" data-tid="'+t.id+'" data-ttitle="'+t.title.replace(/"/g,'')+'" onclick="openTaskSupportModal(this.dataset.tid,this.dataset.ttitle)">🤝 Request Support</button>'
         +'</div>';
       });
     }

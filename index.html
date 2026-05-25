@@ -1198,7 +1198,9 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 <div class="mo" id="m-task"><div class="modal">
   <div class="mtit" id="tsk-modal-title">📌 New Task</div>
   <div class="fg"><label class="fl">Title *</label><input class="fi" id="tsk-t"></div>
-  <div class="fgrid"><div class="fg"><label class="fl">Project</label><select class="fs" id="tsk-proj"></select></div><div class="fg"><label class="fl">Assignee</label><select class="fs" id="tsk-ass"></select></div></div>
+  <div class="fgrid"><div class="fg"><label class="fl">Project</label><select class="fs" id="tsk-proj"></select></div><div class="fg"><label class="fl">Assignees (select multiple)</label>
+    <div id="tsk-assignees-wrap" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:120px;overflow-y:auto;"></div>
+  </div></div>
   <div class="fgrid"><div class="fg"><label class="fl">Status</label><select class="fs" id="tsk-status"><option>To Do</option><option>In Progress</option><option>Review</option><option>Done</option></select></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="tsk-pri"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select></div></div>
   <div class="fgrid"><div class="fg"><label class="fl">Deadline</label><input class="fi" id="tsk-d" type="date"></div><div class="fg"><label class="fl">Notes</label><input class="fi" id="tsk-n"></div></div>
   <div class="mfoot"><button class="btn bo" onclick="cm('m-task')">Cancel</button><button class="btn bg" onclick="saveTask()">💾 Save</button></div>
@@ -4227,7 +4229,7 @@ async function loadAttendance(){
   var pfSel=document.getElementById('att-person-filter');
   // Load actual attendees from ix_workflow
   try{
-    var rNames=await sb.from('ix_workflow').select('created_by').eq('context_type','attendance');
+    var rNames=await sb.from('ix_workflow').select('created_by').eq('status','attendance');
     if(!rNames.error&&rNames.data){
       var names=[...new Set(rNames.data.map(function(r){return r.created_by;}))].filter(Boolean);
       if(pfSel){
@@ -4240,7 +4242,7 @@ async function loadAttendance(){
 
   try{
     // Load data based on view
-    var query=sb.from('ix_workflow').select('*').eq('context_type','attendance').order('created_at',{ascending:true});
+    var query=sb.from('ix_workflow').select('*').eq('status','attendance').order('created_at',{ascending:true});
     if(view==='day'){query=query.eq('context_value',date);}
     else if(view==='month'){var monthStart=date.slice(0,7)+'-01';query=query.gte('created_at',monthStart);}
     else{query=query.order('created_at',{ascending:false}).limit(200);}
@@ -4248,11 +4250,11 @@ async function loadAttendance(){
     var r=await query;
     var records=r.data||[];
     // Map fields for compatibility
-    records=records.map(function(rec){return {person_name:rec.created_by,person_role:rec.description?rec.description.split('·')[1]||'Team':'Team',check_in_time:rec.created_at,date:rec.context_value,id:rec.id};});
+    records=records.map(function(rec){var titleDate=rec.title?rec.title.replace('[ATTENDANCE] ',''):'';return {person_name:rec.created_by,person_role:rec.description?rec.description.split('·')[1]||'Team':'Team',check_in_time:rec.created_at,date:titleDate,id:rec.id};});
 
     // Load this month for KPIs
     var monthStart2=today.slice(0,7)+'-01';
-    var rMonth=await sb.from('ix_workflow').select('*').eq('context_type','attendance').gte('created_at',monthStart2);
+    var rMonth=await sb.from('ix_workflow').select('*').eq('status','attendance').gte('created_at',monthStart2);
     var monthRecs=(rMonth.data||[]).map(function(rec){return {person_name:rec.created_by,check_in_time:rec.created_at,date:rec.context_value};});
     var todayRecs=monthRecs.filter(function(x){return x.date===today;});
 
