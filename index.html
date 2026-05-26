@@ -1878,7 +1878,7 @@ async function scheduleMeeting(){
 
   var s=document.getElementById('sch-success');
   if(s){s.textContent='✅ Meeting saved! '+sent+' Telegram notifications sent. Share calendar link with team.';s.style.display='block';setTimeout(function(){s.style.display='none';},5000);}
-  toast('✅ Meeting scheduled!','success');
+  toast('✅ Meeting scheduled!','success');voiceNotify('new_meeting',document.getElementById('sch-title')&&document.getElementById('sch-title').value||'Meeting',_voiceLang);
   loadScheduledMeetings();
 }
 
@@ -2134,6 +2134,116 @@ async function loadMeetingHistory(){
 }
 
 
+
+// ── VOICE SYSTEM ──
+var _voiceLang = 'en';
+var _voiceEnabled = true;
+var _voiceLangMap = {
+  'en': 'en-US', 'ar': 'ar-SA', 'es': 'es-ES',
+  'fr': 'fr-FR', 'ja': 'ja-JP', 'zh': 'zh-CN', 'pt': 'pt-BR'
+};
+var _voiceGreeted = false;
+
+function speak(text, lang) {
+  if (!_voiceEnabled) return;
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = _voiceLangMap[lang || _voiceLang] || 'en-US';
+  u.rate = 1.0;
+  u.pitch = 1.0;
+  u.volume = 1.0;
+  // Try to find a matching voice
+  var voices = window.speechSynthesis.getVoices();
+  var match = voices.find(function(v) { return v.lang.startsWith(u.lang.split('-')[0]); });
+  if (match) u.voice = match;
+  window.speechSynthesis.speak(u);
+}
+
+function voiceGreet(name, pendingCount, lang) {
+  if (_voiceGreeted) return;
+  _voiceGreeted = true;
+  _voiceLang = lang || _voiceLang;
+  var msgs = {
+    'en': 'Welcome back, ' + name + '. You have ' + pendingCount + ' pending items.',
+    'ar': 'مرحباً ' + name + '. لديك ' + pendingCount + ' طلبات معلقة.',
+    'es': 'Bienvenido, ' + name + '. Tienes ' + pendingCount + ' elementos pendientes.',
+    'fr': 'Bienvenue, ' + name + '. Vous avez ' + pendingCount + ' éléments en attente.',
+    'ja': 'おかえりなさい、' + name + 'さん。' + pendingCount + '件の保留中のアイテムがあります。',
+    'zh': '欢迎回来，' + name + '。您有 ' + pendingCount + ' 个待处理项目。',
+    'pt': 'Bem-vindo, ' + name + '. Você tem ' + pendingCount + ' itens pendentes.'
+  };
+  var msg = msgs[_voiceLang] || msgs['en'];
+  setTimeout(function() { speak(msg, _voiceLang); }, 800);
+}
+
+function voiceNotify(type, detail, lang) {
+  if (!_voiceEnabled) return;
+  var l = lang || _voiceLang;
+  var msgs = {
+    new_request: {
+      'en': 'New request: ' + detail,
+      'ar': 'طلب جديد: ' + detail,
+      'es': 'Nueva solicitud: ' + detail,
+      'fr': 'Nouvelle demande: ' + detail,
+      'ja': '新しいリクエスト: ' + detail,
+      'zh': '新请求: ' + detail,
+      'pt': 'Nova solicitação: ' + detail
+    },
+    new_ticket: {
+      'en': 'New ticket from ' + detail,
+      'ar': 'تذكرة جديدة من ' + detail,
+      'es': 'Nuevo ticket de ' + detail,
+      'fr': 'Nouveau ticket de ' + detail,
+      'ja': detail + 'からの新しいチケット',
+      'zh': '来自 ' + detail + ' 的新工单',
+      'pt': 'Novo ticket de ' + detail
+    },
+    new_meeting: {
+      'en': 'Meeting scheduled: ' + detail,
+      'ar': 'اجتماع جديد: ' + detail,
+      'es': 'Reunión programada: ' + detail,
+      'fr': 'Réunion planifiée: ' + detail,
+      'ja': '会議が予定されました: ' + detail,
+      'zh': '会议已安排: ' + detail,
+      'pt': 'Reunião agendada: ' + detail
+    },
+    new_client: {
+      'en': 'New client added: ' + detail,
+      'ar': 'عميل جديد: ' + detail,
+      'es': 'Nuevo cliente: ' + detail,
+      'fr': 'Nouveau client: ' + detail,
+      'ja': '新しいクライアント: ' + detail,
+      'zh': '新客户: ' + detail,
+      'pt': 'Novo cliente: ' + detail
+    }
+  };
+  var t = msgs[type];
+  if (t) speak(t[l] || t['en'], l);
+}
+
+// Toggle voice on/off
+function toggleVoice() {
+  _voiceEnabled = !_voiceEnabled;
+  var btn = document.getElementById('voice-toggle-btn');
+  if (btn) btn.textContent = _voiceEnabled ? '🔊' : '🔇';
+  if (!_voiceEnabled) window.speechSynthesis && window.speechSynthesis.cancel();
+  try { localStorage.setItem('ix_voice', _voiceEnabled ? '1' : '0'); } catch(e) {}
+}
+
+// Load voice preference
+try {
+  var vp = localStorage.getItem('ix_voice');
+  if (vp === '0') _voiceEnabled = false;
+} catch(e) {}
+
+// Load voices async (Chrome requires this)
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = function() {
+    window.speechSynthesis.getVoices();
+  };
+}
+
 window.addEventListener('DOMContentLoaded',function(){
   if(!gs(PK,''))ss(PK,'intersect2026');
   ss('ix_sb_url',SB_URL_HC); ss('ix_sb_key',SB_KEY_HC);
@@ -2254,6 +2364,7 @@ async function loadAll(){
   try{var rct=await sb.from('ix_contracts').select('*').order('end_date',{ascending:true});if(!rct.error)AContracts=rct.data||[];}catch(e){}
   renderOV();
   updateNotifBadge();
+  setTimeout(triggerVoiceGreet, 2000);
 }
 
 // Overview
@@ -2842,7 +2953,7 @@ async function saveClient(){
     showPortalLink(portalLink, c.name, c.username, c.portal_password);
     createNotif('🏢 New Client Added', 'Client "'+c.name+'" has been added to the system', 'client', c.id||null);
     tgNotif('🏢','New Client Added','*'+c.name+'*\nStage: '+(c.stage||'OPEN')+'\nAM: '+(c.main_am_name||'Unassigned'));
-    toast('✅ Client added','success');
+    toast('✅ Client added','success');voiceNotify('new_client',document.getElementById('nc-name')&&document.getElementById('nc-name').value||'New client',_voiceLang);
   }
   }catch(err){
     console.error('saveClient error:',err);
@@ -3044,7 +3155,7 @@ async function saveExpReq(){
   else{r.id='local-'+Date.now();r.created_at=new Date().toISOString();AExpertReq.unshift(r);}
   cm('m-exp-req');document.getElementById('er-msg').value='';
   addNotif('Expert Request','Client requested: '+r.expert_name,'expert',r.id);
-  toast('✅ Request submitted','success');renderExpReqs();
+  toast('✅ Request submitted','success');voiceNotify('new_request',document.getElementById('req-title')&&document.getElementById('req-title').value||'New request',_voiceLang);renderExpReqs();
 }
 
 async function respondExpReq(id){

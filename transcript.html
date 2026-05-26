@@ -233,6 +233,116 @@ function exportTrMinutes(){
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='minutes-'+new Date().toISOString().split('T')[0]+'.txt';a.click();
 }
 
+
+// ── VOICE SYSTEM ──
+var _voiceLang = 'en';
+var _voiceEnabled = true;
+var _voiceLangMap = {
+  'en': 'en-US', 'ar': 'ar-SA', 'es': 'es-ES',
+  'fr': 'fr-FR', 'ja': 'ja-JP', 'zh': 'zh-CN', 'pt': 'pt-BR'
+};
+var _voiceGreeted = false;
+
+function speak(text, lang) {
+  if (!_voiceEnabled) return;
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = _voiceLangMap[lang || _voiceLang] || 'en-US';
+  u.rate = 1.0;
+  u.pitch = 1.0;
+  u.volume = 1.0;
+  // Try to find a matching voice
+  var voices = window.speechSynthesis.getVoices();
+  var match = voices.find(function(v) { return v.lang.startsWith(u.lang.split('-')[0]); });
+  if (match) u.voice = match;
+  window.speechSynthesis.speak(u);
+}
+
+function voiceGreet(name, pendingCount, lang) {
+  if (_voiceGreeted) return;
+  _voiceGreeted = true;
+  _voiceLang = lang || _voiceLang;
+  var msgs = {
+    'en': 'Welcome back, ' + name + '. You have ' + pendingCount + ' pending items.',
+    'ar': 'مرحباً ' + name + '. لديك ' + pendingCount + ' طلبات معلقة.',
+    'es': 'Bienvenido, ' + name + '. Tienes ' + pendingCount + ' elementos pendientes.',
+    'fr': 'Bienvenue, ' + name + '. Vous avez ' + pendingCount + ' éléments en attente.',
+    'ja': 'おかえりなさい、' + name + 'さん。' + pendingCount + '件の保留中のアイテムがあります。',
+    'zh': '欢迎回来，' + name + '。您有 ' + pendingCount + ' 个待处理项目。',
+    'pt': 'Bem-vindo, ' + name + '. Você tem ' + pendingCount + ' itens pendentes.'
+  };
+  var msg = msgs[_voiceLang] || msgs['en'];
+  setTimeout(function() { speak(msg, _voiceLang); }, 800);
+}
+
+function voiceNotify(type, detail, lang) {
+  if (!_voiceEnabled) return;
+  var l = lang || _voiceLang;
+  var msgs = {
+    new_request: {
+      'en': 'New request: ' + detail,
+      'ar': 'طلب جديد: ' + detail,
+      'es': 'Nueva solicitud: ' + detail,
+      'fr': 'Nouvelle demande: ' + detail,
+      'ja': '新しいリクエスト: ' + detail,
+      'zh': '新请求: ' + detail,
+      'pt': 'Nova solicitação: ' + detail
+    },
+    new_ticket: {
+      'en': 'New ticket from ' + detail,
+      'ar': 'تذكرة جديدة من ' + detail,
+      'es': 'Nuevo ticket de ' + detail,
+      'fr': 'Nouveau ticket de ' + detail,
+      'ja': detail + 'からの新しいチケット',
+      'zh': '来自 ' + detail + ' 的新工单',
+      'pt': 'Novo ticket de ' + detail
+    },
+    new_meeting: {
+      'en': 'Meeting scheduled: ' + detail,
+      'ar': 'اجتماع جديد: ' + detail,
+      'es': 'Reunión programada: ' + detail,
+      'fr': 'Réunion planifiée: ' + detail,
+      'ja': '会議が予定されました: ' + detail,
+      'zh': '会议已安排: ' + detail,
+      'pt': 'Reunião agendada: ' + detail
+    },
+    new_client: {
+      'en': 'New client added: ' + detail,
+      'ar': 'عميل جديد: ' + detail,
+      'es': 'Nuevo cliente: ' + detail,
+      'fr': 'Nouveau client: ' + detail,
+      'ja': '新しいクライアント: ' + detail,
+      'zh': '新客户: ' + detail,
+      'pt': 'Novo cliente: ' + detail
+    }
+  };
+  var t = msgs[type];
+  if (t) speak(t[l] || t['en'], l);
+}
+
+// Toggle voice on/off
+function toggleVoice() {
+  _voiceEnabled = !_voiceEnabled;
+  var btn = document.getElementById('voice-toggle-btn');
+  if (btn) btn.textContent = _voiceEnabled ? '🔊' : '🔇';
+  if (!_voiceEnabled) window.speechSynthesis && window.speechSynthesis.cancel();
+  try { localStorage.setItem('ix_voice', _voiceEnabled ? '1' : '0'); } catch(e) {}
+}
+
+// Load voice preference
+try {
+  var vp = localStorage.getItem('ix_voice');
+  if (vp === '0') _voiceEnabled = false;
+} catch(e) {}
+
+// Load voices async (Chrome requires this)
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = function() {
+    window.speechSynthesis.getVoices();
+  };
+}
+
 </script>
 <div class="toast" id="toast"></div>
 
@@ -257,6 +367,7 @@ function exportTrMinutes(){
       <div style="font-size:11px;color:var(--ink3);margin-top:2px;" id="meet-count-header">Loading...</div>
     </div>
     <div class="hbtns">
+      <button id="voice-toggle-btn" onclick="toggleVoice()" title="Toggle Voice" style="background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);border-radius:7px;padding:5px 9px;font-size:13px;cursor:pointer;font-family:inherit;margin-left:4px;">🔊</button>
       <div style="display:flex;gap:3px;">
         <button class="lb on" data-l="en" onclick="setL('en')">EN</button>
         <button class="lb" data-l="ar" onclick="setL('ar')">AR</button>
@@ -752,7 +863,15 @@ function download(text,filename){
   a.click();
 }
 
-window.addEventListener('DOMContentLoaded',function(){});
+window.addEventListener('DOMContentLoaded',function(){
+  try{
+    var _gl2=localStorage.getItem('ix_lang')||'en';
+    _voiceLang=_gl2;
+    setTimeout(function(){
+      voiceGreet(typeof partnerData!=='undefined'&&partnerData?partnerData.name:'Partner',0,_gl2);
+    },1000);
+  }catch(_e){}
+});
 </script>
 </body>
 </html>
