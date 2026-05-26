@@ -171,7 +171,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTab('team-news',this)">📰 News</button>
         <button class="tab" onclick="showTab('my-attendance',this)">📋 My Attendance</button>
         <button class="tab" onclick="showTab('my-tickets',this)">🎫 My Tickets</button>
-        <button class="tab" onclick="showTab('meetings-inv',this)">📅 Meetings</button>
       </div>
       <!-- MY TICKETS TAB -->
       <div class="tp" id="tp-my-tickets">
@@ -207,11 +206,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       </div>
 
 
-      <!-- MEETINGS INVITES TAB -->
-      <div class="tp" id="tp-meetings-inv">
+      <!-- MEETINGS TAB -->
+      <div class="tp" id="tp-meetings">
+        <!-- Upcoming meetings -->
         <div class="panel">
-          <div class="ph"><div class="pt">📅 Meeting Invitations</div><button class="btn bbo bsm" onclick="loadMeetingInvites()" style="font-size:10px;">↻</button></div>
-          <div class="pb" id="meeting-invites-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+          <div class="ph">
+            <div class="pt">📅 Upcoming Meetings</div>
+            <button class="btn bbo bsm" onclick="loadTeamMeetings()" style="font-size:10px;">↻</button>
+          </div>
+          <div class="pb" id="team-meetings-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+        </div>
+        <!-- Request meeting -->
+        <div class="panel">
+          <div class="ph"><div class="pt">➕ Request a Meeting</div></div>
+          <div class="pb">
+            <div class="fg"><label class="fl">Subject *</label><input class="fi" id="tm-mtg-subject" placeholder="e.g. Client Review, Team Sync..."></div>
+            <div class="fgrid">
+              <div class="fg"><label class="fl">Date</label><input class="fi" type="date" id="tm-mtg-date"></div>
+              <div class="fg"><label class="fl">Time</label><input class="fi" type="time" id="tm-mtg-time" value="10:00"></div>
+            </div>
+            <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="tm-mtg-notes" placeholder="Agenda or notes..."></textarea></div>
+            <button class="btn bbg bw" onclick="requestTeamMeeting()">📤 Send Request</button>
+            <div id="tm-mtg-success" style="display:none;margin-top:8px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:12px;color:#22c55e;text-align:center;">✅ Request sent!</div>
+          </div>
         </div>
       </div>
 
@@ -4191,8 +4208,8 @@ async function loadMyTickets(){
 
 
 
-async function loadMeetingInvites(){
-  var el=document.getElementById('meeting-invites-list');if(!el)return;
+async function loadTeamMeetings(){
+  var el=document.getElementById('team-meetings-list');if(!el)return;
   var now=new Date().toISOString().split('T')[0];
   try{
     var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_meetings?date=gte.'+now+'&order=date.asc&limit=10',{
@@ -4200,13 +4217,13 @@ async function loadMeetingInvites(){
     });
     var items=await r.json();
     items=Array.isArray(items)?items:[];
-    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No upcoming meetings</div>';return;}
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;font-size:13px;">No upcoming meetings</div>';return;}
     el.innerHTML=items.map(function(m){
       var calUrl='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(m.title)+'&dates='+m.date.replace(/-/g,'')+'T090000/'+m.date.replace(/-/g,'')+'T100000'+(m.summary?'&details='+encodeURIComponent(m.summary):'');
       return '<div style="background:var(--card2);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:13px;margin-bottom:9px;">'
-        +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">'
           +'<div style="font-size:14px;font-weight:700;">'+m.title+'</div>'
-          +'<span style="font-size:11px;font-weight:700;color:var(--teal);">'+m.date+'</span>'
+          +'<span style="font-size:11px;font-weight:700;color:var(--teal);white-space:nowrap;margin-left:8px;">'+m.date+'</span>'
         +'</div>'
         +(m.attendees?'<div style="font-size:11px;color:var(--ink3);margin-bottom:8px;">👥 '+m.attendees.slice(0,60)+'</div>':'')
         +(m.summary?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;">'+m.summary.slice(0,100)+'</div>':'')
@@ -4215,6 +4232,25 @@ async function loadMeetingInvites(){
     }).join('');
   }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;">Error loading</div>';}
 }
+
+async function requestTeamMeeting(){
+  var subject=document.getElementById('tm-mtg-subject').value.trim();
+  if(!subject){toast('Enter meeting subject','te');return;}
+  var date=document.getElementById('tm-mtg-date').value;
+  var time=document.getElementById('tm-mtg-time').value;
+  var notes=document.getElementById('tm-mtg-notes').value.trim();
+  var name=memberData?memberData.name:'Team Member';
+  try{
+    await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({title:'[Meeting Request] '+subject+' — '+name,description:'Date: '+(date||'TBD')+' '+(time||'')+(notes?'\n'+notes:''),requested_by:name,assignee_type:'management',status:'Pending',priority:'medium',show_to_client:false,context_type:'meeting_request'})
+    });
+    ['tm-mtg-subject','tm-mtg-notes'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    var s=document.getElementById('tm-mtg-success');if(s){s.style.display='block';setTimeout(function(){s.style.display='none';},3000);}
+  }catch(e){toast('Error sending','te');}
+}
+
 
 function showTab(n,el){
   document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
@@ -4346,7 +4382,7 @@ function showTabE(n,el){
   if(n==='exp-updates')loadExpTasks();
   if(n==='my-attendance')loadMyAttendance();
   if(n==='my-tickets')loadMyTickets();
-  if(n==='meetings-inv')loadMeetingInvites();
+  if(n==='meetings')loadTeamMeetings();
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.tpe').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#expert-tabs .tab').forEach(function(t){t.classList.remove('on');});

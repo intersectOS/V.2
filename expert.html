@@ -186,7 +186,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <!-- MEETINGS INVITES TAB -->
       <div class="tp" id="tp-ep-meetings-inv">
         <div class="panel">
-          <div class="ph"><div class="pt">📅 Meeting Invitations</div><button class="btn bbo bsm" onclick="loadMeetingInvites()" style="font-size:10px;">↻</button></div>
+          <div class="ph"><div class="pt">📅 Meeting Invitations</div><button class="btn bbo bsm" onclick="loadPortalMeetings('ep-meeting-invites-list')" style="font-size:10px;">↻</button></div>
           <div class="pb" id="ep-ep-meeting-invites-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
         </div>
       </div>
@@ -235,7 +235,7 @@ function showTab(n,el){
   if(n==='ep-marketplace')loadMarketplace();
   if(n==='ep-attendance')loadAttendance();
   if(n==='ep-news')loadNews();
-  if(n==='ep-meetings-inv'){var el2=document.getElementById('tp-ep-meetings-inv');if(el2)el2.classList.add('on');loadMeetingInvites();}
+  if(n==='ep-meetings-inv'){var el2=document.getElementById('tp-ep-meetings-inv');if(el2)el2.classList.add('on');loadPortalMeetings('ep-meeting-invites-list');}
 }
 
 function sendTG(msg){
