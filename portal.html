@@ -139,86 +139,61 @@ async function doLogin(){
   if(!user||!pass){showErr('Enter username and password');return;}
   var btn=document.getElementById('login-btn');
   btn.textContent='...';btn.disabled=true;
-
+  var H={'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'};
+  async function qFetch(table,filter){
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/'+table+'?'+filter+'&limit=1',{headers:H});
+    var d=await r.json();
+    return Array.isArray(d)?d:[];
+  }
   try{
-    // Client login - from ix_clients_v2
+    // Client
     if(selectedRole==='client'){
-      var r=await sb.from('ix_clients_v2').select('*').eq('username',user).limit(1);
-      if(r.data&&r.data.length>0&&r.data[0].portal_password===pass){
-        var rec=r.data[0];
-        try{localStorage.setItem('ix_portal_type','client');}catch(e){}
-        try{localStorage.setItem('ix_portal_id',rec.id);}catch(e){}
-        try{localStorage.setItem('ix_portal_data',JSON.stringify(rec));}catch(e){}
+      var d=await qFetch('ix_clients_v2','username=eq.'+encodeURIComponent(user));
+      if(d.length&&d[0].portal_password===pass){
+        try{localStorage.setItem('ix_portal_type','client');localStorage.setItem('ix_portal_data',JSON.stringify(d[0]));sessionStorage.setItem('ix_portal_data',JSON.stringify(d[0]));}catch(e){}
         window.location.href='client.html';return;
       }
       showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
     }
-
-    // Partner / Strategic / JV login - from ix_partners table
+    // Partner
     if(['partner','strategic','jv'].includes(selectedRole)){
-      var rp=await sb.from('ix_partners').select('*').eq('username',user).limit(1);
-      if(rp.data&&rp.data.length>0&&rp.data[0].portal_password===pass){
-        var recp=rp.data[0];
-        try{localStorage.setItem('ix_portal_type',recp.partner_type||selectedRole);}catch(e){}
-        try{localStorage.setItem('ix_portal_id',recp.id);}catch(e){}
-        try{localStorage.setItem('ix_portal_data',JSON.stringify(recp));}catch(e){}
-        window.location.href='partner.html';return;
+      var dp=await qFetch('ix_partners','username=eq.'+encodeURIComponent(user));
+      if(dp.length&&dp[0].portal_password===pass){
+        var recp=dp[0];
+        try{localStorage.setItem('ix_portal_type',recp.partner_type||selectedRole);localStorage.setItem('ix_portal_data',JSON.stringify(recp));sessionStorage.setItem('ix_portal_data',JSON.stringify(recp));}catch(e){}
+        var ptypeMap={success_partner:'success-partner.html',strategic:'strategic-partner.html',jv:'jv-partner.html'};
+        window.location.href=(ptypeMap[recp.partner_type]||'success-partner.html')+'?uid='+recp.id;return;
       }
       showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
     }
-
     // Team / Expert / Consultant / Freelancer
     if(selectedRole==='team'||selectedRole==='expert'||selectedRole==='consultant'||selectedRole==='freelancer'){
-      // Map role to person_type
       var ptype=selectedRole==='team'?'employee':selectedRole;
-      var r2=await sb.from('ix_people').select('*').eq('username',user).eq('person_type',ptype).limit(1);
-      var d2=r2.data||[];
-      // Fallback: no type filter if empty
-      if(!d2.length){
-        var r2b=await sb.from('ix_people').select('*').eq('username',user).limit(1);
-        d2=r2b.data||[];
-      }
-      if(Array.isArray(d2)&&d2.length>0){
-        var dbPass=d2[0].portal_password;
-        if(dbPass&&dbPass.trim()===pass.trim()){
-          var rec2=d2[0];
-          var recStr=JSON.stringify(rec2);
-          try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
-          try{localStorage.setItem('ix_portal_data',recStr);}catch(e){}
-          try{sessionStorage.setItem('ix_portal_data',recStr);sessionStorage.setItem('ix_portal_type',rec2.person_type||'employee');}catch(e){}
-          // Pass ID via URL as extra fallback
-          var ptype2=rec2.person_type||'employee';
-          var destMap={expert:'expert.html',consultant:'consultant.html',freelancer:'freelancer.html',employee:'team.html'};
-          var dest=destMap[ptype2]||'team.html';
-          window.location.href=dest+'?uid='+rec2.id+'&utype='+ptype2;return;
-        }
+      var d2=await qFetch('ix_people','username=eq.'+encodeURIComponent(user)+'&person_type=eq.'+ptype);
+      if(!d2.length) d2=await qFetch('ix_people','username=eq.'+encodeURIComponent(user));
+      if(d2.length&&d2[0].portal_password&&d2[0].portal_password.trim()===pass.trim()){
+        var rec2=d2[0];
+        try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');localStorage.setItem('ix_portal_data',JSON.stringify(rec2));sessionStorage.setItem('ix_portal_data',JSON.stringify(rec2));}catch(e){}
+        var destMap={expert:'expert.html',consultant:'consultant.html',freelancer:'freelancer.html',employee:'team.html'};
+        var dest=destMap[rec2.person_type]||'team.html';
+        window.location.href=dest+'?uid='+rec2.id;return;
       }
       showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
     }
-
-    // Coordinator - login via ix_people with person_type coordinator
+    // Coordinator
     if(selectedRole==='coordinator'){
-      // Try ix_people first
-      var rc=await sb.from('ix_people').select('*').eq('username',user).limit(1);
-      if(rc.data&&rc.data.length>0&&rc.data[0].portal_password===pass){
-        var rec=rc.data[0];
-        try{localStorage.setItem('ix_portal_type','coordinator');}catch(e){}
-        try{localStorage.setItem('ix_portal_data',JSON.stringify(rec));}catch(e){}
+      var dc=await qFetch('ix_people','username=eq.'+encodeURIComponent(user));
+      if(dc.length&&dc[0].portal_password===pass){
+        try{localStorage.setItem('ix_portal_type','coordinator');localStorage.setItem('ix_portal_data',JSON.stringify(dc[0]));sessionStorage.setItem('ix_portal_data',JSON.stringify(dc[0]));}catch(e){}
         window.location.href='transcript.html';return;
       }
-      // Fallback: legacy password
       var storedPass=localStorage.getItem('ix_coord_pass')||'coordinator2026';
-      if(pass===storedPass){
-        window.location.href='transcript.html';return;
-      }
+      if(pass===storedPass){window.location.href='transcript.html';return;}
       showErr('Invalid coordinator credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
     }
-
   }catch(e){
-    showErr('Connection error. Please try again.');
+    showErr('Connection error: '+e.message);
   }
   btn.textContent='→ Access Portal';btn.disabled=false;
 }
-</script>
-</body>
-</html>
+
