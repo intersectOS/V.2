@@ -1180,36 +1180,34 @@ function render(){
 
   var init=(m.name||'TM').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
   var avEl=document.getElementById('m-av');
-  avEl.textContent=init;
-  avEl.style.background=isExpert?'linear-gradient(135deg,#06b6d4,#7c3aed)':'linear-gradient(135deg,#7c3aed,#3b82f6)';
+  if(avEl){avEl.textContent=init;avEl.style.background=isExpert?'linear-gradient(135deg,#06b6d4,#7c3aed)':'linear-gradient(135deg,#7c3aed,#3b82f6)';}
 
-  document.getElementById('m-name').textContent=m.name;
-  document.getElementById('m-role').textContent=(m.role||m.person_type||'Team Member')+(m.freelancer_type?' · '+m.freelancer_type:'');
+  var nameEl=document.getElementById('m-name');if(nameEl)nameEl.textContent=m.name;
+  var roleEl=document.getElementById('m-role');if(roleEl)roleEl.textContent=(m.role||m.person_type||'Team Member')+(m.freelancer_type?' · '+m.freelancer_type:'');
 
   var badge=document.getElementById('m-type-badge');
-  badge.textContent=typeLabels[m.person_type]||m.person_type||'Team';
-  badge.style.background=typeColors[m.person_type]||'rgba(74,82,112,.15)';
-  badge.style.color=typeTextColors[m.person_type]||'var(--ink3)';
+  if(badge){badge.textContent=typeLabels[m.person_type]||m.person_type||'Team';badge.style.background=typeColors[m.person_type]||'rgba(74,82,112,.15)';badge.style.color=typeTextColors[m.person_type]||'var(--ink3)';}
 
+  var teamTabs=document.getElementById('team-tabs');
+  var expertTabs=document.getElementById('expert-tabs');
   if(isExpert){
-    document.getElementById('team-tabs').style.display='none';
-    document.getElementById('expert-tabs').style.display='block';
-    // Show check-in button for experts too
+    if(teamTabs)teamTabs.style.display='none';
+    if(expertTabs)expertTabs.style.display='block';
     var expCIBtn=document.getElementById('exp-checkin-btn');
     if(expCIBtn)expCIBtn.style.display='block';
     checkTodayAttendance(m.id);
-    document.getElementById('k1l').textContent='Requests';
-    document.getElementById('k2l').textContent='Pending';
-    document.getElementById('k3l').textContent='Responded';
-    document.getElementById('avail-sel').value=m.availability||'Available';
+    var k1l=document.getElementById('k1l');if(k1l)k1l.textContent='Requests';
+    var k2l=document.getElementById('k2l');if(k2l)k2l.textContent='Pending';
+    var k3l=document.getElementById('k3l');if(k3l)k3l.textContent='Responded';
+    var avSel=document.getElementById('avail-sel');if(avSel)avSel.value=m.availability||'Available';
     renderExpertProfile();
     loadExpertData();
   } else {
-    document.getElementById('team-tabs').style.display='block';
-    document.getElementById('expert-tabs').style.display='none';
-    document.getElementById('k1l').textContent='Clients';
-    document.getElementById('k2l').textContent='Tasks';
-    document.getElementById('k3l').textContent='Requests';
+    if(teamTabs)teamTabs.style.display='block';
+    if(expertTabs)expertTabs.style.display='none';
+    var k1l2=document.getElementById('k1l');if(k1l2)k1l2.textContent='Clients';
+    var k2l2=document.getElementById('k2l');if(k2l2)k2l2.textContent='Tasks';
+    var k3l2=document.getElementById('k3l');if(k3l2)k3l2.textContent='Requests';
     loadTeamData();
   }
 
