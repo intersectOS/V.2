@@ -114,6 +114,35 @@ if (window.speechSynthesis) {
   };
 }
 
+
+function sbFetch(table, filter, opts) {
+  opts = opts || {};
+  var url = 'https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table + '?' + (filter||'') + '&limit=' + (opts.limit||500);
+  if(opts.order) url += '&order=' + opts.order;
+  return fetch(url, {headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}})
+    .then(function(r){return r.json();})
+    .then(function(d){return {data: Array.isArray(d)?d:[], error: null};  })
+    .catch(function(e){return {data:[], error:e};});
+}
+function sbInsert(table, body) {
+  return fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table, {
+    method:'POST',
+    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+    body: JSON.stringify(body)
+  }).then(function(r){return r.json();})
+  .then(function(d){return {data:d,error:null};})
+  .catch(function(e){return {data:null,error:e};});
+}
+function sbUpdate(table, filter, body) {
+  return fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table + '?' + filter, {
+    method:'PATCH',
+    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+    body: JSON.stringify(body)
+  }).then(function(r){return r.json();})
+  .then(function(d){return {data:d,error:null};})
+  .catch(function(e){return {data:null,error:e};});
+}
+
 </script>
 <style>
 :root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
@@ -332,7 +361,7 @@ async function submitReferral(){
     status:'Pending',priority:'high',show_to_client:false,assignee_type:'management'
   };
   try{
-    await sb.from('ix_requests').insert(body);
+    await (await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_requests',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)}));
     ['sp-ref-name','sp-ref-ind','sp-ref-country','sp-ref-contact','sp-ref-notes'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
     var s=document.getElementById('sp-ref-success');if(s)s.style.display='block';
     sendTG('🤝 *Partner Referral*\n\nFrom: '+partnerData.name+'\nClient: '+name+'\nService: '+document.getElementById('sp-ref-svc').value);
@@ -343,7 +372,7 @@ async function submitReferral(){
 async function loadMyReferrals(){
   var el=document.getElementById('sp-referrals-list');if(!el)return;
   try{
-    var r=await sb.from('ix_requests').select('*').eq('requested_by',partnerData.name).eq('context_type','partner_referral').order('created_at',{ascending:false});
+    var r=await sbFetch('ix_requests','requested_by=eq.partnerData.name&context_type=eq.partner_referral',{order:"created_at.desc"});
     var items=r.data||[];
     if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No referrals yet</div>';return;}
     var sc={Pending:'pgo',Completed:'pg',Rejected:'pr'};
@@ -361,7 +390,7 @@ async function loadMyReferrals(){
 async function loadSpRequests(){
   var el=document.getElementById('sp-reqs-list');if(!el)return;
   try{
-    var r=await sb.from('ix_requests').select('*').eq('requested_by',partnerData.name).not('context_type','eq','partner_referral').order('created_at',{ascending:false});
+    var r=await sbFetch('ix_requests','requested_by=eq.partnerData.name',null).not('context_type','eq','partner_referral').order('created_at',{ascending:false});
     var items=r.data||[];
     if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">No requests</div>';return;}
     var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
@@ -378,7 +407,7 @@ async function loadSpRequests(){
 async function loadSpNews(){
   var el=document.getElementById('sp-news-list');if(!el)return;
   try{
-    var r=await sb.from('ix_news').select('*').order('created_at',{ascending:false}).limit(20);
+    var r=await sbFetch('ix_news','',{order:"created_at.desc",limit:20});
     var items=r.data||[];
     if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No news</div>';return;}
     el.innerHTML=items.map(function(n){

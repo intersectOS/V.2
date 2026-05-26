@@ -115,6 +115,35 @@ if (window.speechSynthesis) {
   };
 }
 
+
+function sbFetch(table, filter, opts) {
+  opts = opts || {};
+  var url = 'https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table + '?' + (filter||'') + '&limit=' + (opts.limit||500);
+  if(opts.order) url += '&order=' + opts.order;
+  return fetch(url, {headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}})
+    .then(function(r){return r.json();})
+    .then(function(d){return {data: Array.isArray(d)?d:[], error: null};  })
+    .catch(function(e){return {data:[], error:e};});
+}
+function sbInsert(table, body) {
+  return fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table, {
+    method:'POST',
+    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+    body: JSON.stringify(body)
+  }).then(function(r){return r.json();})
+  .then(function(d){return {data:d,error:null};})
+  .catch(function(e){return {data:null,error:e};});
+}
+function sbUpdate(table, filter, body) {
+  return fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table + '?' + filter, {
+    method:'PATCH',
+    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+    body: JSON.stringify(body)
+  }).then(function(r){return r.json();})
+  .then(function(d){return {data:d,error:null};})
+  .catch(function(e){return {data:null,error:e};});
+}
+
 </script>
 <style>
 :root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
@@ -429,7 +458,7 @@ async function checkTodayCheckIn(){
   if(!memberData)return;
   var now=new Date();var saudiTime=new Date(now.getTime()+3*60*60000);var today=saudiTime.toISOString().split('T')[0];
   try{
-    var r=await sb.from('ix_workflow').select('id,created_at').eq('status','attendance').eq('created_by',memberData.name).eq('title','[ATTENDANCE] '+today).limit(1);
+    var r=await sbFetch('ix_workflow','status=eq.attendance&created_by=eq.'+encodeURIComponent(memberData.name)+'&title=eq.[ATTENDANCE] '+today,{limit:1});
     var btn=document.getElementById('checkin-btn');
     if(r.data&&r.data.length>0){
       var t=new Date(r.data[0].created_at).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
@@ -443,9 +472,9 @@ async function checkIn(){
   var now=new Date();var saudiTime=new Date(now.getTime()+3*60*60000);var today=saudiTime.toISOString().split('T')[0];
   var timeStr=now.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
   try{
-    var existing=await sb.from('ix_workflow').select('id').eq('status','attendance').eq('created_by',memberData.name).eq('title','[ATTENDANCE] '+today).limit(1);
+    var existing=await sbFetch('ix_workflow','status=eq.attendance&created_by=eq.'+encodeURIComponent(memberData.name)+'&title=eq.[ATTENDANCE] '+today,{limit:1});
     if(existing.data&&existing.data.length>0){toast('Already checked in today','ts');return;}
-    await sb.from('ix_workflow').insert({title:'[ATTENDANCE] '+today,description:timeStr+' · '+(memberData.role||'Expert'),created_by:memberData.name,client_id:null,client_name:'_attendance_',show_to_client:false,status:'attendance'});
+    await sbInsert('ix_workflow',{title:'[ATTENDANCE] '+today,description:timeStr+' · '+(memberData.role||'Expert'),created_by:memberData.name,client_id:null,client_name:'_attendance_',show_to_client:false,status:'attendance'});
     var btn=document.getElementById('checkin-btn');
     if(btn){btn.textContent='✅ '+timeStr;btn.style.background='rgba(34,197,94,.2)';btn.disabled=true;}
     sendTG('✅ *Check In*\n\n*'+memberData.name+'*\nRole: Expert\nTime: '+timeStr);
@@ -456,15 +485,15 @@ async function checkIn(){
 async function loadMyTasks(){
   var el=document.getElementById('ep-tasks-list');if(!el)return;
   try{
-    var rSt=await sb.from('ix_subtasks').select('*').eq('assignee_name',memberData.name).order('created_at',{ascending:false});
+    var rSt=await sbFetch('ix_subtasks','assignee_name=eq.'+encodeURIComponent(memberData.name),{order:'created_at.desc'});
     var mySubtasks=rSt.data||[];
     var taskIds=[...new Set(mySubtasks.map(function(s){return s.task_id;}))];
     var tasks=[];
     if(taskIds.length){
-      var rT=await sb.from('ix_tasks').select('*').in('id',taskIds);
+      var rT=await sbFetch('ix_tasks','',null).in('id',taskIds);
       tasks=rT.data||[];
     }
-    var rFocal=await sb.from('ix_tasks').select('*').eq('focal_point_name',memberData.name).order('created_at',{ascending:false});
+    var rFocal=await sbFetch('ix_tasks','focal_point_name=eq.'+encodeURIComponent(memberData.name),{order:'created_at.desc'});
     (rFocal.data||[]).forEach(function(ft){if(!tasks.find(function(t){return t.id===ft.id;}))tasks.push(ft);});
     if(!tasks.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:30px;">No tasks assigned yet</div>';return;}
     var sc={'To Do':'pgo','In Progress':'ptl','Done':'pg'};
@@ -503,7 +532,7 @@ async function loadMyTasks(){
 
 async function markSubtaskDone(sid,tid){
   try{
-    await sb.from('ix_subtasks').update({status:'Done',updated_at:new Date().toISOString()}).eq('id',sid);
+    await sbUpdate('ix_subtasks','id=eq.sid',{status:'Done',updated_at:new Date().toISOString()});
     sendTG('✅ *Sub-task Done*\n\nBy: '+memberData.name);
     toast('✅ Marked Done!','ts');
     loadMyTasks();
@@ -512,11 +541,11 @@ async function markSubtaskDone(sid,tid){
 
 async function closeFocalTask(tid){
   try{
-    var r=await sb.from('ix_subtasks').select('id,status').eq('task_id',tid);
+    var r=await sbFetch('ix_subtasks','task_id=eq.tid',null);
     var pending=(r.data||[]).filter(function(s){return s.status!=='Done';}).length;
     if(pending>0){toast(pending+' sub-tasks still pending','te');return;}
     if(!confirm('Close this task?'))return;
-    await sb.from('ix_tasks').update({status:'Done'}).eq('id',tid);
+    await sbUpdate('ix_tasks','id=eq.tid',{status:'Done'});
     sendTG('🔒 *Task Closed*\n\nBy: '+memberData.name);
     toast('🔒 Task closed!','ts');
     loadMyTasks();
@@ -526,7 +555,7 @@ async function closeFocalTask(tid){
 async function loadInbox(){
   var el=document.getElementById('ep-inbox-list');if(!el)return;
   try{
-    var r=await sb.from('ix_requests').select('*').eq('assignee_name',memberData.name).order('created_at',{ascending:false});
+    var r=await sbFetch('ix_requests','assignee_name=eq.'+encodeURIComponent(memberData.name),{order:'created_at.desc'});
     var items=r.data||[];
     var pending=items.filter(function(x){return x.status==='Pending';}).length;
     if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No requests</div>';return;}
@@ -545,7 +574,7 @@ async function loadInbox(){
 async function loadSent(){
   var el=document.getElementById('ep-sent-list');if(!el)return;
   try{
-    var r=await sb.from('ix_requests').select('*').eq('requested_by',memberData.name).order('created_at',{ascending:false});
+    var r=await sbFetch('ix_requests','requested_by=eq.'+encodeURIComponent(memberData.name),{order:'created_at.desc'});
     var items=r.data||[];
     if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">No sent requests</div>';return;}
     var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
@@ -561,7 +590,7 @@ async function loadSent(){
 
 async function respondReq(id,status){
   try{
-    await sb.from('ix_requests').update({status:status,accepted_at:status==='Accepted'?new Date().toISOString():null}).eq('id',id);
+    await sbUpdate('ix_requests','id=eq.id',{status:status,accepted_at:status==='Accepted'?new Date().toISOString():null});
     toast(status==='Accepted'?'✅ Accepted':'Declined','ts');
     loadInbox();
   }catch(e){toast('Error','te');}
@@ -570,7 +599,7 @@ async function respondReq(id,status){
 async function loadExpertRequests(){
   var el=document.getElementById('ep-reqs-list');if(!el)return;
   try{
-    var r=await sb.from('ix_expert_requests').select('*').order('created_at',{ascending:false}).limit(20);
+    var r=await sbFetch('ix_expert_requests','',{order:"created_at.desc",limit:20});
     var items=r.data||[];
     if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No open requests</div>';return;}
     el.innerHTML=items.map(function(req){
@@ -589,7 +618,7 @@ async function submitProposal(reqId,reqTitle){
   var desc=prompt('Your proposal for: '+reqTitle+'\n\nDescribe your approach, timeline and rate:');
   if(!desc)return;
   try{
-    await sb.from('ix_requests').insert({title:'[Expert Proposal] '+memberData.name+' → '+reqTitle,description:desc,requested_by:memberData.name,context_type:'expert_proposal',context_value:reqId,status:'Pending',priority:'medium',show_to_client:false});
+    await sbInsert('ix_requests',{title:'[Expert Proposal] '+memberData.name+' → '+reqTitle,description:desc,requested_by:memberData.name,context_type:'expert_proposal',context_value:reqId,status:'Pending',priority:'medium',show_to_client:false});
     sendTG('💼 *Expert Proposal*\n\nBy: '+memberData.name+'\nFor: '+reqTitle+'\n\n'+desc.slice(0,100));
     toast('✅ Proposal submitted!','ts');
   }catch(e){toast('Error','te');}
@@ -598,7 +627,7 @@ async function submitProposal(reqId,reqTitle){
 async function loadMarketplace(){
   var el=document.getElementById('ep-mp-list');if(!el)return;
   try{
-    var r=await sb.from('ix_services_catalog').select('*').eq('is_active',true).order('category');
+    var r=await sbFetch('ix_services_catalog','is_active=eq.true',{order:"category.desc"});
     var svcs=r.data||[];
     if(!svcs.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No services available</div>';return;}
     var grouped={};svcs.forEach(function(s){if(!grouped[s.category])grouped[s.category]=[];grouped[s.category].push(s);});
@@ -621,7 +650,7 @@ async function loadMarketplace(){
 async function submitMpRequest(svcId,svcName){
   var note=document.getElementById('mp-note-'+svcId);var noteVal=note?note.value.trim():'';
   try{
-    await sb.from('ix_requests').insert({title:'[Service Request] '+svcName,description:noteVal||'Requesting: '+svcName,requested_by:memberData.name,context_type:'team_service_request',context_value:svcId,status:'Pending',priority:'medium',show_to_client:false});
+    await sbInsert('ix_requests',{title:'[Service Request] '+svcName,description:noteVal||'Requesting: '+svcName,requested_by:memberData.name,context_type:'team_service_request',context_value:svcId,status:'Pending',priority:'medium',show_to_client:false});
     if(note)note.value='';
     sendTG('🛒 *Service Request*\n\nFrom: '+memberData.name+'\nService: '+svcName+(noteVal?'\n\n'+noteVal:''));
     toast('✅ Request submitted!','ts');
@@ -634,7 +663,7 @@ async function submitUpdate(){
   var taskSel=document.getElementById('ep-upd-task').value;
   var showClient=document.getElementById('ep-upd-show').checked;
   try{
-    await sb.from('ix_requests').insert({title:'[Expert Update] '+memberData.name,description:text,requested_by:memberData.name,context_type:'expert_update',context_value:taskSel||null,status:'Pending',show_to_client:showClient,priority:'medium'});
+    await sbInsert('ix_requests',{title:'[Expert Update] '+memberData.name,description:text,requested_by:memberData.name,context_type:'expert_update',context_value:taskSel||null,status:'Pending',show_to_client:showClient,priority:'medium'});
     document.getElementById('ep-upd-text').value='';
     var sent=document.getElementById('ep-upd-sent');if(sent){sent.style.display='block';setTimeout(function(){sent.style.display='none';},3000);}
     sendTG('🔄 *Expert Update*\n\nFrom: '+memberData.name+'\n\n'+text.slice(0,100));
@@ -645,7 +674,7 @@ async function submitUpdate(){
 async function loadAttendance(){
   var el=document.getElementById('ep-att-list');if(!el)return;
   try{
-    var r=await sb.from('ix_workflow').select('*').eq('status','attendance').eq('created_by',memberData.name).order('created_at',{ascending:false}).limit(30);
+    var r=await sbFetch('ix_workflow','status=eq.attendance&created_by=eq.'+encodeURIComponent(memberData.name),{order:'created_at.desc',limit:30});
     var records=r.data||[];
     if(!records.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No records yet</div>';return;}
     var now=new Date();var saudiTime=new Date(now.getTime()+3*60*60000);var today=saudiTime.toISOString().split('T')[0];
@@ -668,7 +697,7 @@ async function loadAttendance(){
 async function loadNews(){
   var el=document.getElementById('ep-news-list');if(!el)return;
   try{
-    var r=await sb.from('ix_news').select('*').order('created_at',{ascending:false}).limit(20);
+    var r=await sbFetch('ix_news','',{order:"created_at.desc",limit:20});
     var items=r.data||[];
     if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No news yet</div>';return;}
     var tC={announcement:'var(--teal)',alert:'var(--red)',update:'#a78bfa',opportunity:'var(--gold)',event:'#22c55e'};
@@ -688,7 +717,7 @@ async function saveTelegram(){
   var chatId=document.getElementById('ep-tg-id').value.trim();
   if(!chatId){toast('Enter your Chat ID','te');return;}
   try{
-    await sb.from('ix_people').update({telegram_chat_id:chatId}).eq('id',memberData.id);
+    await sbUpdate('ix_people','id=eq.memberData.id',{telegram_chat_id:chatId});
     memberData.telegram_chat_id=chatId;
     try{localStorage.setItem('ix_portal_data',JSON.stringify(memberData));}catch(e){}
     await fetch('https://api.telegram.org/bot'+TG_TOKEN+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:'✅ *INTERSECT PartnerOS*\n\nYour Telegram is linked!',parse_mode:'Markdown'})});
@@ -700,7 +729,7 @@ async function saveTelegram(){
 function openSupportModal(tid,ttitle){
   var desc=prompt('🤝 Request Support for: '+ttitle+'\n\nDescribe what you need:');
   if(!desc)return;
-  sb.from('ix_requests').insert({title:'[Task Support] '+ttitle+' — '+memberData.name,description:desc,requested_by:memberData.name,context_type:'task_support',context_value:tid,status:'Pending',priority:'medium',show_to_client:false,assignee_type:'management'}).then(function(){
+  sbInsert('ix_requests',{title:'[Task Support] '+ttitle+' — '+memberData.name,description:desc,requested_by:memberData.name,context_type:'task_support',context_value:tid,status:'Pending',priority:'medium',show_to_client:false,assignee_type:'management'}).then(function(){
     sendTG('🤝 *Support Request*\n\nFrom: '+memberData.name+'\nTask: '+ttitle+'\n\n'+desc.slice(0,80));
     toast('✅ Support request sent','ts');
   }).catch(function(){toast('Error','te');});

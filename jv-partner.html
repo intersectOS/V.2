@@ -114,6 +114,35 @@ if (window.speechSynthesis) {
   };
 }
 
+
+function sbFetch(table, filter, opts) {
+  opts = opts || {};
+  var url = 'https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table + '?' + (filter||'') + '&limit=' + (opts.limit||500);
+  if(opts.order) url += '&order=' + opts.order;
+  return fetch(url, {headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}})
+    .then(function(r){return r.json();})
+    .then(function(d){return {data: Array.isArray(d)?d:[], error: null};  })
+    .catch(function(e){return {data:[], error:e};});
+}
+function sbInsert(table, body) {
+  return fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table, {
+    method:'POST',
+    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+    body: JSON.stringify(body)
+  }).then(function(r){return r.json();})
+  .then(function(d){return {data:d,error:null};})
+  .catch(function(e){return {data:null,error:e};});
+}
+function sbUpdate(table, filter, body) {
+  return fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table + '?' + filter, {
+    method:'PATCH',
+    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+    body: JSON.stringify(body)
+  }).then(function(r){return r.json();})
+  .then(function(d){return {data:d,error:null};})
+  .catch(function(e){return {data:null,error:e};});
+}
+
 </script>
 <style>:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;}.hero{border-bottom:1px solid var(--border);padding:18px 20px 14px;}.hero-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}.brand{font-size:10px;letter-spacing:3px;color:var(--ink3);text-transform:uppercase;font-family:'Syne',sans-serif;}.logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:'Syne',sans-serif;}.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}.tab{padding:7px 13px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}.tab.on{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2);color:var(--gold);}.tp{display:none;padding:14px 16px;}.tp.on{display:block;}.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}.ph{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);}.pt{font-size:13px;font-weight:700;}.pb{padding:14px;}.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}.fta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;resize:vertical;min-height:70px;}.fs{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}.fl{font-size:11px;font-weight:600;color:var(--ink3);}.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}.bbg{background:var(--grad);border-color:transparent;color:#fff;}.bbo{background:transparent;border-color:var(--border);color:var(--ink2);}.bsm{padding:5px 10px;font-size:11px;}.bw{width:100%;padding:11px;font-size:13px;}.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}.pgo{background:rgba(245,158,11,.1);color:var(--gold);}.pg{background:rgba(34,197,94,.1);color:#22c55e;}.pr{background:rgba(239,68,68,.1);color:var(--red);}.pgr{background:rgba(74,82,112,.2);color:var(--ink3);}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center;}</style>
 </head>
@@ -212,7 +241,7 @@ async function submitUpdate(){
   var text=document.getElementById('jv-upd-text').value.trim();
   if(!text){toast('Write your update','te');return;}
   try{
-    await sb.from('ix_requests').insert({title:'[JV Update] '+partnerData.name,description:text,requested_by:partnerData.name,context_type:'jv_update',status:'Pending',priority:'medium',show_to_client:false});
+    await sbInsert('ix_requests',{title:'[JV Update] '+partnerData.name,description:text,requested_by:partnerData.name,context_type:'jv_update',status:'Pending',priority:'medium',show_to_client:false});
     document.getElementById('jv-upd-text').value='';
     var s=document.getElementById('jv-upd-sent');if(s){s.style.display='block';setTimeout(function(){s.style.display='none';},3000);}
     sendTG('🏦 *JV Update*\n\nFrom: '+partnerData.name+'\n\n'+text.slice(0,100));
@@ -221,11 +250,11 @@ async function submitUpdate(){
 }
 async function loadRequests(){
   var el=document.getElementById('jv-reqs-list');if(!el)return;
-  try{var r=await sb.from('ix_requests').select('*').eq('requested_by',partnerData.name).order('created_at',{ascending:false});var items=r.data||[];if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">No requests</div>';return;}var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};el.innerHTML=items.map(function(r){return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:7px;"><div style="display:flex;justify-content:space-between;"><div style="font-size:12px;font-weight:600;">'+r.title.slice(0,50)+'</div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'+(r.reply?'<div style="font-size:11px;color:var(--teal);margin-top:4px;">💬 '+r.reply.slice(0,80)+'</div>':'')+'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">'+new Date(r.created_at).toLocaleDateString()+'</div></div>';}).join('');}catch(e){}
+  try{var r=await sbFetch('ix_requests','requested_by=eq.partnerData.name',{order:"created_at.desc"});var items=r.data||[];if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">No requests</div>';return;}var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};el.innerHTML=items.map(function(r){return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:7px;"><div style="display:flex;justify-content:space-between;"><div style="font-size:12px;font-weight:600;">'+r.title.slice(0,50)+'</div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'+(r.reply?'<div style="font-size:11px;color:var(--teal);margin-top:4px;">💬 '+r.reply.slice(0,80)+'</div>':'')+'<div style="font-size:10px;color:var(--ink3);margin-top:4px;">'+new Date(r.created_at).toLocaleDateString()+'</div></div>';}).join('');}catch(e){}
 }
 async function loadNews(){
   var el=document.getElementById('jv-news-list');if(!el)return;
-  try{var r=await sb.from('ix_news').select('*').order('created_at',{ascending:false}).limit(20);var items=r.data||[];if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No news</div>';return;}el.innerHTML=items.map(function(n){return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:9px;padding:12px;margin-bottom:8px;"><div style="font-size:13px;font-weight:700;margin-bottom:5px;">'+n.title+'</div><div style="font-size:12px;color:var(--ink2);line-height:1.6;">'+n.content+'</div>'+(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')+'<div style="font-size:10px;color:var(--ink3);margin-top:5px;">'+new Date(n.created_at).toLocaleDateString()+'</div></div>';}).join('');}catch(e){}
+  try{var r=await sbFetch('ix_news','',{order:"created_at.desc",limit:20});var items=r.data||[];if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No news</div>';return;}el.innerHTML=items.map(function(n){return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:9px;padding:12px;margin-bottom:8px;"><div style="font-size:13px;font-weight:700;margin-bottom:5px;">'+n.title+'</div><div style="font-size:12px;color:var(--ink2);line-height:1.6;">'+n.content+'</div>'+(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')+'<div style="font-size:10px;color:var(--ink3);margin-top:5px;">'+new Date(n.created_at).toLocaleDateString()+'</div></div>';}).join('');}catch(e){}
 }
 </script>
 </body></html>

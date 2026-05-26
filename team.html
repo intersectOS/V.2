@@ -115,6 +115,35 @@ if (window.speechSynthesis) {
   };
 }
 
+
+function sbFetch(table, filter, opts) {
+  opts = opts || {};
+  var url = 'https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table + '?' + (filter||'') + '&limit=' + (opts.limit||500);
+  if(opts.order) url += '&order=' + opts.order;
+  return fetch(url, {headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}})
+    .then(function(r){return r.json();})
+    .then(function(d){return {data: Array.isArray(d)?d:[], error: null};  })
+    .catch(function(e){return {data:[], error:e};});
+}
+function sbInsert(table, body) {
+  return fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table, {
+    method:'POST',
+    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+    body: JSON.stringify(body)
+  }).then(function(r){return r.json();})
+  .then(function(d){return {data:d,error:null};})
+  .catch(function(e){return {data:null,error:e};});
+}
+function sbUpdate(table, filter, body) {
+  return fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/' + table + '?' + filter, {
+    method:'PATCH',
+    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+    body: JSON.stringify(body)
+  }).then(function(r){return r.json();})
+  .then(function(d){return {data:d,error:null};})
+  .catch(function(e){return {data:null,error:e};});
+}
+
 </script>
 <style>
 :root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
@@ -1383,34 +1412,52 @@ function render(){
 
 // ── TEAM DATA ──
 async function loadTeamData(){
-  if(!sb)return;
   var m=memberData;
+  var H={'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'};
   var clients=[],tasks=[],reqs=[],meetings=[];
-  try{var r=await sb.from('ix_clients_v2').select('*').eq('main_am_name',m.name);if(r.data)clients=r.data;}catch(e){}
-  // Also load partners assigned to this AM
-  try{var rpart=await sb.from('ix_partners').select('*').eq('main_am_name',m.name);if(rpart.data)partners=rpart.data||[];}catch(e){}
-  try{
-    var SB2='https://zmiywdpfdvllsxalklrv.supabase.co';
-    var KEY2='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
-    var ra2=await fetch(SB2+'/rest/v1/ix_clients_v2?assistant_ams=cs.["'+m.name+'"]&select=*',{headers:{'apikey':KEY2,'Authorization':'Bearer '+KEY2}});
-    var asst2=await ra2.json();
-    if(Array.isArray(asst2)){asst2.forEach(function(c){if(!clients.find(function(x){return x.id===c.id;}))clients.push(c);});}
-  }catch(e){}
-  try{var ra=await sb.from('ix_actions').select('*').eq('assignee',m.name).eq('done',false).order('created_at',{ascending:false});if(ra.data)tasks=ra.data;}catch(e){}
-  try{var rt=await sb.from('ix_tasks').select('*').eq('assignee',m.name).neq('status','Done').order('created_at',{ascending:false});if(rt.data)tasks=tasks.concat(rt.data);}catch(e){}
-  try{var r=await sb.from('ix_requests').select('*').eq('assignee_name',m.name).order('created_at',{ascending:false});if(r.data)reqs=r.data;}catch(e){}
-  try{var r=await sb.from('ix_meetings').select('*').order('date',{ascending:false}).limit(8);if(r.data)meetings=r.data;}catch(e){}
+  async function q(table,filter){
+    try{
+      var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/'+table+'?'+filter+'&limit=200',{headers:H});
+      var d=await r.json();
+      return Array.isArray(d)?d:[];
+    }catch(e){return [];}
+  }
+  // Load clients where this person is main AM
+  var c1=await q('ix_clients_v2','main_am_name=eq.'+encodeURIComponent(m.name));
+  clients=c1;
+  // Also where assistant AM
+  var c2=await q('ix_clients_v2','assistant_ams=cs.["'+m.name+'"]');
+  c2.forEach(function(c){if(!clients.find(function(x){return x.id===c.id;}))clients.push(c);});
+  // Partners
+  var pdata=await q('ix_partners','main_am_name=eq.'+encodeURIComponent(m.name));
+  partners=pdata;
+  // Actions (quick tasks)
+  var ac=await q('ix_actions','assignee=eq.'+encodeURIComponent(m.name)+'&done=eq.false&order=created_at.desc');
+  tasks=ac;
+  // Tasks (subtasks assigned)
+  var st=await q('ix_subtasks','assignee_name=eq.'+encodeURIComponent(m.name)+'&status=neq.Done');
+  tasks=tasks.concat(st);
+  // Requests
+  reqs=await q('ix_requests','assignee_name=eq.'+encodeURIComponent(m.name)+'&order=created_at.desc');
+  // Meetings
+  meetings=await q('ix_meetings','order=date.desc&limit=8');
   myClients=clients;
-  document.getElementById('k1').textContent=clients.length;
-  document.getElementById('k2').textContent=tasks.length;
-  document.getElementById('k3').textContent=reqs.filter(function(r){return r.status==='Pending';}).length;
-  document.getElementById('tk-badge').textContent=tasks.length;
+  var k1=document.getElementById('k1');if(k1)k1.textContent=clients.length;
+  var k2=document.getElementById('k2');if(k2)k2.textContent=tasks.length;
+  var k3=document.getElementById('k3');if(k3)k3.textContent=reqs.filter(function(r){return r.status==='Pending';}).length;
+  var tkb=document.getElementById('tk-badge');if(tkb)tkb.textContent=tasks.length;
   var clOpts='<option value="">— None —</option>'+clients.map(function(c){return '<option value="'+c.id+'|'+c.name+'">'+c.name+'</option>';}).join('');
-  document.getElementById('wf-client').innerHTML='<option value="">— Select Client —</option>'+clients.map(function(c){return '<option value="'+c.id+'|'+c.name+'">'+c.name+'</option>';}).join('');
-  document.getElementById('rq-client').innerHTML=clOpts;
+  var wfc=document.getElementById('wf-client');if(wfc)wfc.innerHTML='<option value="">— Select Client —</option>'+clients.map(function(c){return '<option value="'+c.id+'|'+c.name+'">'+c.name+'</option>';}).join('');
+  var rqc=document.getElementById('rq-client');if(rqc)rqc.innerHTML=clOpts;
   renderClients(clients);renderTasks(tasks);renderTeamReqs(reqs);renderMeetings(meetings);
-  // Check attendance on every load
   checkTodayAttendance(memberData.id);
+  // Voice greet with real data
+  try{
+    var _gl=localStorage.getItem('ix_lang')||'en';
+    _voiceLang=_gl;
+    var pending=reqs.filter(function(r){return r.status==='Pending';}).length;
+    voiceGreet(m.name,pending,_gl);
+  }catch(_ve){}
 }
 
 function renderClients(clients){
@@ -1449,7 +1496,7 @@ function renderTasks(tasks){
 
 async function markDone(id,el){
   el.style.background='var(--green)';el.style.borderColor='var(--green)';el.textContent='✓';el.style.color='#fff';
-  if(sb)try{await sb.from('ix_actions').update({done:true}).eq('id',id);}catch(e){}
+  if(sb)try{await sbUpdate('ix_actions','id=eq.id',{done:true});}catch(e){}
   toast('✅ Done!','ts');
 }
 
@@ -1486,7 +1533,7 @@ async function saveWorkflow(){
   if(!sel||!title){toast('Select client and enter title','te');return;}
   var parts=sel.split('|');
   var body={client_id:parts[0],client_name:parts[1],title:title,description:document.getElementById('wf-desc').value.trim(),status:document.getElementById('wf-status').value,show_to_client:document.getElementById('wf-show').checked,created_by:memberData.name};
-  if(sb)try{await sb.from('ix_workflow').insert(body);toast('✅ Update saved!','ts');document.getElementById('wf-title').value='';document.getElementById('wf-desc').value='';}catch(e){toast('Error','te');}
+  if(sb)try{await (await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_workflow',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)}));toast('✅ Update saved!','ts');document.getElementById('wf-title').value='';document.getElementById('wf-desc').value='';}catch(e){toast('Error','te');}
 }
 
 async function saveRequest(){
@@ -1495,7 +1542,7 @@ async function saveRequest(){
   var sel=document.getElementById('rq-client').value;
   var parts=sel?sel.split('|'):['',''];
   var body={title:title,client_id:parts[0]||null,client_name:parts[1]||null,description:document.getElementById('rq-desc').value.trim(),priority:document.getElementById('rq-pri').value,file_url:document.getElementById('rq-file').value.trim()||null,requested_by:memberData.name,status:'Pending'};
-  if(sb)try{await sb.from('ix_requests').insert(body);closeModal('m-req');document.getElementById('rq-title').value='';document.getElementById('rq-desc').value='';toast('✅ Request sent!','ts');}catch(e){toast('Error','te');}
+  if(sb)try{await (await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_requests',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)}));closeModal('m-req');document.getElementById('rq-title').value='';document.getElementById('rq-desc').value='';toast('✅ Request sent!','ts');}catch(e){toast('Error','te');}
 }
 
 // ── EXPERT DATA ──
@@ -1537,9 +1584,8 @@ function renderExpertReqs(reqs){
 }
 
 async function ackReq(id){
-  if(!sb)return;
-  try{
-    await sb.from('ix_expert_requests').update({status:'Responded',expert_confirmed:true}).eq('id',id);
+    try{
+    await sbUpdate('ix_expert_requests','id=eq.id',{status:'Responded',expert_confirmed:true});
     toast('✅ Acknowledged','ts');
     loadExpertData();
   }catch(e){toast('Error','te');}
@@ -1567,7 +1613,7 @@ async function updateAvail(){
   if(!sb||!memberData)return;
   var avail=document.getElementById('avail-sel').value;
   try{
-    await sb.from('ix_people').update({availability:avail}).eq('id',memberData.id);
+    await sbUpdate('ix_people','id=eq.memberData.id',{availability:avail});
     memberData.availability=avail;
     try{localStorage.setItem('ix_portal_data',JSON.stringify(memberData));}catch(e){}
     toast('✅ Availability updated','ts');
