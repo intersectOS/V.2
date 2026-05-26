@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" id="ph">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INTERSECT PartnerOS · Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<style>
+:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--teal:#06b6d4;--purple:#7c3aed;--red:#ef4444;--gold:#f59e0b;--grad:linear-gradient(135deg,#06b6d4,#7c3aed);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.lang-bar{position:fixed;top:12px;right:12px;display:flex;gap:4px;flex-wrap:wrap;z-index:99;}
+.lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.lb.on{background:rgba(6,182,212,.2);border-color:#06b6d4;color:var(--teal);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:480px;max-width:100%;}
+.logo{text-align:center;margin-bottom:24px;}
+.logo-icon{width:56px;height:56px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#fff;margin:0 auto 10px;}
+.logo-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:2px;}
+.logo-sub{font-size:11px;color:var(--ink3);letter-spacing:2px;margin-top:4px;}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
+.role-btn{background:var(--card2);border:2px solid var(--border);border-radius:11px;padding:14px 8px;cursor:pointer;text-align:center;transition:all .15s;}
+.role-btn:hover{border-color:rgba(6,182,212,.4);background:rgba(6,182,212,.05);}
+.role-btn.on{border-color:#06b6d4;background:rgba(6,182,212,.08);}
+.role-icon{font-size:22px;margin-bottom:5px;}
+.role-name{font-size:11px;font-weight:600;color:var(--ink2);}
+.role-btn.on .role-name{color:var(--teal);}
+.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--ink);font-family:inherit;font-size:14px;margin-bottom:10px;}
+.fi:focus{outline:none;border-color:var(--teal);}
+.lbtn{width:100%;background:var(--grad);border:none;border-radius:9px;padding:13px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+.lbtn:hover{opacity:.9;}
+.err{color:var(--red);font-size:12px;text-align:center;margin-top:8px;display:none;}
+.section-title{font-size:11px;color:var(--ink3);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+[lang=ar]{font-family:'Cairo',sans-serif!important;direction:rtl;}
+@media(max-width:480px){
+  .card{padding:24px 18px;border-radius:16px;}
+  .role-grid{grid-template-columns:repeat(3,1fr);gap:6px;}
+  .role-btn{padding:10px 5px;}
+  .role-icon{font-size:18px;}
+  .role-name{font-size:10px;}
+  .lang-bar{top:8px;right:8px;gap:3px;}
+  .lb{padding:2px 5px;font-size:9px;}
+}
+</style>
+</head>
+<body>
+<div class="lang-bar">
+  <button class="lb on" onclick="setL('en')">EN</button>
+  <button class="lb" onclick="setL('ar')">AR</button>
+  <button class="lb" onclick="setL('es')">ES</button>
+  <button class="lb" onclick="setL('fr')">FR</button>
+  <button class="lb" onclick="setL('ja')">JA</button>
+  <button class="lb" onclick="setL('zh')">ZH</button>
+  <button class="lb" onclick="setL('pt')">PT</button>
+</div>
+
+<div class="card">
+  <div class="logo">
+    <img src="logo.png.PNG" style="width:160px;max-width:75%;height:auto;object-fit:contain;display:block;margin:0 auto 10px;" alt="INTERSECT">
+    <div class="logo-sub">PartnerOS · Secure Access</div>
+  </div>
+
+  <div class="section-title" id="lbl-role">Select your role</div>
+  <div class="role-grid">
+    <div class="role-btn on" onclick="selectRole('client',this)">
+      <div class="role-icon">🏢</div>
+      <div class="role-name">Client</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('partner',this)">
+      <div class="role-icon">🤝</div>
+      <div class="role-name">Success Partner</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('strategic',this)">
+      <div class="role-icon">⚙️</div>
+      <div class="role-name">Strategic Partner</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('jv',this)">
+      <div class="role-icon">🏦</div>
+      <div class="role-name">JV Partner</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('team',this)">
+      <div class="role-icon">👥</div>
+      <div class="role-name">Team</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('expert',this)">
+      <div class="role-icon">🌟</div>
+      <div class="role-name">Expert</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('consultant',this)">
+      <div class="role-icon">🎓</div>
+      <div class="role-name">Consultant</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('freelancer',this)">
+      <div class="role-icon">💼</div>
+      <div class="role-name">Freelancer</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('coordinator',this)">
+      <div class="role-icon">📋</div>
+      <div class="role-name">Coordinator</div>
+    </div>
+  </div>
+
+  <div class="section-title" id="lbl-credentials">Login</div>
+  <input class="fi" id="username" placeholder="Username" dir="ltr" autocomplete="username">
+  <input class="fi" id="password" type="password" placeholder="Password" dir="ltr" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+  <button class="lbtn" onclick="doLogin()" id="login-btn">→ Access Portal</button>
+  <div class="err" id="lerr">Invalid credentials. Please try again.</div>
+</div>
+
+<script>
+var SB_URL='https://zmiywdpfdvllsxalklrv.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+var sb=null, selectedRole='client';
+
+try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
+
+function setL(l){
+  try{localStorage.setItem('ix_lang',l);}catch(e){}
+  document.querySelectorAll('.lb').forEach(function(b){b.classList.remove('on');});
+  document.querySelectorAll('.lb').forEach(function(b){if(b.textContent===l.toUpperCase())b.classList.add('on');});
+}
+
+function selectRole(role,el){
+  selectedRole=role;
+  document.querySelectorAll('.role-btn').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+}
+
+function showErr(msg){
+  var e=document.getElementById('lerr');
+  e.textContent=msg;
+  e.style.display='block';
+  setTimeout(function(){e.style.display='none';},4000);
+}
+
+async function doLogin(){
+  var user=document.getElementById('username').value.trim();
+  var pass=document.getElementById('password').value;
+  if(!user||!pass){showErr('Enter username and password');return;}
+  var btn=document.getElementById('login-btn');
+  btn.textContent='...';btn.disabled=true;
+  var H={'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'};
+  async function qFetch(table,filter){
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/'+table+'?'+filter+'&limit=1',{headers:H});
+    var d=await r.json();
+    return Array.isArray(d)?d:[];
+  }
+  try{
+    // Client
+    if(selectedRole==='client'){
+      var d=await qFetch('ix_clients_v2','username=eq.'+encodeURIComponent(user));
+      if(d.length&&d[0].portal_password===pass){
+        try{localStorage.setItem('ix_portal_type','client');localStorage.setItem('ix_portal_data',JSON.stringify(d[0]));sessionStorage.setItem('ix_portal_data',JSON.stringify(d[0]));}catch(e){}
+        window.location.href='client.html';return;
+      }
+      showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
+    }
+    // Partner
+    if(['partner','strategic','jv'].includes(selectedRole)){
+      var dp=await qFetch('ix_partners','username=eq.'+encodeURIComponent(user));
+      if(dp.length&&dp[0].portal_password===pass){
+        var recp=dp[0];
+        try{localStorage.setItem('ix_portal_type',recp.partner_type||selectedRole);localStorage.setItem('ix_portal_data',JSON.stringify(recp));sessionStorage.setItem('ix_portal_data',JSON.stringify(recp));}catch(e){}
+        var ptypeMap={success_partner:'success-partner.html',strategic:'strategic-partner.html',jv:'jv-partner.html'};
+        window.location.href=(ptypeMap[recp.partner_type]||'success-partner.html')+'?uid='+recp.id;return;
+      }
+      showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
+    }
+    // Team / Expert / Consultant / Freelancer
+    if(selectedRole==='team'||selectedRole==='expert'||selectedRole==='consultant'||selectedRole==='freelancer'){
+      var ptype=selectedRole==='team'?'employee':selectedRole;
+      var d2=await qFetch('ix_people','username=eq.'+encodeURIComponent(user)+'&person_type=eq.'+ptype);
+      if(!d2.length) d2=await qFetch('ix_people','username=eq.'+encodeURIComponent(user));
+      if(d2.length&&d2[0].portal_password&&d2[0].portal_password.trim()===pass.trim()){
+        var rec2=d2[0];
+        try{localStorage.setItem('ix_portal_type',rec2.person_type||'employee');localStorage.setItem('ix_portal_data',JSON.stringify(rec2));sessionStorage.setItem('ix_portal_data',JSON.stringify(rec2));}catch(e){}
+        var destMap={expert:'expert.html',consultant:'consultant.html',freelancer:'freelancer.html',employee:'team.html'};
+        var dest=destMap[rec2.person_type]||'team.html';
+        window.location.href=dest+'?uid='+rec2.id;return;
+      }
+      showErr('Invalid credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
+    }
+    // Coordinator
+    if(selectedRole==='coordinator'){
+      var dc=await qFetch('ix_people','username=eq.'+encodeURIComponent(user));
+      if(dc.length&&dc[0].portal_password===pass){
+        try{localStorage.setItem('ix_portal_type','coordinator');localStorage.setItem('ix_portal_data',JSON.stringify(dc[0]));sessionStorage.setItem('ix_portal_data',JSON.stringify(dc[0]));}catch(e){}
+        window.location.href='transcript.html';return;
+      }
+      var storedPass=localStorage.getItem('ix_coord_pass')||'coordinator2026';
+      if(pass===storedPass){window.location.href='transcript.html';return;}
+      showErr('Invalid coordinator credentials');btn.textContent='→ Access Portal';btn.disabled=false;return;
+    }
+  }catch(e){
+    showErr('Connection error: '+e.message);
+  }
+  btn.textContent='→ Access Portal';btn.disabled=false;
+}
+
