@@ -5,7 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Intersect · Client Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js">
+async function loadClientMeetings(){
+  var el=document.getElementById('client-meetings-list');if(!el)return;
+  var now=new Date().toISOString().split('T')[0];
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_meetings?date=gte.'+now+'&order=date.asc&limit=10',{
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+    });
+    var items=await r.json();
+    items=Array.isArray(items)?items:[];
+    // Filter to meetings that include this client
+    if(clientData&&clientData.name){
+      items=items.filter(function(m){return !m.attendees||m.attendees.includes(clientData.name)||m.organization==='Intersect Team';});
+    }
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No upcoming meetings</div>';return;}
+    el.innerHTML=items.map(function(m){
+      var calUrl='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(m.title)+'&dates='+m.date.replace(/-/g,'')+'T090000/'+m.date.replace(/-/g,'')+'T100000'+(m.summary?'&details='+encodeURIComponent(m.summary):'');
+      return '<div style="background:var(--card2);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><div style="font-size:14px;font-weight:700;">'+m.title+'</div><span style="font-size:11px;font-weight:700;color:var(--teal);">'+m.date+'</span></div>'
+        +(m.summary?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;">'+m.summary.slice(0,100)+'</div>':'')
+        +'<a href="'+calUrl+'" target="_blank" style="display:inline-block;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">🗓️ Add to My Calendar</a>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;">Error</div>';}
+}
+
+async function requestMeeting(){
+  var subject=document.getElementById('mtg-subject').value.trim();
+  if(!subject){toast('Enter meeting subject','te');return;}
+  var date=document.getElementById('mtg-date').value;
+  var time=document.getElementById('mtg-time').value;
+  var notes=document.getElementById('mtg-notes').value.trim();
+  var clientName=clientData?clientData.name:'Client';
+  try{
+    await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({
+        title:'[Meeting Request] '+subject+' — '+clientName,
+        description:'Preferred: '+(date||'Flexible')+' '+time+(notes?'\n\n'+notes:''),
+        requested_by:clientName,
+        client_name:clientName,
+        assignee_type:'management',
+        status:'Pending',
+        priority:'medium',
+        show_to_client:true,
+        context_type:'meeting_request'
+      })
+    });
+    // Notify management
+    await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:'851323429',text:'📅 Meeting Request from '+clientName+'\n'+subject+(date?' | '+date+' '+time:''),parse_mode:'Markdown'})
+    });
+    ['mtg-subject','mtg-notes'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    var s=document.getElementById('mtg-success');if(s){s.style.display='block';setTimeout(function(){s.style.display='none';},4000);}
+  }catch(e){toast('Error sending request','te');}
+}
+
+</script>
 <style>
 :root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -176,6 +235,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('files',this)">📁 My Files</button>
       <button class="tab" onclick="showTab('marketplace',this)">🛒 Services</button>
       <button class="tab" onclick="showTab('news',this)">📰 News</button>
+      <button class="tab" onclick="showTab('meetings',this)">📅 Meetings</button>
     </div>
 
     <!-- OVERVIEW -->
@@ -1541,6 +1601,7 @@ function showTab(n,el){
   if(n==='my-companies')loadMyCompanies();
   if(n==='my-projects-sp')loadSPAssignments();
   if(n==='jv-overview')loadJVOverview();
+  if(n==='meetings')loadClientMeetings();
 }
 </script>
 </body>

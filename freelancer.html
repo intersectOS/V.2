@@ -92,6 +92,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('ep-profile',this)">👤 My Profile</button>
       <button class="tab" onclick="showTab('ep-attendance',this)">📋 Attendance</button>
       <button class="tab" onclick="showTab('ep-news',this)">📰 News</button>
+      <button class="tab" onclick="showTab('ep-meetings-inv',this)">📅 Meetings</button>
     </div>
 
     <!-- MY TASKS -->
@@ -186,6 +187,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       </div>
     </div>
 
+
+      <!-- MEETINGS INVITES TAB -->
+      <div class="tp" id="tp-ep-meetings-inv">
+        <div class="panel">
+          <div class="ph"><div class="pt">📅 Meeting Invitations</div><button class="btn bbo bsm" onclick="loadMeetingInvites()" style="font-size:10px;">↻</button></div>
+          <div class="pb" id="ep-ep-meeting-invites-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+        </div>
+      </div>
+
     <!-- NEWS -->
     <div class="tp" id="tp-ep-news">
       <div class="panel">
@@ -230,6 +240,7 @@ function showTab(n,el){
   if(n==='ep-marketplace')loadMarketplace();
   if(n==='ep-attendance')loadAttendance();
   if(n==='ep-news')loadNews();
+  if(n==='ep-meetings-inv'){var el2=document.getElementById('tp-ep-meetings-inv');if(el2)el2.classList.add('on');loadMeetingInvites();}
 }
 
 function sendTG(msg){
@@ -410,7 +421,7 @@ async function loadInbox(){
       return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:8px;">'
         +'<div style="display:flex;justify-content:space-between;margin-bottom:5px;"><div style="font-size:13px;font-weight:600;">'+r.title.replace('[Task Support] ','').replace('[Assign Request] ','').replace('[Logistics Request] ','').slice(0,50)+'</div><span class="pill '+(sc[r.status]||'pgr')+'">'+r.status+'</span></div>'
         +(r.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:7px;">'+r.description.slice(0,100)+'</div>':'')
-        +(r.status==='Pending'?'<div style="display:flex;gap:6px;"><button class="btn bsm" style="flex:1;font-size:11px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;" data-id="'+r.id+'" onclick="respondReq(this.dataset.id,'Accepted')">✅ Accept</button><button class="btn bsm" style="flex:1;font-size:11px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+r.id+'" onclick="respondReq(this.dataset.id,'Rejected')">✕ Decline</button></div>':'')
+        +(r.status==='Pending'?'<div style="display:flex;gap:6px;"><button class="btn bsm" style="flex:1;font-size:11px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;" data-id="'+r.id+'" data-st="Accepted" onclick="respondReq(this.dataset.id,this.dataset.st)">✅ Accept</button><button class="btn bsm" style="flex:1;font-size:11px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);" data-id="'+r.id+'" data-st="Rejected" onclick="respondReq(this.dataset.id,this.dataset.st)">✕ Decline</button></div>':'')
         +'<div style="font-size:10px;color:var(--ink3);margin-top:5px;">'+new Date(r.created_at).toLocaleDateString()+'</div>'
       +'</div>';
     }).join('');

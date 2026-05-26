@@ -405,6 +405,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📈</span><span>Reports</span></div>
       <div class="ni" onclick="gp('contracts',this)"><span class="nico">📜</span><span>Contracts</span></div>
       <div class="ni" onclick="gp('attendance',this)"><span class="nico">📋</span><span>Attendance</span></div>
+      <div class="ni" onclick="gp('weekly',this)"><span class="nico">🗓️</span><span>Weekly Meeting</span></div>
       <div class="ni" onclick="gp('catalog',this)"><span class="nico">🛒</span><span>Services Catalog</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📄</span><span data-i="n_reports">Reports</span></div>
       <div class="ni" onclick="gp('invoices',this)"><span class="nico">🧾</span><span data-i="n_inv">Invoices</span></div>
@@ -488,6 +489,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
               <option value="request">Request</option>
               <option value="workflow">Update</option>
               <option value="meeting">Meeting</option>
+              <option value="meeting_request">Meeting Request</option>
             </select>
             <input id="feed-filter-search" class="fi" style="font-size:11px;padding:4px 8px;width:130px;" placeholder="Search..." oninput="renderFeed()">
             <button class="btn bo bsm" style="font-size:10px;" onclick="renderFeed()">↻</button>
@@ -809,6 +811,173 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
     <div class="page" id="page-notifications">
       <div class="sh"><div class="st" data-i="n_notif">Notifications</div><button class="btn bo bsm" onclick="markAllRead()">Mark all read</button></div>
       <div id="notif-page-list"></div>
+    </div>
+
+    <!-- WEEKLY MEETING -->
+    <div class="page" id="page-weekly">
+      <div class="sh">
+        <div class="st">🗓️ Meetings</div>
+        <div style="display:flex;gap:7px;">
+          <button class="btn bg bsm" onclick="showMeetingTab('schedule',this)">📅 Schedule</button>
+          <button class="btn bo bsm" onclick="showMeetingTab('room',this)">🎙️ Meeting Room</button>
+          <button class="btn bo bsm" onclick="showMeetingTab('history',this)">📋 History</button>
+        </div>
+      </div>
+
+      <!-- SCHEDULE TAB -->
+      <div id="mtab-schedule">
+        <div class="g2">
+          <div class="panel">
+            <div class="ph"><div class="ptit">📅 Schedule a Meeting</div></div>
+            <div class="pb">
+              <div class="fg"><label class="fl">Meeting Title *</label><input class="fi" id="sch-title" placeholder="e.g. Weekly Team Meeting"></div>
+              <div class="fgrid">
+                <div class="fg"><label class="fl">Date *</label><input class="fi" type="date" id="sch-date"></div>
+                <div class="fg"><label class="fl">Time *</label><input class="fi" type="time" id="sch-time" value="09:00"></div>
+              </div>
+              <div class="fgrid">
+                <div class="fg"><label class="fl">Duration</label>
+                  <select class="fs" id="sch-dur">
+                    <option value="30">30 min</option>
+                    <option value="60" selected>1 hour</option>
+                    <option value="90">1.5 hours</option>
+                    <option value="120">2 hours</option>
+                  </select>
+                </div>
+                <div class="fg"><label class="fl">Type</label>
+                  <select class="fs" id="sch-type">
+                    <option value="weekly">📅 Weekly</option>
+                    <option value="monthly">📆 Monthly</option>
+                    <option value="client">🏢 Client Meeting</option>
+                    <option value="board">🏛️ Board Meeting</option>
+                    <option value="other">📋 Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fg"><label class="fl">Notes / Agenda</label><textarea class="fta" id="sch-notes" placeholder="Meeting agenda or notes..."></textarea></div>
+
+              <!-- Invitees -->
+              <div class="fg"><label class="fl">Invite</label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+                  <button class="btn bo bsm" onclick="selectInvitees('all')">👥 All Team</button>
+                  <button class="btn bo bsm" onclick="selectInvitees('employees')">🏢 Employees</button>
+                  <button class="btn bo bsm" onclick="selectInvitees('experts')">🌟 Experts</button>
+                  <button class="btn bo bsm" onclick="selectInvitees('clients')">🏢 Clients</button>
+                  <button class="btn bo bsm" onclick="selectInvitees('none')">✕ Clear</button>
+                </div>
+                <div id="sch-invitees" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:160px;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:4px;"></div>
+              </div>
+
+              <div style="display:flex;gap:8px;">
+                <button class="btn bbg" style="flex:1;" onclick="scheduleMeeting()">📤 Send Invites + Calendar</button>
+              </div>
+              <div id="sch-success" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:12px;color:#22c55e;text-align:center;">✅ Invites sent!</div>
+
+              <!-- Calendar link preview -->
+              <div id="sch-cal-link" style="display:none;margin-top:10px;background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.2);border-radius:8px;padding:10px;">
+                <div style="font-size:11px;color:var(--teal);font-weight:700;margin-bottom:6px;">🗓️ Google Calendar Link</div>
+                <div style="display:flex;gap:6px;">
+                  <input class="fi" id="sch-cal-url" dir="ltr" readonly style="flex:1;font-size:11px;">
+                  <button class="btn bbg bsm" onclick="window.open(document.getElementById('sch-cal-url').value,'_blank')">Open</button>
+                  <button class="btn bo bsm" onclick="navigator.clipboard.writeText(document.getElementById('sch-cal-url').value);toast('Copied!','success')">Copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upcoming meetings -->
+          <div class="panel">
+            <div class="ph"><div class="ptit">📋 Upcoming Meetings</div><button class="btn bo bsm" onclick="loadScheduledMeetings()" style="font-size:10px;">↻</button></div>
+            <div class="pb" id="scheduled-meetings-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEETING ROOM TAB -->
+      <div id="mtab-room" style="display:none;">
+        <div style="background:linear-gradient(135deg,rgba(124,58,237,.07),rgba(59,130,246,.04));border:1px solid rgba(124,58,237,.18);border-radius:13px;padding:15px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div style="font-family:Syne;font-size:16px;font-weight:800;" id="room-title">🎙️ Meeting Room</div>
+            <div style="font-size:12px;color:var(--ink3);" id="room-date"></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div id="room-timer" style="font-family:Syne;font-size:22px;font-weight:800;color:var(--teal);">00:00</div>
+            <button class="btn bg bsm" id="room-timer-btn" onclick="toggleRoomTimer()">▶ Start</button>
+            <button class="btn bo bsm" onclick="exportMinutes()">📄 Export</button>
+          </div>
+        </div>
+
+        <div class="g2">
+          <!-- LEFT: Person selector -->
+          <div>
+            <div class="panel">
+              <div class="ph"><div class="ptit">👤 Select Person</div></div>
+              <div class="pb">
+                <select class="fs" id="room-person-sel" onchange="loadPersonData(this.value)">
+                  <option value="">— Select team member —</option>
+                </select>
+                <div style="display:flex;gap:6px;margin-top:8px;">
+                  <button class="btn bo bsm" onclick="prevPerson()" style="flex:1;">◀ Prev</button>
+                  <button class="btn bbg bsm" onclick="nextPerson()" style="flex:1;">Next ▶</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Person data -->
+            <div id="room-person-data" style="display:none;">
+              <div class="panel">
+                <div class="ph"><div class="ptit" id="room-person-name">—</div><span id="room-person-badge" class="pill pgr">—</span></div>
+                <div class="pb">
+                  <!-- Tasks -->
+                  <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;">📌 Tasks</div>
+                  <div id="room-tasks" style="margin-bottom:12px;"></div>
+                  <!-- Clients -->
+                  <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;">🏢 Clients</div>
+                  <div id="room-clients" style="margin-bottom:12px;"></div>
+                  <!-- Requests -->
+                  <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px;">📋 Pending Requests</div>
+                  <div id="room-requests"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Notes + Action Items -->
+          <div>
+            <div class="panel">
+              <div class="ph"><div class="ptit">📝 Discussion Notes</div></div>
+              <div class="pb">
+                <textarea class="fta" id="room-notes" style="min-height:120px;" placeholder="Notes for current person..."></textarea>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="ph">
+                <div class="ptit">✅ Action Items</div>
+                <button class="btn bo bsm" onclick="addRoomAction()" style="font-size:10px;">+ Add</button>
+              </div>
+              <div class="pb" id="room-actions-list"></div>
+              <div class="pb" style="padding-top:0;">
+                <button class="btn bbg bw" style="font-size:12px;" onclick="savePersonActions()">💾 Save & Next Person</button>
+              </div>
+            </div>
+
+            <!-- All actions summary -->
+            <div class="panel">
+              <div class="ph"><div class="ptit">📋 All Action Items</div></div>
+              <div class="pb" id="room-all-actions" style="max-height:200px;overflow-y:auto;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY TAB -->
+      <div id="mtab-history" style="display:none;">
+        <div class="panel">
+          <div class="ph"><div class="ptit">📋 Meeting History</div><button class="btn bo bsm" onclick="loadMeetingHistory()" style="font-size:10px;">↻</button></div>
+          <div class="pb" id="meeting-history-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+        </div>
+      </div>
     </div>
 
     <!-- SETTINGS -->
@@ -1585,6 +1754,386 @@ function setLang(l){
   if(m){m.style.marginLeft=rtl?'0':'var(--sidebar)'; m.style.marginRight=rtl?'var(--sidebar)':'0';}
 }
 
+
+// ── WEEKLY MEETING ──
+var _roomTimer=null, _roomSeconds=0, _roomRunning=false;
+var _roomPeople=[], _roomCurrentIdx=0, _roomAllActions=[];
+var _meetingData={title:'',date:'',notes:''};
+
+function showMeetingTab(tab, el){
+  ['schedule','room','history'].forEach(function(t){
+    var el2=document.getElementById('mtab-'+t);
+    if(el2)el2.style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('#page-weekly .sh button').forEach(function(b){b.classList.remove('bg');b.classList.add('bo');});
+  if(el){el.classList.remove('bo');el.classList.add('bg');}
+  if(tab==='schedule'){loadScheduledMeetings();loadInviteesList();}
+  if(tab==='room'){initMeetingRoom();}
+  if(tab==='history'){loadMeetingHistory();}
+}
+
+// ── SCHEDULE ──
+async function loadInviteesList(){
+  var el=document.getElementById('sch-invitees');if(!el)return;
+  var people=APeople.length?APeople:[];
+  if(!people.length&&sb){var r=await sb.from('ix_people').select('id,name,role,person_type,telegram_chat_id');people=r.data||[];}
+  // Team section
+  var html='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:5px;grid-column:span 2;">👥 Team</div>';
+  html+=people.map(function(p){
+    return '<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:3px;">'
+      +'<input type="checkbox" class="inv-cb" value="'+p.id+'" data-name="'+p.name+'" data-tg="'+(p.telegram_chat_id||'')+'" data-type="'+(p.person_type||'employee')+'" style="width:13px;height:13px;"> '
+      +p.name+(p.role?' <span style="color:var(--ink3);font-size:10px;">· '+p.role+'</span>':'')
+    +'</label>';
+  }).join('');
+  // Clients section
+  if(AC.length){
+    html+='<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;margin:8px 0 5px;grid-column:span 2;">🏢 Clients</div>';
+    html+=AC.filter(function(c){return c.stage!=='COMPLETED'&&c.stage!=='ON HOLD';}).map(function(c){
+      return '<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:3px;">'
+        +'<input type="checkbox" class="inv-cb" value="'+c.id+'" data-name="'+c.name+'" data-tg="'+(c.telegram_chat_id||'')+'" data-type="client" style="width:13px;height:13px;"> '
+        +'<span style="color:var(--gold);">'+c.name+'</span>'
+      +'</label>';
+    }).join('');
+  }
+  el.innerHTML=html;
+}
+
+function selectInvitees(type){
+  document.querySelectorAll('.inv-cb').forEach(function(cb){
+    if(type==='all')cb.checked=true;
+    else if(type==='none')cb.checked=false;
+    else if(type==='employees')cb.checked=cb.dataset.type==='employee';
+    else if(type==='experts')cb.checked=cb.dataset.type==='expert'||cb.dataset.type==='consultant';
+    else if(type==='clients')cb.checked=cb.dataset.type==='client';
+    else if(type==='team')cb.checked=cb.dataset.type!=='client';
+  });
+}
+
+function genCalendarUrl(title,date,time,durMin,notes){
+  var start=date.replace(/-/g,'')+'T'+time.replace(':','')+'00';
+  var d=new Date(date+'T'+time);
+  d.setMinutes(d.getMinutes()+parseInt(durMin));
+  var endH=String(d.getHours()).padStart(2,'0');
+  var endM=String(d.getMinutes()).padStart(2,'0');
+  var end=date.replace(/-/g,'')+'T'+endH+endM+'00';
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+    +'&text='+encodeURIComponent(title)
+    +'&dates='+start+'/'+end
+    +(notes?'&details='+encodeURIComponent(notes):'')
+    +'&location=Intersect+HQ';
+}
+
+async function scheduleMeeting(){
+  var title=document.getElementById('sch-title').value.trim();
+  var date=document.getElementById('sch-date').value;
+  var time=document.getElementById('sch-time').value;
+  var dur=document.getElementById('sch-dur').value;
+  var notes=document.getElementById('sch-notes').value.trim();
+  if(!title||!date||!time){toast('Fill title, date and time','error');return;}
+
+  // Generate calendar URL
+  var calUrl=genCalendarUrl(title,date,time,dur,notes);
+  var calEl=document.getElementById('sch-cal-link');
+  var calUrlEl=document.getElementById('sch-cal-url');
+  if(calEl)calEl.style.display='block';
+  if(calUrlEl)calUrlEl.value=calUrl;
+
+  // Get selected invitees
+  var invitees=[];
+  document.querySelectorAll('.inv-cb:checked').forEach(function(cb){
+    invitees.push({id:cb.value,name:cb.dataset.name,tg:cb.dataset.tg});
+  });
+
+  // Save meeting to DB
+  try{
+    if(sb){
+      await sb.from('ix_meetings').insert({
+        title:title,
+        organization:'Intersect Team',
+        date:date,
+        meeting_type:document.getElementById('sch-type').value,
+        summary:notes||null,
+        attendees:invitees.map(function(x){return x.name;}).join(', '),
+        logged_by:'Management'
+      });
+    }
+  }catch(e){}
+
+  // Send Telegram to each invitee
+  var tgMsg='Meeting Invitation: *'+title+'*'+'\n'+'Date: '+date+' '+time+(notes?'\n'+notes.slice(0,100):'')+('\n'+'Calendar: '+calUrl);
+  var sent=0;
+  for(var i=0;i<invitees.length;i++){
+    if(invitees[i].tg){
+      try{
+        await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({chat_id:invitees[i].tg,text:tgMsg,parse_mode:'Markdown'})
+        });
+        sent++;
+      }catch(e){}
+    }
+  }
+  // Also notify management
+  tgNotif('📅','Meeting Scheduled',title+' | '+date+' '+time+' | '+invitees.length+' invited');
+
+  var s=document.getElementById('sch-success');
+  if(s){s.textContent='✅ Meeting saved! '+sent+' Telegram notifications sent. Share calendar link with team.';s.style.display='block';setTimeout(function(){s.style.display='none';},5000);}
+  toast('✅ Meeting scheduled!','success');
+  loadScheduledMeetings();
+}
+
+async function loadScheduledMeetings(){
+  var el=document.getElementById('scheduled-meetings-list');if(!el)return;
+  try{
+    var r=await sb.from('ix_meetings').select('*').order('date',{ascending:true}).limit(20);
+    var items=r.data||[];
+    var now=new Date().toISOString().split('T')[0];
+    var upcoming=items.filter(function(m){return m.date>=now;});
+    var past=items.filter(function(m){return m.date<now;}).slice(0,5);
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No meetings yet</div>';return;}
+    var html='';
+    if(upcoming.length){
+      html+='<div style="font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">Upcoming</div>';
+      upcoming.forEach(function(m){
+        var calUrl=genCalendarUrl(m.title,m.date,'09:00',60,m.summary);
+        html+='<div style="background:var(--card2);border:1px solid rgba(6,182,212,.2);border-radius:9px;padding:11px;margin-bottom:7px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
+            +'<div style="font-size:13px;font-weight:700;">'+m.title+'</div>'
+            +'<span style="font-size:10px;color:var(--teal);font-weight:700;">'+m.date+'</span>'
+          +'</div>'
+          +(m.attendees?'<div style="font-size:11px;color:var(--ink3);margin-bottom:6px;">👥 '+m.attendees.slice(0,60)+'</div>':'')
+          +'<a href="'+calUrl+'" target="_blank" style="font-size:11px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);padding:3px 10px;border-radius:6px;text-decoration:none;">🗓️ Add to Calendar</a>'
+        +'</div>';
+      });
+    }
+    if(past.length){
+      html+='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin:12px 0 8px;">Recent</div>';
+      past.forEach(function(m){
+        html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:6px;opacity:.7;">'
+          +'<div style="font-size:12px;font-weight:600;">'+m.title+'</div>'
+          +'<div style="font-size:11px;color:var(--ink3);">'+m.date+(m.attendees?' · '+m.attendees.slice(0,40):'')+'</div>'
+        +'</div>';
+      });
+    }
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;">Error loading</div>';}
+}
+
+// ── MEETING ROOM ──
+function toggleRoomTimer(){
+  if(_roomRunning){
+    clearInterval(_roomTimer);_roomRunning=false;
+    document.getElementById('room-timer-btn').textContent='▶ Resume';
+  } else {
+    _roomRunning=true;
+    document.getElementById('room-timer-btn').textContent='⏸ Pause';
+    _roomTimer=setInterval(function(){
+      _roomSeconds++;
+      var m=Math.floor(_roomSeconds/60),s=_roomSeconds%60;
+      document.getElementById('room-timer').textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+    },1000);
+  }
+}
+
+async function initMeetingRoom(){
+  var d=new Date();
+  var dateEl=document.getElementById('room-date');
+  if(dateEl)dateEl.textContent=d.toLocaleDateString('en',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Load people
+  var people=APeople.length?APeople:[];
+  if(!people.length&&sb){var r=await sb.from('ix_people').select('*').order('name');people=r.data||[];}
+  _roomPeople=people;
+  _roomCurrentIdx=0;
+  _roomAllActions=[];
+  var sel=document.getElementById('room-person-sel');
+  if(sel){
+    sel.innerHTML='<option value="">— Select team member —</option>'+people.map(function(p,i){return '<option value="'+i+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+  }
+  renderRoomAllActions();
+}
+
+function loadPersonData(idx){
+  if(idx==='')return;
+  _roomCurrentIdx=parseInt(idx);
+  var p=_roomPeople[_roomCurrentIdx];
+  if(!p)return;
+  // Save previous person notes if any
+  var pd=document.getElementById('room-person-data');
+  if(pd)pd.style.display='block';
+  var nameEl=document.getElementById('room-person-name');
+  var badgeEl=document.getElementById('room-person-badge');
+  var typeC={employee:'ptl',expert:'pg',consultant:'pgo',freelancer:'pp'};
+  if(nameEl)nameEl.textContent=p.name;
+  if(badgeEl){badgeEl.textContent=p.person_type||'Team';badgeEl.className='pill '+(typeC[p.person_type]||'pgr');}
+  // Clear notes and actions for this person
+  var notesEl=document.getElementById('room-notes');
+  if(notesEl)notesEl.value='';
+  document.getElementById('room-actions-list').innerHTML='';
+  // Load data
+  loadPersonTasks(p.name);
+  loadPersonClients(p.name);
+  loadPersonRequests(p.name);
+}
+
+async function loadPersonTasks(name){
+  var el=document.getElementById('room-tasks');if(!el)return;
+  try{
+    var r=await sb.from('ix_subtasks').select('*,ix_tasks(title,client_name,status,deadline)').eq('assignee_name',name).neq('status','Done');
+    var subs=r.data||[];
+    var rf=await sb.from('ix_tasks').select('*').eq('focal_point_name',name).neq('status','Done');
+    var focal=rf.data||[];
+    if(!subs.length&&!focal.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No active tasks</div>';return;}
+    var sc={'To Do':'pgo','In Progress':'ptl','Done':'pg'};
+    var html='';
+    focal.forEach(function(t){html+='<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:7px 9px;margin-bottom:5px;"><div style="font-size:12px;font-weight:600;">⭐ '+t.title+'</div><div style="font-size:10px;color:var(--gold);">Focal Point'+(t.deadline?' · '+t.deadline:'')+'</div></div>';});
+    subs.forEach(function(s){var t=s.ix_tasks||{};html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 9px;margin-bottom:5px;"><div style="font-size:12px;font-weight:600;">'+s.title+'</div><div style="font-size:10px;color:var(--ink3);">'+(t.title||'')+(t.client_name?' · '+t.client_name:'')+'</div></div>';});
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="font-size:12px;color:var(--red);">Error</div>';}
+}
+
+async function loadPersonClients(name){
+  var el=document.getElementById('room-clients');if(!el)return;
+  try{
+    var clients=AC.filter(function(c){return c.main_am_name===name||( c.assistant_ams&&c.assistant_ams.includes(name));});
+    if(!clients.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No clients assigned</div>';return;}
+    var stgC={'OPEN':'#6b7280','INITIATION':'#3b82f6','ACTIVE NEGOTIATIONS':'#8b5cf6','MOU':'#06b6d4','EXECUTION':'#22c55e','COMPLETED':'#22c55e','ON HOLD':'#6b7280'};
+    el.innerHTML=clients.map(function(c){var sc=stgC[c.stage]||'#6b7280';return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 9px;background:var(--card2);border:1px solid var(--border);border-radius:7px;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">'+c.name+'</div><span style="font-size:9px;padding:2px 7px;border-radius:20px;background:'+sc+'22;color:'+sc+';">'+c.stage+'</span></div>';}).join('');
+  }catch(e){el.innerHTML='<div style="font-size:12px;color:var(--red);">Error</div>';}
+}
+
+async function loadPersonRequests(name){
+  var el=document.getElementById('room-requests');if(!el)return;
+  try{
+    var r=await sb.from('ix_requests').select('*').eq('assignee_name',name).eq('status','Pending').limit(5);
+    var items=r.data||[];
+    if(!items.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No pending requests</div>';return;}
+    el.innerHTML=items.map(function(r){return '<div style="font-size:12px;padding:6px 9px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:7px;margin-bottom:4px;">'+r.title.slice(0,60)+'</div>';}).join('');
+  }catch(e){}
+}
+
+function addRoomAction(){
+  var p=_roomPeople[_roomCurrentIdx];
+  var el=document.getElementById('room-actions-list');if(!el||!p)return;
+  var row=document.createElement('div');
+  row.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center;';
+  row.innerHTML='<input class="fi" placeholder="Action item..." style="flex:1;font-size:12px;">'
+    +'<button style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;" onclick="this.parentElement.remove()">✕</button>';
+  el.appendChild(row);
+}
+
+async function savePersonActions(){
+  var p=_roomPeople[_roomCurrentIdx];if(!p)return;
+  var notes=document.getElementById('room-notes').value.trim();
+  var actions=[];
+  document.querySelectorAll('#room-actions-list input').forEach(function(inp){if(inp.value.trim())actions.push(inp.value.trim());});
+  // Save actions to DB and send Telegram
+  for(var i=0;i<actions.length;i++){
+    var act=actions[i];
+    try{
+      if(sb){
+        await sb.from('ix_actions').insert({title:act,assignee:p.name,priority:'medium',done:false});
+      }
+      // Notify via Telegram
+      if(p.telegram_chat_id){
+        await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({chat_id:p.telegram_chat_id,text:'Action Item from Meeting: '+act,parse_mode:'Markdown'})
+        });
+      }
+    }catch(e){}
+    _roomAllActions.push({person:p.name,action:act,notes:notes});
+  }
+  // Save to minutes
+  _roomAllActions.push({person:p.name,action:'__notes__',notes:notes});
+  renderRoomAllActions();
+  // Move to next
+  nextPerson();
+  toast('✅ Saved! Moving to next person.','success');
+}
+
+function nextPerson(){
+  if(_roomCurrentIdx<_roomPeople.length-1){
+    _roomCurrentIdx++;
+    var sel=document.getElementById('room-person-sel');
+    if(sel)sel.value=_roomCurrentIdx;
+    loadPersonData(_roomCurrentIdx);
+  } else {
+    toast('All done! Click Export to get minutes.','success');
+  }
+}
+
+function prevPerson(){
+  if(_roomCurrentIdx>0){
+    _roomCurrentIdx--;
+    var sel=document.getElementById('room-person-sel');
+    if(sel)sel.value=_roomCurrentIdx;
+    loadPersonData(_roomCurrentIdx);
+  }
+}
+
+function renderRoomAllActions(){
+  var el=document.getElementById('room-all-actions');if(!el)return;
+  var byPerson={};
+  _roomAllActions.forEach(function(a){
+    if(a.action==='__notes__'){if(!byPerson[a.person])byPerson[a.person]={notes:'',actions:[]};byPerson[a.person].notes=a.notes;return;}
+    if(!byPerson[a.person])byPerson[a.person]={notes:'',actions:[]};
+    byPerson[a.person].actions.push(a.action);
+  });
+  if(!Object.keys(byPerson).length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:12px;">No action items yet</div>';return;}
+  el.innerHTML=Object.keys(byPerson).map(function(name){
+    var d=byPerson[name];
+    return '<div style="margin-bottom:10px;"><div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:4px;">'+name+'</div>'
+      +(d.notes?'<div style="font-size:11px;color:var(--ink2);margin-bottom:4px;font-style:italic;">'+d.notes.slice(0,80)+'</div>':'')
+      +d.actions.map(function(a){return '<div style="font-size:12px;padding:4px 8px;background:var(--card2);border-radius:5px;margin-bottom:3px;">▸ '+a+'</div>';}).join('')
+    +'</div>';
+  }).join('');
+}
+
+function exportMinutes(){
+  var date=new Date().toLocaleDateString('en',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  var timer=document.getElementById('room-timer').textContent;
+  var byPerson={};
+  _roomAllActions.forEach(function(a){
+    if(!byPerson[a.person])byPerson[a.person]={notes:'',actions:[]};
+    if(a.action==='__notes__')byPerson[a.person].notes=a.notes;
+    else byPerson[a.person].actions.push(a.action);
+  });
+  var lines=['INTERSECT - MEETING MINUTES','Date: '+date,'Duration: '+timer,'',''];
+  Object.keys(byPerson).forEach(function(name){
+    var d=byPerson[name];
+    lines.push('[ '+name+' ]');
+    if(d.notes)lines.push('Notes: '+d.notes);
+    if(d.actions.length){lines.push('Action Items:');d.actions.forEach(function(a){lines.push('  - '+a);});}
+    lines.push('');
+  });
+  var blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='minutes-'+new Date().toISOString().split('T')[0]+'.txt';
+  a.click();
+  toast('Minutes exported!','success');
+}
+
+async function loadMeetingHistory(){
+  var el=document.getElementById('meeting-history-list');if(!el)return;
+  try{
+    var r=await sb.from('ix_meetings').select('*').order('date',{ascending:false}).limit(30);
+    var items=r.data||[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No meetings yet</div>';return;}
+    el.innerHTML=items.map(function(m){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
+          +'<div style="font-size:13px;font-weight:700;">'+m.title+'</div>'
+          +'<span style="font-size:11px;color:var(--ink3);">'+m.date+'</span>'
+        +'</div>'
+        +(m.attendees?'<div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">👥 '+m.attendees.slice(0,80)+'</div>':'')
+        +(m.summary?'<div style="font-size:12px;color:var(--ink2);">'+m.summary.slice(0,100)+'</div>':'')
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;">Error</div>';}
+}
+
+
 window.addEventListener('DOMContentLoaded',function(){
   if(!gs(PK,''))ss(PK,'intersect2026');
   ss('ix_sb_url',SB_URL_HC); ss('ix_sb_key',SB_KEY_HC);
@@ -1654,6 +2203,7 @@ function gp(n,el){
     catalog:loadCatalog,
     partners:function(){if(sb){sb.from('ix_partners').select('*').order('created_at',{ascending:false}).then(function(r){if(!r.error){APartners=r.data||[];renderPartners();}});}else{renderPartners();}},
     attendance:loadAttendance,
+    weekly:function(){initWeeklyPage();},
     settings:function(){
       var k=document.getElementById('claude-key');
       if(k){var saved=localStorage.getItem('ix_claude_key');k.placeholder=saved?'••••••••• (saved)':'sk-ant-...';}
@@ -1804,7 +2354,7 @@ function renderFeed(){
   // ── REQUESTS (all statuses) ──
   if(!filterType||filterType==='request'){
     ARequests.slice(0,15).forEach(function(r){
-      var icon=r.status==='Completed'?'🔒':r.status==='Done - Pending Confirmation'?'⏳':r.status==='Accepted'?'✅':r.status==='Rejected'?'❌':r.context_type==='client_referral'?'🏭':r.context_type==='service_inquiry'?'🛒':r.context_type==='team_service_request'?'🛒':r.assignee_type==='management'?'🏛️':'📋';
+      var icon=r.status==='Completed'?'🔒':r.status==='Done - Pending Confirmation'?'⏳':r.status==='Accepted'?'✅':r.status==='Rejected'?'❌':r.context_type==='meeting_request'?'📅':r.context_type==='client_referral'?'🏭':r.context_type==='service_inquiry'?'🛒':r.context_type==='team_service_request'?'🛒':r.assignee_type==='management'?'🏛️':'📋';
       var statusColor=r.status==='Completed'?'#22c55e':r.status==='Done - Pending Confirmation'?'var(--gold)':r.status==='Accepted'?'#10b981':r.status==='Rejected'?'var(--red)':'#a78bfa';
       var cleanTitle=r.title.replace('[Team Request] ','').replace('[Project Help] ','').replace('[Client Help] ','').replace('[Service Inquiry] ','').replace('[SP Update] ','').replace('[JV Update] ','');
       items.push({d:r.updated_at||r.created_at,i:icon,x:cleanTitle,sub:r.status+(r.client_name?' · '+r.client_name:'')+(r.requested_by?' · by '+r.requested_by:'')+(r.replied_by?' → replied by '+r.replied_by:''),c:statusColor,type:'request',ref:(r.client_name||'')+'|'+(r.requested_by||'')});

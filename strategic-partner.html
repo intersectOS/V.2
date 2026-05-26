@@ -28,6 +28,7 @@
     <button class="tab" onclick="showTab('stp-updates',this)">🔄 Updates</button>
     <button class="tab" onclick="showTab('stp-requests',this)">📋 Requests</button>
     <button class="tab" onclick="showTab('stp-news',this)">📰 News</button>
+    <button class="tab" onclick="showTab('meeting-invites',this)">📅 Meetings</button>
   </div>
 
   <div class="tp on" id="tp-stp-overview">
@@ -66,6 +67,13 @@
       <div class="pb" id="stp-news-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
     </div>
   </div>
+
+      <div class="tp" id="tp-meeting-invites">
+        <div class="panel">
+          <div class="ph"><div class="pt">📅 Meeting Invitations</div><button class="btn bbo bsm" onclick="loadMeetingInvites()" style="font-size:10px;">↻</button></div>
+          <div class="pb" id="meeting-invites-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+        </div>
+      </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -76,7 +84,8 @@ try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
 function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
 function doLogout(){try{localStorage.removeItem('ix_portal_data');sessionStorage.removeItem('ix_portal_data');}catch(e){}window.location.href='portal.html';}
 function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.style.background=type==='ts'?'rgba(34,197,94,.9)':type==='te'?'rgba(239,68,68,.9)':'rgba(124,58,237,.9)';t.style.color='#fff';t.style.opacity='1';setTimeout(function(){t.style.opacity='0';},3000);}
-function showTab(n,el){document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});var tp=document.getElementById('tp-'+n);if(tp)tp.classList.add('on');if(el)el.classList.add('on');if(n==='stp-assignments')loadAssignments();if(n==='stp-requests')loadRequests();if(n==='stp-news')loadNews();}
+function showTab(n,el){
+  if(n==='meeting-invites')loadMeetingInvites();document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});var tp=document.getElementById('tp-'+n);if(tp)tp.classList.add('on');if(el)el.classList.add('on');if(n==='stp-assignments')loadAssignments();if(n==='stp-requests')loadRequests();if(n==='stp-news')loadNews();}
 function sendTG(msg){fetch('https://api.telegram.org/bot'+TG_TOKEN+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_MGMT,text:msg,parse_mode:'Markdown'})}).catch(function(){});}
 document.addEventListener('DOMContentLoaded',function(){var stored=null;try{stored=localStorage.getItem('ix_portal_data');}catch(e){}if(!stored){try{stored=sessionStorage.getItem('ix_portal_data');}catch(e){}}if(!stored){return showError();}try{partnerData=JSON.parse(stored);if(!partnerData||!partnerData.name)return showError();render();}catch(e){showError();}});
 function render(){

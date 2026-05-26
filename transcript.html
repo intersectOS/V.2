@@ -95,6 +95,144 @@ window.addEventListener('unhandledrejection',function(e){
   var el=document.getElementById('err-display');
   if(el){el.textContent='PROMISE ERROR: '+(e.reason||e);el.style.display='block';}
 });
+
+async function loadMeetingInvites(){
+  var el=document.getElementById('meeting-invites-list');if(!el)return;
+  var now=new Date().toISOString().split('T')[0];
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_meetings?date=gte.'+now+'&order=date.asc&limit=10',{
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+    });
+    var items=await r.json();
+    items=Array.isArray(items)?items:[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No upcoming meetings</div>';return;}
+    el.innerHTML=items.map(function(m){
+      var calUrl='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(m.title)+'&dates='+m.date.replace(/-/g,'')+'T090000/'+m.date.replace(/-/g,'')+'T100000'+(m.summary?'&details='+encodeURIComponent(m.summary):'');
+      return '<div style="background:var(--card2);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><div style="font-size:14px;font-weight:700;">'+m.title+'</div><span style="font-size:11px;font-weight:700;color:var(--teal);">'+m.date+'</span></div>'
+        +(m.summary?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;">'+m.summary.slice(0,100)+'</div>':'')
+        +'<a href="'+calUrl+'" target="_blank" style="display:inline-block;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">🗓️ Add to My Calendar</a>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;">Error</div>';}
+}
+
+
+var _trTimer=null,_trSeconds=0,_trRunning=false;
+var _trPeople=[],_trIdx=0,_trActions=[];
+
+function toggleMeetingRoom(){
+  var el=document.getElementById('tr-meeting-room');
+  if(!el)return;
+  if(el.style.display==='none'){el.style.display='block';initTrRoom();}
+  else el.style.display='none';
+}
+
+function toggleTrTimer(){
+  if(_trRunning){clearInterval(_trTimer);_trRunning=false;document.getElementById('tr-timer-btn').textContent='▶ Resume';}
+  else{_trRunning=true;document.getElementById('tr-timer-btn').textContent='⏸ Pause';_trTimer=setInterval(function(){_trSeconds++;var m=Math.floor(_trSeconds/60),s=_trSeconds%60;document.getElementById('tr-timer').textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;},1000);}
+}
+
+async function initTrRoom(){
+  var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_people?select=id,name,role,person_type,telegram_chat_id&order=name',{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}});
+  var people=await r.json();
+  _trPeople=Array.isArray(people)?people:[];
+  _trIdx=0;_trActions=[];
+  var sel=document.getElementById('tr-person-sel');
+  if(sel)sel.innerHTML='<option value="">— Select —</option>'+_trPeople.map(function(p,i){return '<option value="'+i+'">'+p.name+(p.role?' · '+p.role:'')+'</option>';}).join('');
+  renderTrAllActions();
+}
+
+function loadTrPersonData(idx){
+  if(idx==='')return;
+  _trIdx=parseInt(idx);
+  var p=_trPeople[_trIdx];if(!p)return;
+  document.getElementById('tr-person-data').style.display='block';
+  document.getElementById('tr-notes').value='';
+  document.getElementById('tr-actions-list').innerHTML='';
+  loadTrTasks(p.name);loadTrClients(p.name);loadTrRequests(p.name);
+}
+
+async function loadTrTasks(name){
+  var el=document.getElementById('tr-tasks');if(!el)return;
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_subtasks?assignee_name=eq.'+encodeURIComponent(name),{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}});
+    var subs=await r.json();subs=Array.isArray(subs)?subs.filter(function(s){return s.status!=='Done';}):[];
+    var r2=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_tasks?focal_point_name=eq.'+encodeURIComponent(name)+'&status=neq.Done',{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}});
+    var focal=await r2.json();focal=Array.isArray(focal)?focal:[];
+    if(!subs.length&&!focal.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No active tasks</div>';return;}
+    el.innerHTML=focal.map(function(t){return '<div style="font-size:12px;font-weight:600;padding:5px 8px;background:rgba(245,158,11,.06);border-radius:6px;margin-bottom:3px;">⭐ '+t.title+'</div>';}).join('')+subs.map(function(s){return '<div style="font-size:12px;padding:5px 8px;background:var(--card2);border-radius:6px;margin-bottom:3px;">'+s.title+'</div>';}).join('');
+  }catch(e){el.innerHTML='<div style="font-size:12px;color:var(--red);">Error</div>';}
+}
+
+async function loadTrClients(name){
+  var el=document.getElementById('tr-clients');if(!el)return;
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_clients_v2?main_am_name=eq.'+encodeURIComponent(name),{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}});
+    var clients=await r.json();clients=Array.isArray(clients)?clients:[];
+    if(!clients.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No clients</div>';return;}
+    el.innerHTML=clients.map(function(c){return '<div style="font-size:12px;font-weight:600;padding:5px 8px;background:var(--card2);border-radius:6px;margin-bottom:3px;">'+c.name+' · <span style="color:var(--ink3);">'+c.stage+'</span></div>';}).join('');
+  }catch(e){}
+}
+
+async function loadTrRequests(name){
+  var el=document.getElementById('tr-requests');if(!el)return;
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_requests?assignee_name=eq.'+encodeURIComponent(name)+'&status=eq.Pending&limit=5',{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}});
+    var items=await r.json();items=Array.isArray(items)?items:[];
+    if(!items.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No pending</div>';return;}
+    el.innerHTML=items.map(function(r){return '<div style="font-size:12px;padding:5px 8px;background:rgba(245,158,11,.06);border-radius:6px;margin-bottom:3px;">'+r.title.slice(0,50)+'</div>';}).join('');
+  }catch(e){}
+}
+
+function addTrAction(){
+  var el=document.getElementById('tr-actions-list');if(!el)return;
+  var row=document.createElement('div');
+  row.style.cssText='display:flex;gap:5px;margin-bottom:5px;';
+  row.innerHTML='<input style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--ink);font-family:inherit;font-size:12px;" placeholder="Action item...">'
+    +'<button style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;" onclick="this.parentElement.remove()">✕</button>';
+  el.appendChild(row);
+}
+
+async function saveTrPersonActions(){
+  var p=_trPeople[_trIdx];if(!p)return;
+  var notes=document.getElementById('tr-notes').value.trim();
+  var actions=[];
+  document.querySelectorAll('#tr-actions-list input').forEach(function(inp){if(inp.value.trim())actions.push(inp.value.trim());});
+  for(var i=0;i<actions.length;i++){
+    try{
+      await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_actions',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({title:actions[i],assignee:p.name,priority:'medium',done:false})});
+      if(p.telegram_chat_id){await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:p.telegram_chat_id,text:'Action Item: '+actions[i],parse_mode:'Markdown'})});}
+    }catch(e){}
+    _trActions.push({person:p.name,action:actions[i],notes:notes});
+  }
+  if(notes)_trActions.push({person:p.name,action:'__notes__',notes:notes});
+  renderTrAllActions();
+  trNextPerson();
+}
+
+function trNextPerson(){if(_trIdx<_trPeople.length-1){_trIdx++;document.getElementById('tr-person-sel').value=_trIdx;loadTrPersonData(_trIdx);}else{alert('All done! Click Export.');}}
+function trPrevPerson(){if(_trIdx>0){_trIdx--;document.getElementById('tr-person-sel').value=_trIdx;loadTrPersonData(_trIdx);}}
+
+function renderTrAllActions(){
+  var el=document.getElementById('tr-all-actions');if(!el)return;
+  var byP={};
+  _trActions.forEach(function(a){if(!byP[a.person])byP[a.person]={notes:'',actions:[]};if(a.action==='__notes__')byP[a.person].notes=a.notes;else byP[a.person].actions.push(a.action);});
+  if(!Object.keys(byP).length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No actions yet</div>';return;}
+  el.innerHTML=Object.keys(byP).map(function(name){var d=byP[name];return '<div style="margin-bottom:8px;"><div style="font-size:12px;font-weight:700;color:var(--teal);">'+name+'</div>'+(d.notes?'<div style="font-size:11px;color:var(--ink2);font-style:italic;">'+d.notes.slice(0,60)+'</div>':'')+d.actions.map(function(a){return '<div style="font-size:11px;padding:3px 6px;background:var(--card2);border-radius:4px;margin-top:2px;">▸ '+a+'</div>';}).join('')+'</div>';}).join('');
+}
+
+function exportTrMinutes(){
+  var date=new Date().toLocaleDateString();
+  var timer=document.getElementById('tr-timer').textContent;
+  var byP={};
+  _trActions.forEach(function(a){if(!byP[a.person])byP[a.person]={notes:'',actions:[]};if(a.action==='__notes__')byP[a.person].notes=a.notes;else byP[a.person].actions.push(a.action);});
+  var lines=['INTERSECT MEETING MINUTES','Date: '+date,'Duration: '+timer,''];
+  Object.keys(byP).forEach(function(name){var d=byP[name];lines.push('[ '+name+' ]');if(d.notes)lines.push('Notes: '+d.notes);if(d.actions.length){lines.push('Actions:');d.actions.forEach(function(a){lines.push('  - '+a);});};lines.push('');});
+  var blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='minutes-'+new Date().toISOString().split('T')[0]+'.txt';a.click();
+}
+
 </script>
 <div class="toast" id="toast"></div>
 
@@ -129,6 +267,7 @@ window.addEventListener('unhandledrejection',function(e){
         <button class="lb" data-l="pt" onclick="setL('pt')">PT</button>
       </div>
       <button class="btn bbg" onclick="exportAll('txt')">📤 All · TXT</button>
+      <button onclick="toggleMeetingRoom()" style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">🎙️ Meeting Room</button>
       <button class="btn bbg" onclick="exportAll('md')" style="background:linear-gradient(135deg,#7c3aed,#3b82f6);">📤 All · MD</button>
       <button class="btn bbo" onclick="exportClient('txt')">📄 Client · TXT</button>
       <button class="btn bbo" onclick="exportClient('md')">📄 Client · MD</button>

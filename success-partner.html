@@ -73,6 +73,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
     <button class="tab" onclick="showTab('sp-companies',this)">🏢 My Referrals</button>
     <button class="tab" onclick="showTab('sp-requests',this)">📋 Requests</button>
     <button class="tab" onclick="showTab('sp-news',this)">📰 News</button>
+    <button class="tab" onclick="showTab('meeting-invites',this)">📅 Meetings</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -130,6 +131,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <div class="pb" id="sp-news-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
     </div>
   </div>
+
+      <div class="tp" id="tp-meeting-invites">
+        <div class="panel">
+          <div class="ph"><div class="pt">📅 Meeting Invitations</div><button class="btn bbo bsm" onclick="loadMeetingInvites()" style="font-size:10px;">↻</button></div>
+          <div class="pb" id="meeting-invites-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+        </div>
+      </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -147,7 +155,8 @@ try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
 function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-sc').style.display='flex';}
 function doLogout(){try{localStorage.removeItem('ix_portal_data');localStorage.removeItem('ix_portal_type');sessionStorage.removeItem('ix_portal_data');}catch(e){}window.location.href='portal.html';}
 function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.style.background=type==='ts'?'rgba(34,197,94,.9)':type==='te'?'rgba(239,68,68,.9)':'rgba(6,182,212,.9)';t.style.color='#fff';t.style.opacity='1';setTimeout(function(){t.style.opacity='0';},3000);}
-function showTab(n,el){document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});var tp=document.getElementById('tp-'+n);if(tp)tp.classList.add('on');if(el)el.classList.add('on');onTabSwitch(n);}
+function showTab(n,el){
+  if(n==='meeting-invites')loadMeetingInvites();document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});var tp=document.getElementById('tp-'+n);if(tp)tp.classList.add('on');if(el)el.classList.add('on');onTabSwitch(n);}
 function sendTG(msg){fetch('https://api.telegram.org/bot'+TG_TOKEN+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_MGMT,text:msg,parse_mode:'Markdown'})}).catch(function(){});}
 
 document.addEventListener('DOMContentLoaded',function(){

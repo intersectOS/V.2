@@ -170,7 +170,51 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTab('my-sent',this)">📋 My Requests</button>
         <button class="tab" onclick="showTab('team-news',this)">📰 News</button>
         <button class="tab" onclick="showTab('my-attendance',this)">📋 My Attendance</button>
+        <button class="tab" onclick="showTab('my-tickets',this)">🎫 My Tickets</button>
+        <button class="tab" onclick="showTab('meetings-inv',this)">📅 Meetings</button>
       </div>
+      <!-- MY TICKETS TAB -->
+      <div class="tp" id="tp-my-tickets">
+        <div class="panel">
+          <div class="ph"><div class="pt">🎫 Submit a Ticket</div></div>
+          <div class="pb">
+            <div style="background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.15);border-radius:9px;padding:10px;margin-bottom:12px;font-size:12px;color:#a78bfa;">
+              📋 Submit a request to management — leave, invoice reimbursement, meeting request, or anything else.
+            </div>
+            <div class="fg"><label class="fl">Ticket Type *</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;" id="ticket-type-btns">
+                <button class="tkt-type-btn" data-type="leave" onclick="selectTicketType(this)" style="padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">🏖️ Leave Request</button>
+                <button class="tkt-type-btn" data-type="invoice" onclick="selectTicketType(this)" style="padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">🧾 Invoice / Reimbursement</button>
+                <button class="tkt-type-btn" data-type="meeting" onclick="selectTicketType(this)" style="padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📅 Meeting Request</button>
+                <button class="tkt-type-btn" data-type="complaint" onclick="selectTicketType(this)" style="padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">⚠️ Complaint</button>
+                <button class="tkt-type-btn" data-type="suggestion" onclick="selectTicketType(this)" style="padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">💡 Suggestion</button>
+                <button class="tkt-type-btn" data-type="other" onclick="selectTicketType(this)" style="padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Other</button>
+              </div>
+            </div>
+            <div class="fg"><label class="fl">Subject *</label><input class="fi" id="tkt-subject" placeholder="Brief subject..."></div>
+            <div class="fg"><label class="fl">Details *</label><textarea class="fta" id="tkt-details" placeholder="Describe your request in detail..." style="min-height:90px;"></textarea></div>
+            <div class="fg" id="tkt-date-wrap" style="display:none;"><label class="fl">Date / Period</label><input class="fi" type="date" id="tkt-date"></div>
+            <div class="fg" id="tkt-amount-wrap" style="display:none;"><label class="fl">Amount (SAR)</label><input class="fi" type="number" id="tkt-amount" placeholder="0.00"></div>
+            <div class="fg"><label class="fl">Attachment (Drive link)</label><input class="fi" type="url" id="tkt-file" dir="ltr" placeholder="https://drive.google.com/..."></div>
+            <button class="btn bbg bw" onclick="submitTicket()">📤 Submit Ticket</button>
+            <div id="tkt-success" style="display:none;margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:13px;color:#22c55e;text-align:center;">✅ Ticket submitted! Management will review it.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">📋 My Submitted Tickets</div><button class="btn bbo bsm" onclick="loadMyTickets()" style="font-size:10px;">↻</button></div>
+          <div class="pb" id="my-tickets-list"><div style="text-align:center;color:var(--ink3);padding:16px;">Loading...</div></div>
+        </div>
+      </div>
+
+
+      <!-- MEETINGS INVITES TAB -->
+      <div class="tp" id="tp-meetings-inv">
+        <div class="panel">
+          <div class="ph"><div class="pt">📅 Meeting Invitations</div><button class="btn bbo bsm" onclick="loadMeetingInvites()" style="font-size:10px;">↻</button></div>
+          <div class="pb" id="meeting-invites-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+        </div>
+      </div>
+
       <!-- MY ATTENDANCE TAB -->
       <div class="tp" id="tp-my-attendance">
         <div class="panel">
@@ -394,20 +438,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
             <div class="fg"><label class="fl">Industry</label><input class="fi" id="nc-industry" placeholder="e.g. Energy"></div>
             <div class="fg"><label class="fl">Country</label><input class="fi" id="nc-country" placeholder="e.g. Saudi Arabia"></div>
             <div class="fg"><label class="fl">Service *</label>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:5px;" id="nc-svc-checks">
+              <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:5px;" id="nc-svc-checks">
                 <label style="display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;" id="nc-sl-lbl">
-                  <input type="radio" name="nc-svc-radio" value="Soft Landing" onchange="document.querySelectorAll('#nc-svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card)';});this.checked&&(document.getElementById('nc-sl-lbl').style.borderColor='var(--teal)',document.getElementById('nc-sl-lbl').style.background='rgba(6,182,212,.08)');">
-                  🛬 Soft Landing
+                  <input type="checkbox" class="nc-svc-cb" value="Soft Landing" onchange="toggleNCLabel('nc-sl-lbl','var(--teal)','rgba(6,182,212,.08)',this)">🛬 Soft Landing
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;" id="nc-bd-lbl">
-                  <input type="radio" name="nc-svc-radio" value="Business Development" onchange="document.querySelectorAll('#nc-svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card)';});this.checked&&(document.getElementById('nc-bd-lbl').style.borderColor='#a78bfa',document.getElementById('nc-bd-lbl').style.background='rgba(124,58,237,.08)');">
-                  📈 Business Development
+                  <input type="checkbox" class="nc-svc-cb" value="Business Development" onchange="toggleNCLabel('nc-bd-lbl','#a78bfa','rgba(124,58,237,.08)',this)">📈 Business Development
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;" id="nc-office-lbl">
+                  <input type="checkbox" class="nc-svc-cb" value="Office Rental" onchange="toggleNCLabel('nc-office-lbl','#f97316','rgba(249,115,22,.08)',this)">🏢 Office Rental
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;" id="nc-shared-lbl">
+                  <input type="checkbox" class="nc-svc-cb" value="Shared Services" onchange="toggleNCLabel('nc-shared-lbl','#06b6d4','rgba(6,182,212,.08)',this)">🤝 Shared Services
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;" id="nc-pkg-lbl">
+                  <input type="checkbox" class="nc-svc-cb" value="Full Package" onchange="toggleNCLabel('nc-pkg-lbl','#22c55e','rgba(34,197,94,.08)',this)">📦 Full Package
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;" id="nc-ot-lbl">
-                  <input type="radio" name="nc-svc-radio" value="Other" onchange="document.querySelectorAll('#nc-svc-checks label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--card)';});this.checked&&(document.getElementById('nc-ot-lbl').style.borderColor='var(--gold)',document.getElementById('nc-ot-lbl').style.background='rgba(245,158,11,.08)');var w=document.getElementById('nc-other-wrap');if(w)w.style.display=this.checked?'block':'none';">
-                  📦 Other
+                  <input type="checkbox" class="nc-svc-cb" value="Other" onchange="toggleNCLabel('nc-ot-lbl','var(--gold)','rgba(245,158,11,.08)',this);document.getElementById('nc-other-wrap').style.display=this.checked?'block':'none';">📋 Other
                 </label>
               </div>
+              <div id="nc-other-wrap" style="display:none;margin-top:6px;"><input class="fi" id="nc-other-text" placeholder="Describe service..."></div>
               <div id="nc-other-wrap" style="display:none;margin-top:6px;"><input class="fi" id="nc-other-text" placeholder="Describe service..."></div>
             </div>
             <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="nc-notes" placeholder="Any initial notes..."></textarea></div>
@@ -1391,8 +1442,8 @@ async function requestAddClient(){
   if(!memberData)return;
   var name=document.getElementById('nc-name')&&document.getElementById('nc-name').value.trim();
   if(!name){toast('Enter company name','te');return;}
-  var svcSel=document.querySelector('#nc-svc-checks input[type=radio]:checked');
-  var svc=svcSel?svcSel.value==='Other'?(document.getElementById('nc-other-text')&&document.getElementById('nc-other-text').value.trim()||'Other'):svcSel.value:'';
+  var svcVals=[];document.querySelectorAll('.nc-svc-cb:checked').forEach(function(cb){svcVals.push(cb.value==='Other'?(document.getElementById('nc-other-text')&&document.getElementById('nc-other-text').value.trim()||'Other'):cb.value);});
+  var svc=svcVals.join(', ');
   var industry=document.getElementById('nc-industry')&&document.getElementById('nc-industry').value.trim();
   var country=document.getElementById('nc-country')&&document.getElementById('nc-country').value.trim();
   var notes=document.getElementById('nc-notes')&&document.getElementById('nc-notes').value.trim();
@@ -1987,6 +2038,11 @@ async function loadMyAttendance(){
     });
     el.innerHTML=html;
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
+}
+
+function toggleNCLabel(lblId,color,bg,cb){
+  var lbl=document.getElementById(lblId);
+  if(lbl){lbl.style.borderColor=cb.checked?color:'var(--border)';lbl.style.background=cb.checked?bg:'var(--card)';}
 }
 
 function toggleSupportType(){
@@ -3408,6 +3464,11 @@ async function loadMyAttendance(){
   }catch(e){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">Error loading</div>';}
 }
 
+function toggleNCLabel(lblId,color,bg,cb){
+  var lbl=document.getElementById(lblId);
+  if(lbl){lbl.style.borderColor=cb.checked?color:'var(--border)';lbl.style.background=cb.checked?bg:'var(--card)';}
+}
+
 function toggleSupportType(){
   var type=document.querySelector('input[name="sup-type"]:checked').value;
   var peopleWrap=document.getElementById('sup-people-wrap');
@@ -4053,6 +4114,108 @@ async function submitTeamStructure(){
   }catch(e){toast('Error','te');}
 }
 
+var selectedTicketType='';
+function selectTicketType(btn){
+  selectedTicketType=btn.dataset.type;
+  document.querySelectorAll('.tkt-type-btn').forEach(function(b){
+    b.style.background='var(--card2)';b.style.color='var(--ink2)';b.style.borderColor='var(--border)';
+  });
+  btn.style.background='rgba(124,58,237,.1)';btn.style.color='#a78bfa';btn.style.borderColor='rgba(124,58,237,.3)';
+  var dateWrap=document.getElementById('tkt-date-wrap');
+  var amtWrap=document.getElementById('tkt-amount-wrap');
+  if(dateWrap)dateWrap.style.display=(selectedTicketType==='leave'||selectedTicketType==='meeting')?'block':'none';
+  if(amtWrap)amtWrap.style.display=selectedTicketType==='invoice'?'block':'none';
+}
+
+async function submitTicket(){
+  var subject=document.getElementById('tkt-subject').value.trim();
+  var details=document.getElementById('tkt-details').value.trim();
+  if(!subject||!details){toast('Fill subject and details','te');return;}
+  if(!selectedTicketType){toast('Select ticket type','te');return;}
+  var typeLabels={leave:'🏖️ Leave Request',invoice:'🧾 Invoice/Reimbursement',meeting:'📅 Meeting Request',complaint:'⚠️ Complaint',suggestion:'💡 Suggestion',other:'📋 Other'};
+  var date=document.getElementById('tkt-date')&&document.getElementById('tkt-date').value;
+  var amount=document.getElementById('tkt-amount')&&document.getElementById('tkt-amount').value;
+  var file=document.getElementById('tkt-file')&&document.getElementById('tkt-file').value.trim();
+  var desc=details+(date?'\nDate/Period: '+date:'')+(amount?'\nAmount: SAR '+amount:'')+(file?'\nAttachment: '+file:'');
+  var body={
+    title:'['+typeLabels[selectedTicketType]+'] '+subject+' — '+(memberData?memberData.name:''),
+    description:desc,
+    requested_by:memberData?memberData.name:null,
+    assignee_type:'management',
+    status:'Pending',
+    priority:selectedTicketType==='complaint'?'high':'medium',
+    show_to_client:false,
+    context_type:'staff_ticket',
+    context_value:selectedTicketType
+  };
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_requests',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      ['tkt-subject','tkt-details','tkt-date','tkt-amount','tkt-file'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+      selectedTicketType='';
+      document.querySelectorAll('.tkt-type-btn').forEach(function(b){b.style.background='var(--card2)';b.style.color='var(--ink2)';b.style.borderColor='var(--border)';});
+      var s=document.getElementById('tkt-success');if(s){s.style.display='block';setTimeout(function(){s.style.display='none';},4000);}
+      sendTG('Staff Ticket - From: '+(memberData?memberData.name:'-')+' | '+subject);
+      loadMyTickets();
+    }else{toast('Error submitting','te');}
+  }catch(e){toast('Error: '+e.message,'te');}
+}
+
+async function loadMyTickets(){
+  var el=document.getElementById('my-tickets-list');if(!el)return;
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_requests?requested_by=eq.'+encodeURIComponent(memberData.name)+'&context_type=eq.staff_ticket&order=created_at.desc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var items=await r.json();
+    items=Array.isArray(items)?items:[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;">No tickets yet</div>';return;}
+    var sc={Pending:'pgo',Accepted:'pg',Rejected:'pr',Completed:'pgr'};
+    el.innerHTML=items.map(function(t){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
+          +'<div style="font-size:13px;font-weight:600;">'+t.title.replace(/\[.*?\] /,'').split(' — ')[0]+'</div>'
+          +'<span class="pill '+(sc[t.status]||'pgr')+'">'+t.status+'</span>'
+        +'</div>'
+        +(t.description?'<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">'+t.description.slice(0,100)+'</div>':'')
+        +(t.reply?'<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:7px;padding:8px;margin-bottom:5px;"><div style="font-size:10px;color:#22c55e;font-weight:700;">💬 Reply</div><div style="font-size:12px;color:var(--ink2);">'+t.reply.slice(0,120)+'</div></div>':'')
+        +'<div style="font-size:10px;color:var(--ink3);">'+new Date(t.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;">Error loading</div>';}
+}
+
+
+
+async function loadMeetingInvites(){
+  var el=document.getElementById('meeting-invites-list');if(!el)return;
+  var now=new Date().toISOString().split('T')[0];
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_meetings?date=gte.'+now+'&order=date.asc&limit=10',{
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+    });
+    var items=await r.json();
+    items=Array.isArray(items)?items:[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No upcoming meetings</div>';return;}
+    el.innerHTML=items.map(function(m){
+      var calUrl='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(m.title)+'&dates='+m.date.replace(/-/g,'')+'T090000/'+m.date.replace(/-/g,'')+'T100000'+(m.summary?'&details='+encodeURIComponent(m.summary):'');
+      return '<div style="background:var(--card2);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+          +'<div style="font-size:14px;font-weight:700;">'+m.title+'</div>'
+          +'<span style="font-size:11px;font-weight:700;color:var(--teal);">'+m.date+'</span>'
+        +'</div>'
+        +(m.attendees?'<div style="font-size:11px;color:var(--ink3);margin-bottom:8px;">👥 '+m.attendees.slice(0,60)+'</div>':'')
+        +(m.summary?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;">'+m.summary.slice(0,100)+'</div>':'')
+        +'<a href="'+calUrl+'" target="_blank" style="display:inline-block;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;">🗓️ Add to My Calendar</a>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;">Error loading</div>';}
+}
+
 function showTab(n,el){
   document.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#team-tabs .tab').forEach(function(t){t.classList.remove('on');});
@@ -4182,6 +4345,8 @@ function showTabE(n,el){
   if(n==='exp-tasks')loadExpTasks();
   if(n==='exp-updates')loadExpTasks();
   if(n==='my-attendance')loadMyAttendance();
+  if(n==='my-tickets')loadMyTickets();
+  if(n==='meetings-inv')loadMeetingInvites();
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.tpe').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#expert-tabs .tab').forEach(function(t){t.classList.remove('on');});
