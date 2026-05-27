@@ -66,7 +66,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   <div class="stitle">Login</div>
   <input class="fi" id="un" type="text" placeholder="Username" dir="ltr" autocomplete="username">
   <input class="fi" id="pw" type="password" placeholder="Password" dir="ltr" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
-  <button class="lbtn" id="lbtn" onclick="login()">→ Access Portal</button>
+  <button class="lbtn" id="lbtn" onclick="greetOnce();login()">→ Access Portal</button>
   <div class="err" id="err"></div>
 </div>
 
@@ -79,17 +79,23 @@ function selectRole(el) {
   ROLE = el.dataset.role;
   document.querySelectorAll('.rbtn').forEach(function(b){ b.classList.remove('sel'); });
   el.classList.add('sel');
+  greetOnce();
 }
 
 function showErr(msg) {
   var e = document.getElementById('err');
   e.textContent = msg;
   e.style.display = 'block';
+  if (msg.includes('Invalid') || msg.includes('invalid')) {
+    portalSpeak(_errorMsgs[_curLang] || _errorMsgs['en']);
+  }
 }
 
 function setLang(l) {
+  _curLang = l;
   document.querySelectorAll('.lb').forEach(function(b){ b.classList.remove('on'); });
   event.target.classList.add('on');
+  greetOnce();
 }
 
 async function qry(table, filter) {
@@ -117,6 +123,7 @@ async function login() {
   var btn = document.getElementById('lbtn');
   btn.textContent = 'Checking...';
   btn.disabled = true;
+  portalSpeak(_checkingMsgs[_curLang] || _checkingMsgs['en']);
 
   try {
     // ── CLIENT ──
@@ -124,7 +131,8 @@ async function login() {
       var d = await qry('ix_clients_v2', 'username=eq.' + encodeURIComponent(user));
       if (d.length && d[0].portal_password === pass) {
         save('client', d[0]);
-        window.location.href = 'client.html';
+        portalSpeak((_successMsgs[_curLang]||_successMsgs['en'])(d[0].name||'Client'));
+        setTimeout(function(){ window.location.href = 'client.html'; }, 1500);
         return;
       }
       showErr('Invalid username or password');
@@ -149,8 +157,10 @@ async function login() {
       if (d.length && d[0].portal_password && d[0].portal_password.trim() === pass.trim()) {
         var pt2 = d[0].person_type || 'employee';
         save(pt2, d[0]);
+        portalSpeak((_successMsgs[_curLang]||_successMsgs['en'])(d[0].name||'Team Member'));
         var map2 = { expert:'expert.html', consultant:'consultant.html', freelancer:'freelancer.html', employee:'team.html' };
-        window.location.href = (map2[pt2] || 'team.html') + '?uid=' + d[0].id;
+        var dest2 = (map2[pt2] || 'team.html') + '?uid=' + d[0].id;
+        setTimeout(function(){ window.location.href = dest2; }, 1500);
         return;
       }
       showErr('Invalid username or password');
@@ -178,6 +188,67 @@ async function login() {
   btn.textContent = '→ Access Portal';
   btn.disabled = false;
 }
+
+// ── PORTAL VOICE ──
+var _langMap = {'en':'en-US','ar':'ar-SA','es':'es-ES','fr':'fr-FR'};
+var _curLang = 'en';
+
+function portalSpeak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = _langMap[_curLang] || 'en-US';
+  u.rate = 1.0;
+  u.volume = 1.0;
+  var voices = window.speechSynthesis.getVoices();
+  var match = voices.find(function(v){ return v.lang.startsWith(u.lang.split('-')[0]); });
+  if (match) u.voice = match;
+  window.speechSynthesis.speak(u);
+}
+
+var _greetMsgs = {
+  'en': 'Welcome to Intersect PartnerOS. Please select your role and sign in.',
+  'ar': 'أهلاً بك في إنترسكت. الرجاء اختيار فئتك وتسجيل الدخول.',
+  'es': 'Bienvenido a Intersect PartnerOS. Por favor seleccione su rol e inicie sesión.',
+  'fr': 'Bienvenue sur Intersect PartnerOS. Veuillez sélectionner votre rôle et vous connecter.'
+};
+
+var _checkingMsgs = {
+  'en': 'Verifying your credentials...',
+  'ar': 'جاري التحقق من بياناتك...',
+  'es': 'Verificando sus credenciales...',
+  'fr': 'Vérification de vos identifiants...'
+};
+
+var _successMsgs = {
+  'en': function(name){ return 'Welcome, ' + name + '. Redirecting to your portal.'; },
+  'ar': function(name){ return 'أهلاً ' + name + '. جاري تحويلك إلى البوابة.'; },
+  'es': function(name){ return 'Bienvenido, ' + name + '. Redirigiendo a su portal.'; },
+  'fr': function(name){ return 'Bienvenue, ' + name + '. Redirection vers votre portail.'; }
+};
+
+var _errorMsgs = {
+  'en': 'Invalid credentials. Please try again.',
+  'ar': 'بيانات غير صحيحة. حاول مرة أخرى.',
+  'es': 'Credenciales inválidas. Por favor intente de nuevo.',
+  'fr': 'Identifiants invalides. Veuillez réessayer.'
+};
+
+// Greet on first interaction
+var _greeted = false;
+function greetOnce() {
+  if (_greeted) return;
+  _greeted = true;
+  // Load voices (Chrome async)
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = function() {
+      portalSpeak(_greetMsgs[_curLang] || _greetMsgs['en']);
+    };
+  } else {
+    portalSpeak(_greetMsgs[_curLang] || _greetMsgs['en']);
+  }
+}
+
 </script>
 </body>
 </html>
