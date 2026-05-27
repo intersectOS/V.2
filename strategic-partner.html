@@ -282,4 +282,17 @@ async function loadNews(){
   try{var r=await sbFetch('ix_news','',{order:"created_at.desc",limit:20});var items=r.data||[];if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No news</div>';return;}el.innerHTML=items.map(function(n){return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:9px;padding:12px;margin-bottom:8px;"><div style="font-size:13px;font-weight:700;margin-bottom:5px;">'+n.title+'</div><div style="font-size:12px;color:var(--ink2);line-height:1.6;">'+n.content+'</div>'+(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')+'<div style="font-size:10px;color:var(--ink3);margin-top:5px;">'+new Date(n.created_at).toLocaleDateString()+'</div></div>';}).join('');}catch(e){}
 }
 </script>
+
+<!-- VOICE UNLOCK BANNER -->
+<div id="voice-unlock-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;" onclick="unlockVoice()">
+  <span style="font-size:20px;">🔊</span>
+  <div>
+    <div style="font-size:13px;font-weight:700;color:#fff;">Enable Voice Notifications</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.8);">Tap to activate sound</div>
+  </div>
+</div>
+<style>
+@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(6,182,212,.3);}50%{box-shadow:0 4px 30px rgba(6,182,212,.6);}}
+</style>
+
 </body></html>

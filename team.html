@@ -1533,7 +1533,7 @@ async function saveWorkflow(){
   if(!sel||!title){toast('Select client and enter title','te');return;}
   var parts=sel.split('|');
   var body={client_id:parts[0],client_name:parts[1],title:title,description:document.getElementById('wf-desc').value.trim(),status:document.getElementById('wf-status').value,show_to_client:document.getElementById('wf-show').checked,created_by:memberData.name};
-  if(sb)try{await (await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_workflow',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)}));toast('✅ Update saved!','ts');document.getElementById('wf-title').value='';document.getElementById('wf-desc').value='';}catch(e){toast('Error','te');}
+  try{var _wr=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_workflow',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});if(_wr.ok){toast('Update saved!','ts');document.getElementById('wf-title').value='';document.getElementById('wf-desc').value='';}else{toast('Error saving','te');}}catch(e){toast('Error','te');}
 }
 
 async function saveRequest(){
@@ -4559,5 +4559,18 @@ function showTabE(n,el){
   if(n==='exp-news')loadExpNews();
 }
 </script>
+
+<!-- VOICE UNLOCK BANNER -->
+<div id="voice-unlock-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;" onclick="unlockVoice()">
+  <span style="font-size:20px;">🔊</span>
+  <div>
+    <div style="font-size:13px;font-weight:700;color:#fff;">Enable Voice Notifications</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.8);">Tap to activate sound</div>
+  </div>
+</div>
+<style>
+@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(6,182,212,.3);}50%{box-shadow:0 4px 30px rgba(6,182,212,.6);}}
+</style>
+
 </body>
 </html>

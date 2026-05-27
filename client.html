@@ -1714,5 +1714,18 @@ function showTab(n,el){
   if(n==='meetings')loadClientMeetings();
 }
 </script>
+
+<!-- VOICE UNLOCK BANNER -->
+<div id="voice-unlock-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;" onclick="unlockVoice()">
+  <span style="font-size:20px;">🔊</span>
+  <div>
+    <div style="font-size:13px;font-weight:700;color:#fff;">Enable Voice Notifications</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.8);">Tap to activate sound</div>
+  </div>
+</div>
+<style>
+@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(6,182,212,.3);}50%{box-shadow:0 4px 30px rgba(6,182,212,.6);}}
+</style>
+
 </body>
 </html>

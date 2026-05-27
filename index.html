@@ -401,11 +401,11 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <div class="ni" onclick="gp('people',this)"><span class="nico">👥</span><span data-i="n_people">People Directory</span></div>
       <div class="ni" onclick="gp('experts',this)"><span class="nico">🌟</span><span data-i="n_experts">Expert Marketplace</span></div>
       <div class="ni" onclick="gp('requests',this)"><span class="nico">📋</span><span data-i="n_requests">Requests</span></div>
-      <div class="ni" onclick="gp('meetings',this)"><span class="nico">📅</span><span data-i="n_meetings">Meetings</span></div>
+      <div class="ni" onclick="gp('meetings',this)"><span class="nico">📋</span><span data-i="n_meetings">Meetings MoM</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📈</span><span>Reports</span></div>
       <div class="ni" onclick="gp('contracts',this)"><span class="nico">📜</span><span>Contracts</span></div>
       <div class="ni" onclick="gp('attendance',this)"><span class="nico">📋</span><span>Attendance</span></div>
-      <div class="ni" onclick="gp('weekly',this)"><span class="nico">🗓️</span><span>Weekly Meeting</span></div>
+      <div class="ni" onclick="gp('weekly',this)"><span class="nico">🎙️</span><span>Weekly Meeting</span></div>
       <div class="ni" onclick="gp('catalog',this)"><span class="nico">🛒</span><span>Services Catalog</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📄</span><span data-i="n_reports">Reports</span></div>
       <div class="ni" onclick="gp('invoices',this)"><span class="nico">🧾</span><span data-i="n_inv">Invoices</span></div>
@@ -604,7 +604,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 
     <!-- MEETINGS -->
     <div class="page" id="page-meetings">
-      <div class="sh"><div class="st" data-i="n_meetings">Meetings</div><button class="btn bg" onclick="om('m-meet')">+ Log Meeting</button></div>
+      <div class="sh"><div class="st" data-i="n_meetings">Meetings MoM &amp; Follow-Up</div><button class="btn bg" onclick="om('m-meet')">+ Log Meeting</button></div>
       <div class="panel">
         <div class="ph"><div class="ptit">📅 Meeting Log</div></div>
         <div class="tw"><table class="tbl"><thead><tr><th>Title</th><th>Organization</th><th>Date</th><th>Follow-up</th><th>Actions</th><th></th></tr></thead><tbody id="meet-tb"></tbody></table></div>
@@ -754,7 +754,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 
     <!-- CONTRACTS PAGE -->
     <div class="page" id="page-contracts">
-      <div class="sh"><div class="ptit">📜 Contracts</div><button class="btn bg bsm" onclick="om('m-contract')">+ New Contract</button></div>
+      <div class="sh"><div class="ptit">📜 Contracts</div><button class="btn bg bsm" onclick="openContract()">+ New Contract</button></div>
       <div id="contracts-list"><div style="text-align:center;color:var(--ink3);padding:30px;">Loading...</div></div>
     </div>
 
@@ -816,7 +816,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
     <!-- WEEKLY MEETING -->
     <div class="page" id="page-weekly">
       <div class="sh">
-        <div class="st">🗓️ Meetings</div>
+        <div class="st">🎙️ Meeting Room</div>
         <div style="display:flex;gap:7px;">
           <button class="btn bg bsm" onclick="showMeetingTab('schedule',this)">📅 Schedule</button>
           <button class="btn bo bsm" onclick="showMeetingTab('room',this)">🎙️ Meeting Room</button>
@@ -1776,7 +1776,7 @@ function showMeetingTab(tab, el){
 async function loadInviteesList(){
   var el=document.getElementById('sch-invitees');if(!el)return;
   var people=APeople.length?APeople:[];
-  if(!people.length&&sb){var r=await sb.from('ix_people').select('id,name,role,person_type,telegram_chat_id');people=r.data||[];}
+  if(!people.length&&sb){var r=await sbQ('ix_people','',{select:'id,name,role,person_type,telegram_chat_id'});people=r||[];}
   // Team section
   var html='<div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:5px;grid-column:span 2;">👥 Team</div>';
   html+=people.map(function(p){
@@ -1846,17 +1846,7 @@ async function scheduleMeeting(){
 
   // Save meeting to DB
   try{
-    if(sb){
-      await sb.from('ix_meetings').insert({
-        title:title,
-        organization:'Intersect Team',
-        date:date,
-        meeting_type:document.getElementById('sch-type').value,
-        summary:notes||null,
-        attendees:invitees.map(function(x){return x.name;}).join(', '),
-        logged_by:'Management'
-      });
-    }
+    await sbPost('ix_meetings',{title:title,organization:'Intersect Team',date:date,summary:notes,action_items:getWeeklyActions(),logged_by:'Management'});
   }catch(e){}
 
   // Send Telegram to each invitee
@@ -1885,8 +1875,8 @@ async function scheduleMeeting(){
 async function loadScheduledMeetings(){
   var el=document.getElementById('scheduled-meetings-list');if(!el)return;
   try{
-    var r=await sb.from('ix_meetings').select('*').order('date',{ascending:true}).limit(20);
-    var items=r.data||[];
+    var r=await sbQ('ix_meetings','',{order:'date.asc',limit:20});
+    var items=r||[];
     var now=new Date().toISOString().split('T')[0];
     var upcoming=items.filter(function(m){return m.date>=now;});
     var past=items.filter(function(m){return m.date<now;}).slice(0,5);
@@ -1941,7 +1931,7 @@ async function initMeetingRoom(){
   if(dateEl)dateEl.textContent=d.toLocaleDateString('en',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   // Load people
   var people=APeople.length?APeople:[];
-  if(!people.length&&sb){var r=await sb.from('ix_people').select('*').order('name');people=r.data||[];}
+  if(!people.length&&sb){var r=await sbQ('ix_people','',{order:'name.asc'});people=r||[];}
   _roomPeople=people;
   _roomCurrentIdx=0;
   _roomAllActions=[];
@@ -1978,10 +1968,10 @@ function loadPersonData(idx){
 async function loadPersonTasks(name){
   var el=document.getElementById('room-tasks');if(!el)return;
   try{
-    var r=await sb.from('ix_subtasks').select('*,ix_tasks(title,client_name,status,deadline)').eq('assignee_name',name).neq('status','Done');
-    var subs=r.data||[];
-    var rf=await sb.from('ix_tasks').select('*').eq('focal_point_name',name).neq('status','Done');
-    var focal=rf.data||[];
+    var r=await sbQ('ix_subtasks','assignee_name=eq.'+encodeURIComponent(name)+'&status=neq.Done',{select:'*,ix_tasks(title,client_name,status,deadline)'});
+    var subs=r||[];
+    var rf=await sbQ('ix_tasks','focal_point_name=eq.'+encodeURIComponent(name)+'&status=neq.Done',null);
+    var focal=rf||[];
     if(!subs.length&&!focal.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No active tasks</div>';return;}
     var sc={'To Do':'pgo','In Progress':'ptl','Done':'pg'};
     var html='';
@@ -2004,8 +1994,8 @@ async function loadPersonClients(name){
 async function loadPersonRequests(name){
   var el=document.getElementById('room-requests');if(!el)return;
   try{
-    var r=await sb.from('ix_requests').select('*').eq('assignee_name',name).eq('status','Pending').limit(5);
-    var items=r.data||[];
+    var r=await sbQ('ix_requests','assignee_name=eq.'+encodeURIComponent(name)+'&status=eq.Pending',{limit:5});
+    var items=r||[];
     if(!items.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No pending requests</div>';return;}
     el.innerHTML=items.map(function(r){return '<div style="font-size:12px;padding:6px 9px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:7px;margin-bottom:4px;">'+r.title.slice(0,60)+'</div>';}).join('');
   }catch(e){}
@@ -2030,9 +2020,7 @@ async function savePersonActions(){
   for(var i=0;i<actions.length;i++){
     var act=actions[i];
     try{
-      if(sb){
-        await sb.from('ix_actions').insert({title:act,assignee:p.name,priority:'medium',done:false});
-      }
+      await sbPost('ix_actions',{title:act,assignee:p.name,priority:'medium',done:false});
       // Notify via Telegram
       if(p.telegram_chat_id){
         await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
@@ -2117,8 +2105,8 @@ function exportMinutes(){
 async function loadMeetingHistory(){
   var el=document.getElementById('meeting-history-list');if(!el)return;
   try{
-    var r=await sb.from('ix_meetings').select('*').order('date',{ascending:false}).limit(30);
-    var items=r.data||[];
+    var r=await sbQ('ix_meetings','',{order:'date.desc',limit:30});
+    var items=r||[];
     if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No meetings yet</div>';return;}
     el.innerHTML=items.map(function(m){
       return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
@@ -2244,6 +2232,43 @@ if (window.speechSynthesis) {
   };
 }
 
+
+var _SB='https://zmiywdpfdvllsxalklrv.supabase.co';
+var _KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+var _H={'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'};
+
+async function sbQ(table,filter,opts){
+  opts=opts||{};
+  var url=_SB+'/rest/v1/'+table+'?'+(filter||'')+'&limit='+(opts.limit||500);
+  if(opts.order)url+='&order='+opts.order;
+  if(opts.select)url+='&select='+opts.select;
+  try{
+    var r=await fetch(url,{headers:_H});
+    var d=await r.json();
+    return Array.isArray(d)?d:[];
+  }catch(e){return [];}
+}
+async function sbPost(table,body){
+  try{
+    var r=await fetch(_SB+'/rest/v1/'+table,{method:'POST',headers:Object.assign({'Content-Type':'application/json','Prefer':'return=representation'},_H),body:JSON.stringify(body)});
+    var d=await r.json();
+    return Array.isArray(d)?d[0]||null:d;
+  }catch(e){return null;}
+}
+async function sbPatch(table,filter,body){
+  try{
+    var r=await fetch(_SB+'/rest/v1/'+table+'?'+filter,{method:'PATCH',headers:Object.assign({'Content-Type':'application/json','Prefer':'return=representation'},_H),body:JSON.stringify(body)});
+    var d=await r.json();
+    return Array.isArray(d)?d:d;
+  }catch(e){return null;}
+}
+async function sbDelete(table,filter){
+  try{
+    await fetch(_SB+'/rest/v1/'+table+'?'+filter,{method:'DELETE',headers:_H});
+    return true;
+  }catch(e){return false;}
+}
+
 window.addEventListener('DOMContentLoaded',function(){
   if(!gs(PK,''))ss(PK,'intersect2026');
   ss('ix_sb_url',SB_URL_HC); ss('ix_sb_key',SB_KEY_HC);
@@ -2295,23 +2320,23 @@ function gp(n,el){
   if(ti&&sp)ti.textContent=t(sp.dataset.i);
   closeSB();
   var renderMap={
-    clients:function(){if(sb){sb.from('ix_clients_v2').select('*').order('created_at',{ascending:false}).then(function(r){if(!r.error){AC=r.data||[];renderClients();}});}else{renderClients();}},
-    people:function(){if(sb){sb.from('ix_people').select('*').order('name').then(function(r){if(!r.error){APeople=r.data||[];renderPeople();}});}else{renderPeople();}},
+    clients:function(){sbQ('ix_clients_v2','',{order:'created_at.desc'}).then(function(r){AC=r||[];renderClients();});},
+    people:function(){sbQ('ix_people','',{order:'name.asc'}).then(function(r){APeople=r||[];renderPeople();});},
     pipeline:renderPipeline,
     actions:renderActions,
     experts:renderExperts,
     requests:lRequests,
     meetings:renderMeetings,
-    reports:loadReports,
+    reports:function(){loadReports();loadReportClients();},
     invoices:renderInvoices,
     ai:renderAI,
     projects:renderProjects,
     tasks:renderTasks,
     notifications:renderNotifs,
     news:lNews,
-    contracts:function(){loadContracts();populateContractClients();},
+    contracts:function(){loadContracts();},
     catalog:loadCatalog,
-    partners:function(){if(sb){sb.from('ix_partners').select('*').order('created_at',{ascending:false}).then(function(r){if(!r.error){APartners=r.data||[];renderPartners();}});}else{renderPartners();}},
+    partners:function(){sbQ('ix_partners','',{order:'created_at.desc'}).then(function(r){APartners=r||[];renderPartners();});},
     attendance:loadAttendance,
     weekly:function(){initWeeklyPage();},
     settings:function(){
@@ -2328,7 +2353,6 @@ function toggleNotif(){document.getElementById('notif-panel').classList.toggle('
 
 // Load all data
 async function loadAll(){
-  if(!sb)return;
   var tables=[
     ['ix_clients_v2',function(d){AC=d||[];},'created_at'],
     ['ix_people',function(d){APeople=d||[];},'name'],
@@ -2345,12 +2369,12 @@ async function loadAll(){
   ];
   await Promise.all(tables.map(async function(tbl){
     try{
-      var r=await sb.from(tbl[0]).select('*').order(tbl[2],{ascending:false});
-      if(r.error){
+      var r={data:await sbQ(tbl[0],'',{order:tbl[2]+'.desc'})};
+      if(!r){
         console.warn('Load error for '+tbl[0]+':',r.error.message);
         tbl[1]([]);
       } else {
-        tbl[1](r.data||[]);
+        tbl[1](r||[]);
       }
     }catch(e){
       console.warn('Exception for '+tbl[0]+':',e.message);
@@ -2358,10 +2382,10 @@ async function loadAll(){
     }
   }));
   // Also load partners and client services
-  try{var rp=await sb.from('ix_partners').select('*').order('created_at',{ascending:false});if(!rp.error)APartners=rp.data||[];}catch(e){}
-  try{var rcs=await sb.from('ix_client_services').select('*').order('created_at',{ascending:false});if(!rcs.error)AClientServices=rcs.data||[];}catch(e){}
-  try{var rsh=await sb.from('ix_service_history').select('*').order('created_at',{ascending:false}).limit(200);if(!rsh.error)AServiceHistory=rsh.data||[];}catch(e){}
-  try{var rct=await sb.from('ix_contracts').select('*').order('end_date',{ascending:true});if(!rct.error)AContracts=rct.data||[];}catch(e){}
+  try{var rp=await sbQ('ix_partners','',{order:'created_at.desc'});if(!rp.error)APartners=rp||[];}catch(e){}
+  try{var rcs=await sbQ('ix_client_services','',{order:'created_at.desc'});if(!rcs.error)AClientServices=rcs||[];}catch(e){}
+  try{var rsh=await sbQ('ix_service_history','',{order:'created_at.desc',limit:200});if(!rsh.error)AServiceHistory=rsh||[];}catch(e){}
+  try{var rct=await sbQ('ix_contracts','',{order:'end_date.asc'});if(!rct.error)AContracts=rct||[];}catch(e){}
   renderOV();
   updateNotifBadge();
   setTimeout(triggerVoiceGreet, 2000);
@@ -2863,12 +2887,12 @@ function editClient(id){
     populateAssistantAMs(selectedAMs);
   }
   if(people.length){fillModal();}
-  else if(sb){
-    sb.from('ix_people').select('id,name,role,person_type').then(function(r){
-      if(r.data)people=r.data;
+  else{
+    sbQ('ix_people','',{select:'id,name,role,person_type'}).then(function(r){
+      people=r||[];
       fillModal();
     });
-  } else {fillModal();}
+  }
   // Fill all fields
   document.getElementById('cl-name').value=c.name||'';
   document.getElementById('cl-ind').value=c.industry||'';
@@ -2921,8 +2945,7 @@ async function saveClient(){
   if(editId){
     // Get old data to detect changes
     var oldClient=AC.find(function(x){return x.id===editId;});
-    if(sb){var ru=await sb.from('ix_clients_v2').update(c).eq('id',editId).select().single();if(ru.error)return toast('Error: '+ru.error.message,'error');var xi=AC.findIndex(function(x){return x.id===editId;});if(xi>=0)AC[xi]=ru.data;}
-    else{var xi=AC.findIndex(function(x){return x.id===editId;});if(xi>=0)Object.assign(AC[xi],c);}
+    var ru=await sbPatch('ix_clients_v2','id=eq.'+editId,c);var xi=AC.findIndex(function(x){return x.id===editId;});if(xi>=0)Object.assign(AC[xi],c);
     // Create workflow update for stage change
     var note=document.getElementById('cl-update-note')&&document.getElementById('cl-update-note').value.trim();
     var showC=document.getElementById('cl-update-show')&&document.getElementById('cl-update-show').checked;
@@ -2934,19 +2957,18 @@ async function saveClient(){
     if(stageChanged||note){
       var wfTitle=stageChanged?'Stage updated: '+c.stage:(note?note.slice(0,60):'Client updated');
       var wfDesc=(stageChanged?'Stage changed from '+(oldClient?oldClient.stage:'—')+' to '+c.stage:'')+(note?(stageChanged?'\n':'')+note:'');
-      if(sb){
-      await sb.from('ix_workflow').insert({client_id:editId,client_name:c.name||oldClient.name,title:wfTitle,description:wfDesc,status:c.stage,show_to_client:showC||false,created_by:'Account Manager'});
+      
+      await sbPost('ix_workflow',{client_id:editId,client_name:c.name||oldClient.name,title:wfTitle,description:wfDesc,status:c.stage,show_to_client:showC||false,created_by:'Account Manager'});
       // Notify client via Telegram if they have it linked and update is visible
       if(showC&&oldClient&&oldClient.telegram_chat_id){
         var tgMsg='🔄 *Update from INTERSECT*\n\n*'+wfTitle+'*'+(wfDesc?'\n'+wfDesc.slice(0,200):'')+'\n\n_'+(c.name||oldClient.name)+'_';
         await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:oldClient.telegram_chat_id,text:tgMsg,parse_mode:'Markdown'})});
       }
     }
-    }
-    cm('m-cl');renderClients();renderOV();renderFeed();toast('✅ Client updated','success');
+    cm('m-cl');renderClients();renderOV();renderFeed();toast('Client updated','success');
   } else {
-    if(sb){var r=await sb.from('ix_clients_v2').insert(c).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AC.unshift(r.data);c=r.data;}
-    else{c.id='local-'+Date.now();c.created_at=new Date().toISOString();AC.unshift(c);}
+    var r=await sbPost('ix_clients_v2',c);
+    if(r){AC.unshift(r);c=r;}else{c.id='local-'+Date.now();c.created_at=new Date().toISOString();AC.unshift(c);}
     var base=localStorage.getItem('ix_base_url')||'https://intersectos.github.io/V.2';
     var portalLink=base+'/portal.html';
     cm('m-cl');renderClients();renderOV();renderFeed();
@@ -2964,7 +2986,7 @@ async function saveClient(){
   }
 }
 
-async function delClient(id){if(!confirm('Delete client?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_clients_v2').delete().eq('id',id);AC=AC.filter(function(c){return c.id!==id;});renderClients();renderOV();toast('Deleted','success');}
+async function delClient(id){if(!confirm('Delete client?'))return;if(!id.startsWith('local-'))await sbDelete('ix_clients_v2','id=eq.'+id);AC=AC.filter(function(c){return c.id!==id;});renderClients();renderOV();toast('Deleted','success');}
 
 // ── PEOPLE DIRECTORY ──
 var PERSON_TYPES=['employee','freelancer','consultant','expert'];
@@ -3092,7 +3114,7 @@ async function savePerson(){
   }
 }
 
-async function delPerson(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_people').delete().eq('id',id);APeople=APeople.filter(function(p){return p.id!==id;});renderPeople();toast('Deleted','success');}
+async function delPerson(id){if(!confirm('Delete?'))return;if(!id.startsWith('local-'))await sbDelete('ix_people','id=eq.'+id);APeople=APeople.filter(function(p){return p.id!==id;});renderPeople();toast('Deleted','success');}
 
 // ── EXPERT MARKETPLACE ──
 function renderExperts(){
@@ -3151,8 +3173,8 @@ function openExpReq(id,name){
 async function saveExpReq(){
   var cv=document.getElementById('er-client').value.split('|');
   var r={client_id:cv[0]||null,client_name:cv[1]||null,expert_id:document.getElementById('er-eid').value,expert_name:document.getElementById('er-ename').value,message:document.getElementById('er-msg').value.trim(),status:'Pending'};
-  if(sb){var res=await sb.from('ix_expert_requests').insert(r).select().single();if(res.error)return toast('Error: '+res.error.message,'error');AExpertReq.unshift(res.data);}
-  else{r.id='local-'+Date.now();r.created_at=new Date().toISOString();AExpertReq.unshift(r);}
+  var res=await sbPost('ix_expert_requests',r);if(res){AExpertReq.unshift(res);
+  }else{r.id='local-'+Date.now();r.created_at=new Date().toISOString();AExpertReq.unshift(r);}
   cm('m-exp-req');document.getElementById('er-msg').value='';
   addNotif('Expert Request','Client requested: '+r.expert_name,'expert',r.id);
   toast('✅ Request submitted','success');voiceNotify('new_request',document.getElementById('req-title')&&document.getElementById('req-title').value||'New request',_voiceLang);renderExpReqs();
@@ -3163,7 +3185,7 @@ async function respondExpReq(id){
   if(!rate)return toast('Enter rate','error');
   var r=AExpertReq.find(function(x){return x.id===id;});if(!r)return;
   r.status='Responded';r.our_rate=rate;
-  if(sb&&!id.startsWith('local-'))await sb.from('ix_expert_requests').update({status:'Responded',our_rate:rate}).eq('id',id);
+  if(!id.startsWith('local-'))await sbPatch('ix_expert_requests','id=eq.'+id,{status:'Responded',our_rate:rate});
   renderExpReqs();toast('✅ Response recorded','success');
 }
 
@@ -3197,12 +3219,12 @@ function renderPipeline(){
 async function saveOpp(){
   var title=document.getElementById('opp-t').value.trim();if(!title)return toast('Enter title','error');
   var o={title:title,company:document.getElementById('opp-c').value.trim(),value:document.getElementById('opp-v').value||0,probability:document.getElementById('opp-p').value||50,stage:document.getElementById('opp-s').value,expected_close:document.getElementById('opp-cl').value,notes:document.getElementById('opp-n').value.trim()};
-  if(sb){var r=await sb.from('ix_opportunities').insert(o).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AOpps.unshift(r.data);}
-  else{o.id='local-'+Date.now();o.created_at=new Date().toISOString();AOpps.unshift(o);}
+  var r=await sbPost('ix_opportunities',o);if(r){AOpps.unshift(r);
+  }else{o.id='local-'+Date.now();o.created_at=new Date().toISOString();AOpps.unshift(o);}
   cm('m-opp');['opp-t','opp-c','opp-v','opp-p','opp-n','opp-cl'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   renderPipeline();renderOV();toast('✅ Saved','success');
 }
-async function delOpp(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_opportunities').delete().eq('id',id);AOpps=AOpps.filter(function(o){return o.id!==id;});renderPipeline();toast('Deleted','success');}
+async function delOpp(id){if(!confirm('Delete?'))return;if(!id.startsWith('local-'))await sbDelete('ix_opportunities','id=eq.'+id);AOpps=AOpps.filter(function(o){return o.id!==id;});renderPipeline();toast('Deleted','success');}
 
 // ── ACTION ITEMS ──
 function renderActions(){
@@ -3233,13 +3255,13 @@ function renderActions(){
 async function saveAction(){
   var title=document.getElementById('act-t').value.trim();if(!title)return toast('Enter title','error');
   var a={title:title,assignee:document.getElementById('act-a').value||null,client_name:document.getElementById('act-cl').value||null,deadline:document.getElementById('act-d').value,priority:document.getElementById('act-p').value,notes:document.getElementById('act-n').value.trim(),done:false};
-  if(sb){var r=await sb.from('ix_actions').insert(a).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AActions.unshift(r.data);}
-  else{a.id='local-'+Date.now();a.created_at=new Date().toISOString();AActions.unshift(a);}
+  var r=await sbPost('ix_actions',a);if(r){AActions.unshift(r);
+  }else{a.id='local-'+Date.now();a.created_at=new Date().toISOString();AActions.unshift(a);}
   cm('m-act');['act-t','act-d','act-n'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   renderActions();renderOV();toast('✅ Added','success');
 }
-async function togAction(id){var a=AActions.find(function(x){return x.id===id;});if(!a)return;a.done=!a.done;if(sb&&!id.startsWith('local-'))await sb.from('ix_actions').update({done:a.done}).eq('id',id);renderActions();renderOV();}
-async function delAction(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_actions').delete().eq('id',id);AActions=AActions.filter(function(a){return a.id!==id;});renderActions();renderOV();toast('Deleted','success');}
+async function togAction(id){var a=AActions.find(function(x){return x.id===id;});if(!a)return;a.done=!a.done;if(!id.startsWith('local-'))await sbPatch('ix_actions','id=eq.'+id,{done:a.done});renderActions();renderOV();}
+async function delAction(id){if(!confirm('Delete?'))return;if(!id.startsWith('local-'))await sbDelete('ix_actions','id=eq.'+id);AActions=AActions.filter(function(a){return a.id!==id;});renderActions();renderOV();toast('Deleted','success');}
 
 // ── WORKFLOW ──
 function openWF(cid,cname){document.getElementById('wf-cid').value=cid;document.getElementById('wf-cname').value=cname;cm('m-cd');om('m-wf');}
@@ -3247,8 +3269,8 @@ async function saveWF(){
   var title=document.getElementById('wf-t').value.trim();if(!title)return toast('Enter title','error');
   var showC=document.getElementById('wf-show');
   var w={client_id:document.getElementById('wf-cid').value,client_name:document.getElementById('wf-cname').value,title:title,description:document.getElementById('wf-desc').value.trim(),status:document.getElementById('wf-status').value,show_to_client:showC?showC.checked:true};
-  if(sb){var r=await sb.from('ix_workflow').insert(w).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AWorkflow.unshift(r.data);}
-  else{w.id='local-'+Date.now();w.created_at=new Date().toISOString();AWorkflow.unshift(w);}
+  var r=await sbPost('ix_workflow',w);if(r){AWorkflow.unshift(r);
+  }else{w.id='local-'+Date.now();w.created_at=new Date().toISOString();AWorkflow.unshift(w);}
   cm('m-wf');['wf-t','wf-desc'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   toast('✅ Update added','success');renderOV();
 }
@@ -3289,11 +3311,11 @@ async function approveTeamStructure(id,cvEnc){
   if(!confirm('Approve this team structure? It will be sent to all team members.'))return;
   var members=[];try{members=JSON.parse(decodeURIComponent(cvEnc));}catch(e){}
   // Update request status
-  if(sb)await sb.from('ix_requests').update({status:'Accepted',accepted_at:new Date().toISOString()}).eq('id',id);
+  await sbPatch('ix_requests','id=eq.'+id,{status:'Accepted',accepted_at:new Date().toISOString()});
   // Create notification for each member
   for(var i=0;i<members.length;i++){
     var m=members[i];
-    if(sb)await sb.from('ix_notifications').insert({
+    await sbPost('ix_notifications',{
       title:'Team Structure Assignment',
       body:'You have been assigned to '+m.role+'. Management has approved this request.',
       type:'team_structure',
@@ -3307,7 +3329,7 @@ async function approveTeamStructure(id,cvEnc){
 
 async function rejectTeamStructure(id){
   var reason=prompt('Reason for rejection (optional):');
-  if(sb)await sb.from('ix_requests').update({status:'Rejected'}).eq('id',id);
+  await sbPatch('ix_requests','id=eq.'+id,{status:'Rejected'});
   toast('Rejected','success');
   lRequests();
 }
@@ -3321,15 +3343,15 @@ async function saveReq(){
   var cselVal=document.getElementById('req-client-sel')&&document.getElementById('req-client-sel').value;
   var cname=cselVal?cselVal.split('|')[1]||null:null;
   var r={title:title,description:document.getElementById('req-desc').value.trim(),client_id:cid,client_name:cname,requested_by:'Account Manager',assignee_id:asParts[0]||null,assignee_name:asParts[1]||extName||null,assignee_type:asParts[2]||'external',file_url:document.getElementById('req-file').value.trim()||null,priority:document.getElementById('req-pri').value,show_to_client:showC?showC.checked:false,status:'Pending'};
-  if(sb){var res=await sb.from('ix_requests').insert(r).select().single();if(res.error)return toast('Error: '+res.error.message,'error');ARequests.unshift(res.data);}
-  else{r.id='local-'+Date.now();r.created_at=new Date().toISOString();ARequests.unshift(r);}
+  var res=await sbPost('ix_requests',r);if(res){ARequests.unshift(res);
+  }else{r.id='local-'+Date.now();r.created_at=new Date().toISOString();ARequests.unshift(r);}
   cm('m-req');['req-t','req-desc','req-file','req-ext-name'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   addNotif('New Request',r.title+' sent to '+(r.assignee_name||'Unassigned'),'request',r.id);
   renderRequests();renderOV();toast('✅ Request sent','success');
 }
-async function acceptReq(id){var days=prompt('Estimated days to complete:');if(!days)return;var r=ARequests.find(function(x){return x.id===id;});if(!r)return;r.status='Accepted';r.estimated_days=parseInt(days);r.accepted_at=new Date().toISOString();if(sb&&!id.startsWith('local-'))await sb.from('ix_requests').update({status:'Accepted',estimated_days:parseInt(days),accepted_at:r.accepted_at}).eq('id',id);addNotif('Request Accepted',r.title+' accepted. Est '+days+' days.','request',id);renderRequests();toast('✅ Accepted','success');}
-async function rejectReq(id){var r=ARequests.find(function(x){return x.id===id;});if(!r||!confirm('Reject?'))return;r.status='Rejected';if(sb&&!id.startsWith('local-'))await sb.from('ix_requests').update({status:'Rejected'}).eq('id',id);renderRequests();toast('Rejected','error');}
-async function completeReq(id){var r=ARequests.find(function(x){return x.id===id;});if(!r)return;r.status='Completed';r.completed_at=new Date().toISOString();if(sb&&!id.startsWith('local-'))await sb.from('ix_requests').update({status:'Completed',completed_at:r.completed_at}).eq('id',id);addNotif('Request Completed',r.title+' completed.','request',id);renderRequests();toast('✅ Completed','success');}
+async function acceptReq(id){var days=prompt('Estimated days to complete:');if(!days)return;var r=ARequests.find(function(x){return x.id===id;});if(!r)return;r.status='Accepted';r.estimated_days=parseInt(days);r.accepted_at=new Date().toISOString();if(!id.startsWith('local-'))await sbPatch('ix_requests','id=eq.'+id,{status:'Accepted',estimated_days:parseInt(days),accepted_at:r.accepted_at});addNotif('Request Accepted',r.title+' accepted. Est '+days+' days.','request',id);renderRequests();toast('✅ Accepted','success');}
+async function rejectReq(id){var r=ARequests.find(function(x){return x.id===id;});if(!r||!confirm('Reject?'))return;r.status='Rejected';if(!id.startsWith('local-'))await sbPatch('ix_requests','id=eq.'+id,{status:'Rejected'});renderRequests();toast('Rejected','error');}
+async function completeReq(id){var r=ARequests.find(function(x){return x.id===id;});if(!r)return;r.status='Completed';r.completed_at=new Date().toISOString();if(!id.startsWith('local-'))await sbPatch('ix_requests','id=eq.'+id,{status:'Completed',completed_at:r.completed_at});addNotif('Request Completed',r.title+' completed.','request',id);renderRequests();toast('✅ Completed','success');}
 
 // ── MEETINGS ──
 function renderMeetings(){
@@ -3350,19 +3372,19 @@ function renderMeetings(){
 }
 function viewTr(i){var m=AMeet[i];if(!m||!m.transcript)return;document.getElementById('tr-content').textContent=m.transcript;om('m-tr');}
 function copyTr(){navigator.clipboard.writeText(document.getElementById('tr-content').textContent).then(function(){toast('✅ Copied','success');});}
-async function delMeet(i){var m=AMeet[i];if(!m||!confirm('Delete?'))return;if(sb&&!m.id.startsWith('local-'))await sb.from('ix_meetings').delete().eq('id',m.id);AMeet.splice(i,1);renderMeetings();toast('Deleted','success');}
+async function delMeet(i){var m=AMeet[i];if(!m||!confirm('Delete?'))return;if(!m.id.startsWith('local-'))await sbDelete('ix_meetings','id=eq.'+m.id);AMeet.splice(i,1);renderMeetings();toast('Deleted','success');}
 
 async function saveMeeting(){
   var title=document.getElementById('mt-t').value.trim();if(!title)return toast('Enter title','error');
   var m={title:title,organization:document.getElementById('mt-org').value.trim(),date:document.getElementById('mt-date').value,followup_deadline:document.getElementById('mt-fup').value||null,attendees:document.getElementById('mt-att').value.trim(),summary:document.getElementById('mt-sum').value.trim(),action_items:document.getElementById('mt-acts').value.trim(),transcript:document.getElementById('mt-tr').value.trim()};
-  if(sb){var r=await sb.from('ix_meetings').insert(m).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AMeet.unshift(r.data);}
-  else{m.id='local-'+Date.now();m.created_at=new Date().toISOString();AMeet.unshift(m);}
+  var r=await sbPost('ix_meetings',m);if(r){AMeet.unshift(r);
+  }else{m.id='local-'+Date.now();m.created_at=new Date().toISOString();AMeet.unshift(m);}
   cm('m-meet');['mt-t','mt-org','mt-date','mt-fup','mt-att','mt-sum','mt-acts','mt-tr'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   renderMeetings();renderOV();toast('✅ Meeting logged','success');
 }
 
 // ── NOTIFICATIONS ──
-function addNotif(title,body,type,relId){var n={title:title,body:body,type:type,related_id:relId,is_read:false,created_at:new Date().toISOString()};ANotifs.unshift(n);if(sb){sb.from('ix_notifications').insert(n).then(function(){});}updateNotifBadge();}
+function addNotif(title,body,type,relId){var n={title:title,body:body,type:type,related_id:relId,is_read:false,created_at:new Date().toISOString()};ANotifs.unshift(n);sbPost('ix_notifications',n);updateNotifBadge();}
 function updateNotifBadge(){var unread=ANotifs.filter(function(n){return !n.is_read;}).length;var b=document.getElementById('notif-badge');if(b){b.textContent=unread;b.style.display=unread?'flex':'none';}}
 // ── CLIENT SERVICES SYSTEM ──
 async function manageServices(clientId, clientName){
@@ -3430,14 +3452,14 @@ async function addClientService(){
   if(!svcType){toast('Select a service type','error');return;}
   var body={client_id:clientId,client_name:clientName,service_type:svcType,stage:stage,start_date:date||null,notes:notes||null};
   try{
-    var r=await sb.from('ix_client_services').insert(body).select().single();
-    if(r.error)return toast('Error: '+r.error.message,'error');
-    AClientServices.unshift(r.data);
+    var r=await sbPost('ix_client_services',body);
+    if(!r)return toast('Error: '+r.error.message,'error');
+    AClientServices.unshift(r);
     // Add initial history entry
-    await sb.from('ix_service_history').insert({service_id:r.data.id,client_name:clientName,service_type:svcType,to_stage:stage,note:'Service started',show_to_client:true,changed_by:'Management'});
+    await sbPost('ix_service_history',{service_id:r.data.id,client_name:clientName,service_type:svcType,to_stage:stage,note:'Service started',show_to_client:true,changed_by:'Management'});
     // Sync service_type back to client record
     var allSvcs=AClientServices.filter(function(s){return s.client_id===clientId;}).map(function(s){return s.service_type;});
-    await sb.from('ix_clients_v2').update({service_type:allSvcs.join(', ')}).eq('id',clientId);
+    await sbPatch('ix_clients_v2','id=eq.'+clientId,{service_type:allSvcs.join(', ')});
     var ci=AC.findIndex(function(c){return c.id===clientId;});
     if(ci>=0)AC[ci].service_type=allSvcs.join(', ');
     document.getElementById('new-svc-notes').value='';
@@ -3455,17 +3477,17 @@ async function updateServiceStage(svcId,clientId){
   var svc=AClientServices.find(function(s){return s.id===svcId;});
   if(!svc)return;
   try{
-    var r=await sb.from('ix_client_services').update({stage:newStage,updated_at:new Date().toISOString()}).eq('id',svcId).select().single();
-    if(r.error)return toast('Error','error');
+    var r=await sbPatch('ix_client_services','id=eq.'+svcId,{stage:newStage,updated_at:new Date().toISOString()});
+    if(!r)return toast('Error','error');
     var idx2=AClientServices.findIndex(function(s){return s.id===svcId;});
     if(idx2>=0)AClientServices[idx2]=r.data;
     // Add history
     var hist={service_id:svcId,client_name:svc.client_name,service_type:svc.service_type,from_stage:svc.stage,to_stage:newStage,note:note||null,show_to_client:showClient,changed_by:'Management'};
-    var rh=await sb.from('ix_service_history').insert(hist).select().single();
-    if(!rh.error)AServiceHistory.unshift(rh.data);
+    var rh=await sbPost('ix_service_history',hist);
+    if(!rh.error)AServiceHistory.unshift(rh);
     // Also add workflow update if note
     if(note){
-      await sb.from('ix_workflow').insert({client_id:clientId,client_name:svc.client_name,title:svc.service_type+': '+newStage,description:note,status:newStage,show_to_client:showClient,created_by:'Management'});
+      await sbPost('ix_workflow',{client_id:clientId,client_name:svc.client_name,title:svc.service_type+': '+newStage,description:note,status:newStage,show_to_client:showClient,created_by:'Management'});
     }
     renderServicesList(clientId);
     renderFeed();
@@ -3481,12 +3503,11 @@ async function updateServiceStage(svcId,clientId){
 
 // ── NOTIFICATION SYSTEM ──
 async function createNotif(title, body, type, relatedId){
-  if(!sb)return;
   try{
     var n={title:title,body:body,type:type||'info',related_id:relatedId||null,is_read:false};
-    var r=await sb.from('ix_notifications').insert(n).select().single();
-    if(r.data){
-      ANotifs.unshift(r.data);
+    var r=await sbPost('ix_notifications',n);
+    if(r){
+      ANotifs.unshift(r);
       updateNotifBadge();
     }
   }catch(e){}
@@ -3502,9 +3523,8 @@ function updateNotifBadge(){
 }
 
 async function markAllRead(){
-  if(!sb)return;
   try{
-    await sb.from('ix_notifications').update({is_read:true}).eq('is_read',false);
+    await sbPatch('ix_notifications','is_read=eq.false',{is_read:true});
     ANotifs.forEach(function(n){n.is_read=true;});
     updateNotifBadge();
     renderNotifs();
@@ -3522,8 +3542,8 @@ function renderNotifs(){
     +'</div>';
   }).join('');
 }
-async function markRead(id){var n=ANotifs.find(function(x){return x.id===id;});if(n){n.is_read=true;if(sb&&id&&!id.startsWith('local-'))await sb.from('ix_notifications').update({is_read:true}).eq('id',id);}updateNotifBadge();renderNotifs();}
-async function markAllRead(){ANotifs.forEach(function(n){n.is_read=true;});if(sb)await sb.from('ix_notifications').update({is_read:true}).eq('is_read',false);updateNotifBadge();renderNotifs();toast('✅ All read','success');}
+async function markRead(id){var n=ANotifs.find(function(x){return x.id===id;});if(n){n.is_read=true;if(id&&!id.startsWith('local-'))await sbPatch('ix_notifications','id=eq.'+id,{is_read:true});}updateNotifBadge();renderNotifs();}
+async function markAllRead(){ANotifs.forEach(function(n){n.is_read=true;});await sbPatch('ix_notifications','is_read=eq.false',{is_read:true});updateNotifBadge();renderNotifs();toast('✅ All read','success');}
 
 // ── REPORTS ──
 function loadReportClients(){var sel=document.getElementById('rep-client');if(sel)sel.innerHTML='<option value="">— Select Client —</option>'+AC.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>';}).join('');}
@@ -3637,7 +3657,8 @@ async function saveInv(){
     company_address:document.getElementById('inv-co-addr').value||'',
     company_email:document.getElementById('inv-co-email').value||''
   };
-  if(sb){var r=await sb.from('ix_invoices').insert(inv).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AInvoices.unshift(r.data);inv=r.data;}
+  var r=await sbPost('ix_invoices',inv);
+  if(r){AInvoices.unshift(r);inv=r;}
   else{inv.id='local-'+Date.now();inv.created_at=new Date().toISOString();AInvoices.unshift(inv);}
   cm('m-inv');
   printInv(inv.id);
@@ -3760,7 +3781,7 @@ function printInvoice(id){
 
 async function markInvSent(id){
   try{
-    await sb.from('ix_invoices').update({status:'Sent'}).eq('id',id);
+    await sbPatch('ix_invoices','id=eq.'+id,{status:'Sent'});
     var i=AInvoices.findIndex(function(x){return x.id===id;});
     if(i>=0)AInvoices[i].status='Sent';
     renderInvoices();
@@ -3778,7 +3799,7 @@ async function markInvSent(id){
 
 async function markInvPaid(id){
   try{
-    await sb.from('ix_invoices').update({status:'Paid',paid_at:new Date().toISOString()}).eq('id',id);
+    await sbPatch('ix_invoices','id=eq.'+id,{status:'Paid',paid_at:new Date().toISOString()});
     var i=AInvoices.findIndex(function(x){return x.id===id;});
     if(i>=0)AInvoices[i].status='Paid';
     renderInvoices();
@@ -3787,12 +3808,12 @@ async function markInvPaid(id){
   }catch(e){toast('Error','error');}
 }
 
-async function delInv(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_invoices').delete().eq('id',id);AInvoices=AInvoices.filter(function(i){return i.id!==id;});renderInvoices();toast('Deleted','success');}
+async function delInv(id){if(!confirm('Delete?'))return;if(!id.startsWith('local-'))await sbDelete('ix_invoices','id=eq.'+id);AInvoices=AInvoices.filter(function(i){return i.id!==id;});renderInvoices();toast('Deleted','success');}
 
 // ── NEWS & ANNOUNCEMENTS ──
 var ANews = [];
 async function lNews(){
-  if(sb){try{var r=await sb.from('ix_news').select('*').order('created_at',{ascending:false});ANews=r.data||[];}catch(e){ANews=[];}}
+  try{var r=await sbQ('ix_news','',{order:'created_at.desc'});ANews=r||[];}catch(e){ANews=[];}
   renderNews();
 }
 
@@ -3837,8 +3858,8 @@ async function saveNews(){
     link:document.getElementById('news-link').value.trim()||null,
     published_by:'Intersect Team'
   };
-  if(sb){var r=await sb.from('ix_news').insert(n).select().single();if(r.error)return toast('Error: '+r.error.message,'error');ANews.unshift(r.data);}
-  else{n.id='local-'+Date.now();n.created_at=new Date().toISOString();ANews.unshift(n);}
+  var r=await sbPost('ix_news',n);if(r){ANews.unshift(r);
+  }else{n.id='local-'+Date.now();n.created_at=new Date().toISOString();ANews.unshift(n);}
   cm('m-news');
   ['news-title','news-content','news-link'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   renderNews();
@@ -3883,7 +3904,7 @@ function renderNews(){
 
 async function delNews(id){
   if(!confirm('Delete?'))return;
-  if(sb&&!id.startsWith('local-'))await sb.from('ix_news').delete().eq('id',id);
+  if(!id.startsWith('local-'))await sbDelete('ix_news','id=eq.'+id);
   ANews=ANews.filter(function(n){return n.id!==id;});
   renderNews();toast('Deleted','success');
 }
@@ -4019,17 +4040,17 @@ async function saveProj(){
   var members=[];document.querySelectorAll('.pm-sel').forEach(function(s){if(s.value)members.push(s.value);});
   var p={name:n,description:document.getElementById('prj-desc').value.trim(),client_name:document.getElementById('prj-client').value,status:document.getElementById('prj-status').value,priority:document.getElementById('prj-priority').value,start_date:document.getElementById('prj-start').value,end_date:document.getElementById('prj-end').value,members:JSON.stringify(members)};
   if(editId){
-    if(sb){var ru=await sb.from('ix_projects').update(p).eq('id',editId).select().single();if(ru.error)return toast('Error: '+ru.error.message,'error');var xi=AProj.findIndex(function(x){return x.id===editId;});if(xi>=0)AProj[xi]=ru.data;}
+    var ru=await sbPatch('ix_projects','id=eq.'+editId,p);if(!r)return toast('Error saving','error');var xi=AProj.findIndex(function(x){return x.id===editId;});if(xi>=0)AProj[xi]=ru.data;
     else{var xi=AProj.findIndex(function(x){return x.id===editId;});if(xi>=0)Object.assign(AProj[xi],p);}
     cm('m-proj');renderProjects();renderTasks();toast('✅ Updated','success');
   } else {
-    if(sb){var r=await sb.from('ix_projects').insert(p).select().single();if(r.error)return toast('Error: '+r.error.message,'error');AProj.unshift(r.data);}
-    else{p.id='local-'+Date.now();p.created_at=new Date().toISOString();AProj.unshift(p);}
+    var r=await sbPost('ix_projects',p);if(r){AProj.unshift(r);
+  }else{p.id='local-'+Date.now();p.created_at=new Date().toISOString();AProj.unshift(p);}
     cm('m-proj');['prj-name','prj-desc','prj-start','prj-end'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
     renderProjects();toast('✅ Project created','success');
   }
 }
-async function delProj(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_projects').delete().eq('id',id);AProj=AProj.filter(function(p){return p.id!==id;});renderProjects();toast('Deleted','success');}
+async function delProj(id){if(!confirm('Delete?'))return;if(!id.startsWith('local-'))await sbDelete('ix_projects','id=eq.'+id);AProj=AProj.filter(function(p){return p.id!==id;});renderProjects();toast('Deleted','success');}
 
 function editProj(id){
   var p=AProj.find(function(x){return x.id===id;});if(!p)return;
@@ -4127,8 +4148,8 @@ function openTaskModal(editId){
       if(fs&&task.focal_point_id)fs.value=task.focal_point_id+'|'+(task.focal_point_name||'');
       if(cs&&task.client_id)cs.value=task.client_id+'|'+(task.client_name||'');
       // Load subtasks
-      sb.from('ix_subtasks').select('*').eq('task_id',editId).order('created_at').then(function(r){
-        if(r.data)r.data.forEach(function(st){addSubtaskRow(st.title,st.assignee_id?st.assignee_id+'|'+st.assignee_name:null);});
+      sbQ('ix_subtasks','task_id=eq.'+encodeURIComponent(editId)+'',{order:'created_at.asc'}).then(function(r){
+        if(r)r.data.forEach(function(st){addSubtaskRow(st.title,st.assignee_id?st.assignee_id+'|'+st.assignee_name:null);});
       });
     }
   } else {
@@ -4177,23 +4198,23 @@ async function saveTask(){
   try{
     var taskId=null;
     if(editId){
-      var r=await sb.from('ix_tasks').update(body).eq('id',editId).select().single();
-      if(r.error){toast('Error: '+r.error.message,'error');return;}
+      var r=await sbPatch('ix_tasks','id=eq.'+editId,body);
+      if(!r){toast('Error saving','error');return;}
       taskId=editId;
       var i2=ATasks.findIndex(function(t){return t.id===editId;});
       if(i2>=0)ATasks[i2]=r.data;
       // Delete old subtasks
-      await sb.from('ix_subtasks').delete().eq('task_id',editId);
+      await sbDelete('ix_subtasks','task_id=eq.'+editId);
     } else {
-      var r=await sb.from('ix_tasks').insert(body).select().single();
-      if(r.error){toast('Error: '+r.error.message,'error');return;}
+      var r=await sbPost('ix_tasks',body);
+      if(!r){toast('Error saving','error');return;}
       taskId=r.data.id;
-      ATasks.unshift(r.data);
+      ATasks.unshift(r);
     }
     // Insert subtasks
     if(subtasks.length&&taskId){
       var stInsert=subtasks.map(function(st){return {task_id:taskId,title:st.title,assignee_id:st.assignee_id||null,assignee_name:st.assignee_name||null,status:'To Do'};});
-      await sb.from('ix_subtasks').insert(stInsert);
+      await sbPost('ix_subtasks',stInsert);
     }
     cm('m-task');
     renderTasks();
@@ -4212,8 +4233,8 @@ async function saveTask(){
 }
 
 
-async function updateTask(i,status){var f=getFilteredTasks();var task=f[i];if(!task)return;task.status=status;task.done=status==='Done';if(sb&&!task.id.startsWith('local-'))await sb.from('ix_tasks').update({status:status,done:task.done}).eq('id',task.id);renderTasks();renderProjects();}
-async function delTask(id){if(!confirm('Delete?'))return;if(sb&&!id.startsWith('local-'))await sb.from('ix_tasks').delete().eq('id',id);ATasks=ATasks.filter(function(t){return t.id!==id;});renderTasks();renderProjects();toast('Deleted','success');}
+async function updateTask(i,status){var f=getFilteredTasks();var task=f[i];if(!task)return;task.status=status;task.done=status==='Done';if(sb&&!task.id.startsWith('local-'))await sbPatch('ix_tasks','id=eq.'+task.id,{status:status,done:task.done});renderTasks();renderProjects();}
+async function delTask(id){if(!confirm('Delete?'))return;if(!id.startsWith('local-'))await sbDelete('ix_tasks','id=eq.'+id);ATasks=ATasks.filter(function(t){return t.id!==id;});renderTasks();renderProjects();toast('Deleted','success');}
 
 function editTask(id){
   var task=ATasks.find(function(x){return x.id===id;});if(!task)return;
@@ -4395,10 +4416,10 @@ async function sendQuotation(){
 
 
   try{
-    await sb.from('ix_requests').update({
+    await sbPatch('ix_requests','id=eq.'+rid,{
       status:'Done - Pending Confirmation',
       reply:reply,replied_by:'Management',replied_at:new Date().toISOString()
-    }).eq('id',rid);
+    });
     var i=ARequests.findIndex(function(r){return r.id===rid;});
     if(i>=0){ARequests[i].status='Done - Pending Confirmation';ARequests[i].reply=reply;}
     // Notify client
@@ -4429,11 +4450,11 @@ async function approveAddClient(rid){
       client_source:data.client_source||'from_team',source_person_id:data.source_person_id||null,
       source_person_name:data.source_person_name||null,stage:'OPEN',code:code,health_score:100
     };
-    var r=await sb.from('ix_clients_v2').insert(clientBody).select().single();
-    if(r.error){toast('Error adding client: '+r.error.message,'error');return;}
-    AC.unshift(r.data);
+    var r=await sbPost('ix_clients_v2',clientBody);
+    if(!r){toast('Error adding client: '+r.error.message,'error');return;}
+    AC.unshift(r);
     // Mark request as completed
-    await sb.from('ix_requests').update({status:'Completed',completed_at:new Date().toISOString(),reply:'Client added to the system. ✅'}).eq('id',rid);
+    await sbPatch('ix_requests','id=eq.'+rid,{status:'Completed',completed_at:new Date().toISOString(),reply:'Client added to the system. ✅'});
     var ri=ARequests.findIndex(function(x){return x.id===rid;});
     if(ri>=0)ARequests[ri].status='Completed';
     // Notify team member
@@ -4481,7 +4502,7 @@ async function addClientFromReferral(rid){
 async function resolveRequest(id){
   if(!confirm('Mark this request as Completed?'))return;
   try{
-    await sb.from('ix_requests').update({status:'Completed',completed_at:new Date().toISOString()}).eq('id',id);
+    await sbPatch('ix_requests','id=eq.'+id,{status:'Completed',completed_at:new Date().toISOString()});
     var i=ARequests.findIndex(function(r){return r.id===id;});
     if(i>=0)ARequests[i].status='Completed';
     lRequests();renderFeed();
@@ -4499,12 +4520,12 @@ async function sendReply(){
   try{
     var updates={reply:text,replied_at:new Date().toISOString(),replied_by:'Management'};
     if(status)updates.status=status;
-    await sb.from('ix_requests').update(updates).eq('id',rid);
+    await sbPatch('ix_requests','id=eq.'+rid,updates);
     var i=ARequests.findIndex(function(r){return r.id===rid;});
     if(i>=0)Object.assign(ARequests[i],updates);
     // Add workflow update if client related
     if(req&&req.client_id){
-      await sb.from('ix_workflow').insert({
+      await sbPost('ix_workflow',{
         client_id:req.client_id,client_name:req.client_name,
         title:'Reply: '+req.title.slice(0,50),
         description:text,show_to_client:true,created_by:'Management'
@@ -4526,18 +4547,18 @@ async function sendReply(){
     // Notify partner if request came from partner
     if(notify&&req&&req.partner_id){
       try{
-        var rpart=await sb.from('ix_partners').select('telegram_chat_id,name').eq('id',req.partner_id).single();
-        if(!rpart.error&&rpart.data&&rpart.data.telegram_chat_id){
-          tgNotifTo(rpart.data.telegram_chat_id,'💬 Reply from Intersect','Your request has been responded to.\n\n'+text.slice(0,150));
+        var rpart=await sbQ('ix_partners','id=eq.'+encodeURIComponent(req.partner_id),{limit:1,select:'telegram_chat_id,name'});
+        if(rpart&&rpart[0]&&rpart[0].telegram_chat_id){
+          tgNotifTo(rpart[0].telegram_chat_id,'Reply from Intersect','Your request has been responded to.');
         }
       }catch(e){}
     }
     // Notify team member if request came from team
     if(notify&&req&&req.requested_by&&!req.client_id&&!req.partner_id){
       try{
-        var rteam=await sb.from('ix_people').select('telegram_chat_id').eq('name',req.requested_by).single();
-        if(!rteam.error&&rteam.data&&rteam.data.telegram_chat_id){
-          tgNotifTo(rteam.data.telegram_chat_id,'💬 Reply from Intersect','Your request has been responded to.\n\n'+text.slice(0,150));
+        var rteam=await sbQ('ix_people','name=eq.'+encodeURIComponent(req.requested_by),{limit:1,select:'telegram_chat_id'});
+        if(rteam&&rteam[0]&&rteam[0].telegram_chat_id){
+          tgNotifTo(rteam&&rteam[0]?rteam[0].telegram_chat_id:null,'💬 Reply from Intersect','Your request has been responded to.\n\n'+text.slice(0,150));
         }
       }catch(e){}
     }
@@ -4574,13 +4595,13 @@ async function convertToJV(){
       jv_notes:notes||null,
       jv_show_am:showAM
     };
-    var r=await sb.from('ix_clients_v2').update(updates).eq('id',cid).select().single();
-    if(r.error)return toast('Error: '+r.error.message,'error');
+    var r=await sbPatch('ix_clients_v2','id=eq.'+cid,updates);
+    if(!r)return toast('Error: '+r.error.message,'error');
     // Update local array
     var i=AC.findIndex(function(c){return c.id===cid;});
     if(i>=0)Object.assign(AC[i],updates);
     // Add workflow update
-    await sb.from('ix_workflow').insert({
+    await sbPost('ix_workflow',{
       client_id:cid,
       client_name:cl.name,
       title:'🏦 Relationship upgraded to JV Partner',
@@ -4590,7 +4611,7 @@ async function convertToJV(){
       created_by:'Management'
     });
     // Add service history note
-    await sb.from('ix_service_history').insert({
+    await sbPost('ix_service_history',{
       client_name:cl.name,
       service_type:'Relationship',
       to_stage:'JV Partner',
@@ -4620,8 +4641,8 @@ async function openPartnerProjects(pid, pname){
 
 async function renderPartnerProjects(pid){
   var el=document.getElementById('pp-list');if(!el)return;
-  var pps=await sb.from('ix_partner_projects').select('*').eq('partner_id',pid).order('created_at',{ascending:false});
-  var items=pps.data||[];
+  var pps=await sbQ('ix_partner_projects','partner_id=eq.'+encodeURIComponent(pid)+'',{order:'created_at.desc'});
+  var items=pps||[];
   if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:12px;padding:12px;">No project assignments yet</div>';return;}
   var vLabels={subcontractor:'🔒 Subcontractor',consortium_visible:'👁️ Consortium-Visible',consortium_hidden:'🤝 Consortium-Hidden'};
   var ctLabels={with_intersect:'📋 With Intersect',joint:'🤝 Joint',direct:'📄 Direct'};
@@ -4672,8 +4693,8 @@ async function addPartnerProject(){
     role:role,visibility:vis,contract_type:ct,notes:notes||null,status:'Active'
   };
   try{
-    var r=await sb.from('ix_partner_projects').insert(body).select().single();
-    if(r.error)return toast('Error: '+r.error.message,'error');
+    var r=await sbPost('ix_partner_projects',body);
+    if(!r)return toast('Error: '+r.error.message,'error');
     document.getElementById('pp-role').value='';
     document.getElementById('pp-notes').value='';
     renderPartnerProjects(pid);
@@ -4684,13 +4705,13 @@ async function addPartnerProject(){
 
 async function updatePPStatus(id){
   var status=document.getElementById('pp-status-'+id).value;
-  await sb.from('ix_partner_projects').update({status:status}).eq('id',id);
+  await sbPatch('ix_partner_projects','id=eq.'+id,{status:status});
   toast('✅ Updated','success');
 }
 
 async function deletePP(id,pid){
   if(!confirm('Remove this assignment?'))return;
-  await sb.from('ix_partner_projects').delete().eq('id',id);
+  await sbDelete('ix_partner_projects','id=eq.'+id);
   renderPartnerProjects(pid);
   toast('Removed','success');
 }
@@ -4698,11 +4719,11 @@ async function deletePP(id,pid){
 // ── SERVICES CATALOG ──
 
 async function loadCatalog(){
-  if(!sb)return;
   try{
-    var r=await sb.from('ix_services_catalog').select('*').order('category').order('name');
-    if(!r.error){ACatalog=r.data||[];renderCatalog();}
-  }catch(e){}
+    var r=await sbQ('ix_services_catalog','is_active=eq.true',{order:'category.asc'});
+    ACatalog=r||[];
+  }catch(e){ACatalog=[];}
+  renderCatalog();
 }
 
 function renderCatalog(){
@@ -4774,12 +4795,12 @@ async function saveCatalogService(){
   };
   try{
     if(id){
-      await sb.from('ix_services_catalog').update(body).eq('id',id);
+      await sbPatch('ix_services_catalog','id=eq.'+id,body);
       var i=ACatalog.findIndex(function(s){return s.id===id;});
       if(i>=0)Object.assign(ACatalog[i],body);
     } else {
-      var r=await sb.from('ix_services_catalog').insert(body).select().single();
-      if(!r.error)ACatalog.push(r.data);
+      var r=await sbPost('ix_services_catalog',body);
+      if(!r.error)if(r)ACatalog.push(r);
     }
     cm('m-svc-cat');renderCatalog();
     toast('✅ Service saved!','success');
@@ -4788,7 +4809,7 @@ async function saveCatalogService(){
 
 async function deleteCatalogService(id){
   if(!confirm('Delete this service?'))return;
-  await sb.from('ix_services_catalog').delete().eq('id',id);
+  await sbDelete('ix_services_catalog','id=eq.'+id);
   ACatalog=ACatalog.filter(function(s){return s.id!==id;});
   renderCatalog();toast('Deleted','success');
 }
@@ -4823,7 +4844,7 @@ async function submitDashRating(){
   var newCount=oldCount+1;
   var newRating=Math.round(((oldRating*oldCount)+dashSelectedRating)/newCount*10)/10;
   try{
-    await sb.from('ix_people').update({rating:newRating,rating_count:newCount,rating_feedback:feedback||null}).eq('id',pid);
+    await sbPatch('ix_people','id=eq.'+pid,{rating:newRating,rating_count:newCount,rating_feedback:feedback||null});
     var i=APeople.findIndex(function(x){return x.id===pid;});
     if(i>=0){APeople[i].rating=newRating;APeople[i].rating_count=newCount;}
     cm('m-dash-rate');
@@ -4959,14 +4980,14 @@ async function savePartner(){
   };
   try{
     if(editId){
-      var r=await sb.from('ix_partners').update(body).eq('id',editId).select().single();
-      if(r.error)return toast('Error: '+r.error.message,'error');
+      var r=await sbPatch('ix_partners','id=eq.'+editId,body);
+      if(!r)return toast('Error: '+r.error.message,'error');
       var i=APartners.findIndex(function(x){return x.id===editId;});
       if(i>=0)APartners[i]=r.data;
     } else {
-      var r=await sb.from('ix_partners').insert(body).select().single();
-      if(r.error)return toast('Error: '+r.error.message,'error');
-      APartners.unshift(r.data);
+      var r=await sbPost('ix_partners',body);
+      if(!r)return toast('Error: '+r.error.message,'error');
+      APartners.unshift(r);
     }
     cm('m-partner');
     renderPartners();
@@ -4978,7 +4999,7 @@ async function savePartner(){
 
 async function deletePartner(id){
   if(!confirm('Delete this partner?'))return;
-  await sb.from('ix_partners').delete().eq('id',id);
+  await sbDelete('ix_partners','id=eq.'+id);
   APartners=APartners.filter(function(p){return p.id!==id;});
   renderPartners();
   toast('Deleted','success');
@@ -5067,8 +5088,8 @@ async function loadAttendance(){
   var pfSel=document.getElementById('att-person-filter');
   // Load actual attendees from ix_workflow
   try{
-    var rNames=await sb.from('ix_workflow').select('created_by').eq('status','attendance');
-    if(!rNames.error&&rNames.data){
+    var rNames=await sbQ('ix_workflow','status=eq.attendance',{select:'created_by'});
+    if(rNames.data){
       var names=[...new Set(rNames.data.map(function(r){return r.created_by;}))].filter(Boolean);
       if(pfSel){
         var curVal=pfSel.value;
@@ -5080,20 +5101,21 @@ async function loadAttendance(){
 
   try{
     // Load data based on view
-    var query=sb.from('ix_workflow').select('*').eq('status','attendance').order('created_at',{ascending:true});
-    if(view==='day'){query=query.eq('context_value',date);}
-    else if(view==='month'){var monthStart=date.slice(0,7)+'-01';query=query.gte('created_at',monthStart);}
-    else{query=query.order('created_at',{ascending:false}).limit(200);}
-    if(personFilter)query=query.eq('created_by',personFilter);
-    var r=await query;
-    var records=r.data||[];
+    var attFilter='status=eq.attendance';
+    var attOpts={order:'created_at.asc'};
+    if(view==='day'){attFilter+='&context_value=eq.'+date;}
+    else if(view==='month'){var monthStart=date.slice(0,7)+'-01';attFilter+='&created_at=gte.'+monthStart;}
+    else{attOpts={order:'created_at.desc',limit:200};}
+    if(personFilter){attFilter+='&created_by=eq.'+encodeURIComponent(personFilter);}
+    var r=await sbQ('ix_workflow',attFilter,attOpts);
+    var records=r||[];
     // Map fields for compatibility
     records=records.map(function(rec){var titleDate=rec.title?rec.title.replace('[ATTENDANCE] ',''):'';return {person_name:rec.created_by,person_role:rec.description?rec.description.split('·')[1]||'Team':'Team',check_in_time:rec.created_at,date:titleDate,id:rec.id};});
 
     // Load this month for KPIs
     var monthStart2=today.slice(0,7)+'-01';
-    var rMonth=await sb.from('ix_workflow').select('*').eq('status','attendance').gte('created_at',monthStart2);
-    var monthRecs=(rMonth.data||[]).map(function(rec){return {person_name:rec.created_by,check_in_time:rec.created_at,date:rec.context_value};});
+    var rMonth=await sbQ('ix_workflow','status=eq.attendance&'+col+'=gte.'+monthStart2+'',null);
+    var monthRecs=(rMonth||[]).map(function(rec){return {person_name:rec.created_by,check_in_time:rec.created_at,date:rec.context_value};});
     var todayRecs=monthRecs.filter(function(x){return x.date===today;});
 
     // Avg check-in time
@@ -5198,11 +5220,11 @@ async function convertClientToPartner(clientId){
       drive_url:c.drive_url||null,jv_equity:c.jv_equity||null,jv_type:c.jv_type||null,
       jv_link:c.jv_link||null,jv_show_am:c.jv_show_am||false,stage:'ACTIVE',health_score:100
     };
-    var r=await sb.from('ix_partners').insert(body).select().single();
-    if(r.error){toast('Error: '+r.error.message,'error');return;}
-    APartners.unshift(r.data);
+    var r=await sbPost('ix_partners',body);
+    if(!r){toast('Error saving','error');return;}
+    APartners.unshift(r);
     // Delete from clients
-    await sb.from('ix_clients_v2').delete().eq('id',clientId);
+    await sbDelete('ix_clients_v2','id=eq.'+clientId);
     AC=AC.filter(function(x){return x.id!==clientId;});
     renderClients();
     toast('✅ Converted to Partner!','success');
@@ -5278,14 +5300,14 @@ async function saveCatalogService(){
   };
   try{
     if(editId){
-      var r=await sb.from('ix_services_catalog').update(body).eq('id',editId).select().single();
-      if(r.error){toast('Error: '+r.error.message,'error');return;}
+      var r=await sbPatch('ix_services_catalog','id=eq.'+editId,body);
+      if(!r){toast('Error saving','error');return;}
       var i=ACatalog.findIndex(function(x){return x.id===editId;});
-      if(i>=0)ACatalog[i]=r.data;
+      if(i>=0)if(r)ACatalog[i]=r;
     } else {
-      var r=await sb.from('ix_services_catalog').insert(body).select().single();
-      if(r.error){toast('Error: '+r.error.message,'error');return;}
-      ACatalog.push(r.data);
+      var r=await sbPost('ix_services_catalog',body);
+      if(!r){toast('Error saving','error');return;}
+      if(r)ACatalog.push(r);
     }
     cm('m-svc-cat');
     renderCatalog();
@@ -5357,7 +5379,7 @@ function filterCatalog(cat, el){
 
 async function toggleServiceActive(id, makeActive){
   try{
-    await sb.from('ix_services_catalog').update({is_active:makeActive}).eq('id',id);
+    await sbPatch('ix_services_catalog','id=eq.'+id,{is_active:makeActive});
     var i=ACatalog.findIndex(function(x){return x.id===id;});
     if(i>=0)ACatalog[i].is_active=makeActive;
     renderCatalog();
@@ -5371,8 +5393,8 @@ async function openTaskDetail(taskId){
   if(titleEl)titleEl.textContent='📌 '+task.title;
   var body=document.getElementById('td-body');if(!body)return;
   // Load subtasks
-  var r=await sb.from('ix_subtasks').select('*').eq('task_id',taskId).order('created_at');
-  var subtasks=r.data||[];
+  var r=await sbQ('ix_subtasks','task_id=eq.'+encodeURIComponent(taskId)+'',{order:'created_at.asc'});
+  var subtasks=r||[];
   var prioC={high:'var(--red)',medium:'var(--gold)',low:'#22c55e'};
   var html='';
   // Header info
@@ -5424,11 +5446,10 @@ function populateContractClients(){
 }
 
 async function loadContracts(){
-  if(!sb)return;
   try{
-    var r=await sb.from('ix_contracts').select('*').order('end_date',{ascending:true});
+    var r=await sbQ('ix_contracts','',{order:'end_date.asc'});
     if(!r.error){
-      AContracts=r.data||[];
+      AContracts=r||[];
       renderContracts();
     }
   }catch(e){renderContracts();}
@@ -5474,6 +5495,39 @@ function renderContracts(){
   }).join('');
 }
 
+
+function openContract(editId){
+  document.getElementById('ct-id').value=editId||'';
+  document.getElementById('ct-modal-title').textContent=editId?'✏️ Edit Contract':'📜 New Contract';
+  // Populate client dropdown
+  var sel=document.getElementById('ct-client');
+  sel.innerHTML='<option value="">— Select Client —</option>'+AC.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>';}).join('');
+  if(!editId){
+    // Reset fields
+    ['ct-svc','ct-link','ct-notes'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('ct-start').value=new Date().toISOString().split('T')[0];
+    document.getElementById('ct-end').value='';
+    document.getElementById('ct-value').value='';
+    document.getElementById('ct-status').value='Active';
+    document.getElementById('ct-alert').checked=true;
+  } else {
+    var c=AContracts.find(function(x){return x.id===editId;});
+    if(c){
+      document.getElementById('ct-client').value=c.client_id||'';
+      document.getElementById('ct-svc').value=c.service_type||'';
+      document.getElementById('ct-type').value=c.contract_type||'Service Agreement';
+      document.getElementById('ct-status').value=c.status||'Active';
+      document.getElementById('ct-start').value=c.start_date||'';
+      document.getElementById('ct-end').value=c.end_date||'';
+      document.getElementById('ct-value').value=c.value||'';
+      document.getElementById('ct-link').value=c.drive_link||'';
+      document.getElementById('ct-notes').value=c.notes||'';
+      document.getElementById('ct-alert').checked=c.alert_before_expiry||false;
+    }
+  }
+  om('m-contract');
+}
+
 async function saveContract(){
   var clientSel=document.getElementById('ct-client');
   var clientName=clientSel.options[clientSel.selectedIndex].text;
@@ -5494,10 +5548,10 @@ async function saveContract(){
   if(!body.client_name)return toast('Select a client','error');
   try{
     if(editId){
-      await sb.from('ix_contracts').update(body).eq('id',editId);
+      await sbPatch('ix_contracts','id=eq.'+editId,body);
     } else {
-      var r=await sb.from('ix_contracts').insert(body).select().single();
-      if(!r.error)AContracts.unshift(r.data);
+      var r=await sbPost('ix_contracts',body);
+      if(r)AContracts.unshift(r);
     }
     cm('m-contract');
     loadContracts();
@@ -5524,7 +5578,7 @@ function editContract(id){
 
 async function deleteContract(id){
   if(!confirm('Delete this contract?'))return;
-  await sb.from('ix_contracts').delete().eq('id',id);
+  await sbDelete('ix_contracts','id=eq.'+id);
   AContracts=AContracts.filter(function(c){return c.id!==id;});
   renderContracts();
   toast('Deleted','success');
@@ -5755,8 +5809,7 @@ function populateAssistantAMs(selectedAMs){
     container.innerHTML=html;
   }
   if(people.length){doFill();}
-  else if(sb){sb.from('ix_people').select('id,name,role,person_type').then(function(r){if(r.data)people=r.data;doFill();});}
-  else{doFill();}
+  else sbQ('ix_people','',{select:'id,name,role,person_type'}).then(function(r){if(r)people=r;doFill();});
 }
 
 // Open add client helper
@@ -5844,5 +5897,71 @@ openReq=function(cid,cname){
   if(s)s.value=cname||'';
 };
 </script>
+
+<!-- CONTRACT MODAL -->
+<div class="mo" id="m-contract">
+  <div class="modal">
+    <div class="mh"><div class="mtit" id="ct-modal-title">📜 New Contract</div><button class="mcl" onclick="cm('m-contract')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="ct-id">
+      <div class="fg"><label class="fl">Client *</label>
+        <select class="fs" id="ct-client"><option value="">— Select Client —</option></select>
+      </div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">Contract Type</label>
+          <select class="fs" id="ct-type">
+            <option value="Service Agreement">Service Agreement</option>
+            <option value="Soft Landing">Soft Landing</option>
+            <option value="Business Development">Business Development</option>
+            <option value="Retainer">Retainer</option>
+            <option value="Project Based">Project Based</option>
+            <option value="JV Agreement">JV Agreement</option>
+            <option value="MOU">MOU</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Service Type</label>
+          <input class="fi" id="ct-svc" placeholder="e.g. Soft Landing, BD...">
+        </div>
+      </div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">Start Date</label><input class="fi" type="date" id="ct-start"></div>
+        <div class="fg"><label class="fl">End Date</label><input class="fi" type="date" id="ct-end"></div>
+      </div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">Value (SAR)</label><input class="fi" type="number" id="ct-value" placeholder="0"></div>
+        <div class="fg"><label class="fl">Status</label>
+          <select class="fs" id="ct-status">
+            <option value="Active">✅ Active</option>
+            <option value="Pending">⏳ Pending</option>
+            <option value="Expired">❌ Expired</option>
+            <option value="Cancelled">🚫 Cancelled</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Drive Link</label><input class="fi" type="url" id="ct-link" dir="ltr" placeholder="https://drive.google.com/..."></div>
+      <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="ct-notes" placeholder="Contract notes..."></textarea></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <input type="checkbox" id="ct-alert" style="width:14px;height:14px;">
+        <label for="ct-alert" style="font-size:13px;color:var(--ink2);cursor:pointer;">Alert 30 days before expiry</label>
+      </div>
+      <button class="btn bbg bw" onclick="saveContract()">💾 Save Contract</button>
+    </div>
+  </div>
+</div>
+
+<
+
+<!-- VOICE UNLOCK BANNER -->
+<div id="voice-unlock-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;" onclick="unlockVoice()">
+  <span style="font-size:20px;">🔊</span>
+  <div>
+    <div style="font-size:13px;font-weight:700;color:#fff;">Enable Voice Notifications</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.8);">Tap to activate sound</div>
+  </div>
+</div>
+<style>
+@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(6,182,212,.3);}50%{box-shadow:0 4px 30px rgba(6,182,212,.6);}}
+</style>
 </body>
 </html>
