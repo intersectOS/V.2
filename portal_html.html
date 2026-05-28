@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>INTERSECT PartnerOS · Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--teal:#06b6d4;--grad:linear-gradient(135deg,#06b6d4,#7c3aed);--red:#ef4444;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.lang-bar{position:fixed;top:12px;right:12px;display:flex;gap:4px;flex-wrap:wrap;z-index:99;}
+.lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
+.lb.on{background:rgba(6,182,212,.2);border-color:#06b6d4;color:var(--teal);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:480px;max-width:100%;}
+.logo{text-align:center;margin-bottom:24px;}
+.logo-sub{font-size:11px;color:var(--ink3);letter-spacing:2px;margin-top:6px;}
+.stitle{font-size:11px;color:var(--ink3);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
+.rbtn{background:var(--card2);border:2px solid var(--border);border-radius:11px;padding:14px 8px;cursor:pointer;text-align:center;transition:border-color .15s,background .15s,box-shadow .15s;}
+.rbtn:hover{border-color:rgba(6,182,212,.4);}
+.rbtn.sel{border-color:#06b6d4;background:rgba(6,182,212,.1);box-shadow:0 0 0 3px rgba(6,182,212,.2),0 0 16px rgba(6,182,212,.15);}
+.rbtn.sel .rname{color:var(--teal);}
+.rico{font-size:22px;margin-bottom:5px;pointer-events:none;}
+.rname{font-size:11px;font-weight:600;color:var(--ink2);pointer-events:none;}
+.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--ink);font-family:inherit;font-size:14px;margin-bottom:10px;outline:none;}
+.fi:focus{border-color:var(--teal);}
+.lbtn{width:100%;background:var(--grad);border:none;border-radius:9px;padding:13px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:opacity .15s;}
+.lbtn:hover{opacity:.88;}
+.lbtn:disabled{opacity:.5;cursor:not-allowed;}
+.err{color:var(--red);font-size:12px;text-align:center;margin-top:8px;display:none;padding:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;}
+@media(max-width:480px){.card{padding:24px 16px;}.role-grid{gap:6px;}.rbtn{padding:10px 5px;}.rico{font-size:18px;}.rname{font-size:10px;}}
+</style>
+</head>
+<body>
+
+<div class="lang-bar">
+  <button class="lb on" onclick="setLang('en')">EN</button>
+  <button class="lb" onclick="setLang('ar')">AR</button>
+  <button class="lb" onclick="setLang('es')">ES</button>
+  <button class="lb" onclick="setLang('fr')">FR</button>
+</div>
+
+<div class="card">
+  <div class="logo">
+    <img src="logo.png.PNG" style="width:150px;max-width:70%;height:auto;display:block;margin:0 auto 8px;" alt="INTERSECT">
+    <div class="logo-sub">PartnerOS · Secure Access</div>
+  </div>
+
+  <div class="stitle">Select your role</div>
+  <div class="role-grid" id="role-grid">
+    <div class="rbtn sel" data-role="client" onclick="selectRole(this)"><div class="rico">🏢</div><div class="rname">Client</div></div>
+    <div class="rbtn" data-role="partner" onclick="selectRole(this)"><div class="rico">🤝</div><div class="rname">Success Partner</div></div>
+    <div class="rbtn" data-role="strategic" onclick="selectRole(this)"><div class="rico">⚙️</div><div class="rname">Strategic Partner</div></div>
+    <div class="rbtn" data-role="jv" onclick="selectRole(this)"><div class="rico">🏦</div><div class="rname">JV Partner</div></div>
+    <div class="rbtn" data-role="team" onclick="selectRole(this)"><div class="rico">👥</div><div class="rname">Team</div></div>
+    <div class="rbtn" data-role="expert" onclick="selectRole(this)"><div class="rico">🌟</div><div class="rname">Expert</div></div>
+    <div class="rbtn" data-role="consultant" onclick="selectRole(this)"><div class="rico">🎓</div><div class="rname">Consultant</div></div>
+    <div class="rbtn" data-role="freelancer" onclick="selectRole(this)"><div class="rico">💼</div><div class="rname">Freelancer</div></div>
+    <div class="rbtn" data-role="coordinator" onclick="selectRole(this)"><div class="rico">📋</div><div class="rname">Coordinator</div></div>
+  </div>
+
+  <div class="stitle">Login</div>
+  <input class="fi" id="un" type="text" placeholder="Username" dir="ltr" autocomplete="username">
+  <input class="fi" id="pw" type="password" placeholder="Password" dir="ltr" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+  <button class="lbtn" id="lbtn" onclick="login()">→ Access Portal</button>
+  <div class="err" id="err"></div>
+</div>
+
+<script>
+var ROLE = 'client';
+var SB = 'https://zmiywdpfdvllsxalklrv.supabase.co';
+var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+
+function selectRole(el) {
+  ROLE = el.dataset.role;
+  document.querySelectorAll('.rbtn').forEach(function(b){ b.classList.remove('sel'); });
+  el.classList.add('sel');
+}
+
+function showErr(msg) {
+  var e = document.getElementById('err');
+  e.textContent = msg;
+  e.style.display = 'block';
+}
+
+function setLang(l) {
+  document.querySelectorAll('.lb').forEach(function(b){ b.classList.remove('on'); });
+  event.target.classList.add('on');
+}
+
+async function qry(table, filter) {
+  var url = SB + '/rest/v1/' + table + '?' + filter + '&limit=1';
+  var r = await fetch(url, { headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY } });
+  var d = await r.json();
+  return Array.isArray(d) ? d : [];
+}
+
+function save(type, data) {
+  var s = JSON.stringify(data);
+  try { localStorage.setItem('ix_portal_type', type); } catch(e){}
+  try { localStorage.setItem('ix_portal_data', s); } catch(e){}
+  try { sessionStorage.setItem('ix_portal_data', s); } catch(e){}
+  try { sessionStorage.setItem('ix_portal_type', type); } catch(e){}
+}
+
+async function login() {
+  var user = document.getElementById('un').value.trim();
+  var pass = document.getElementById('pw').value;
+  document.getElementById('err').style.display = 'none';
+
+  if (!user || !pass) { showErr('Please enter username and password'); return; }
+
+  var btn = document.getElementById('lbtn');
+  btn.textContent = 'Checking...';
+  btn.disabled = true;
+
+  try {
+    // ── CLIENT ──
+    if (ROLE === 'client') {
+      var d = await qry('ix_clients_v2', 'username=eq.' + encodeURIComponent(user));
+      if (d.length && d[0].portal_password === pass) {
+        save('client', d[0]);
+        window.location.href = 'client.html';
+        return;
+      }
+      showErr('Invalid username or password');
+
+    // ── PARTNER ──
+    } else if (ROLE === 'partner' || ROLE === 'strategic' || ROLE === 'jv') {
+      var d = await qry('ix_partners', 'username=eq.' + encodeURIComponent(user));
+      if (d.length && d[0].portal_password === pass) {
+        var pt = d[0].partner_type || ROLE;
+        save(pt, d[0]);
+        var map = { success_partner:'success-partner.html', strategic:'strategic-partner.html', jv:'jv-partner.html' };
+        window.location.href = (map[pt] || 'success-partner.html') + '?uid=' + d[0].id;
+        return;
+      }
+      showErr('Invalid username or password');
+
+    // ── TEAM / EXPERT / CONSULTANT / FREELANCER ──
+    } else if (ROLE === 'team' || ROLE === 'expert' || ROLE === 'consultant' || ROLE === 'freelancer') {
+      var ptype = ROLE === 'team' ? 'employee' : ROLE;
+      var d = await qry('ix_people', 'username=eq.' + encodeURIComponent(user) + '&person_type=eq.' + ptype);
+      if (!d.length) d = await qry('ix_people', 'username=eq.' + encodeURIComponent(user));
+      if (d.length && d[0].portal_password && d[0].portal_password.trim() === pass.trim()) {
+        var pt2 = d[0].person_type || 'employee';
+        save(pt2, d[0]);
+        var map2 = { expert:'expert.html', consultant:'consultant.html', freelancer:'freelancer.html', employee:'team.html' };
+        window.location.href = (map2[pt2] || 'team.html') + '?uid=' + d[0].id;
+        return;
+      }
+      showErr('Invalid username or password');
+
+    // ── COORDINATOR ──
+    } else if (ROLE === 'coordinator') {
+      var d = await qry('ix_people', 'username=eq.' + encodeURIComponent(user));
+      if (d.length && d[0].portal_password === pass) {
+        save('coordinator', d[0]);
+        window.location.href = 'transcript.html';
+        return;
+      }
+      if (pass === 'coordinator2026') {
+        window.location.href = 'transcript.html';
+        return;
+      }
+      showErr('Invalid coordinator credentials');
+    }
+
+  } catch(err) {
+    showErr('Connection error — please try again');
+    console.error(err);
+  }
+
+  btn.textContent = '→ Access Portal';
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
