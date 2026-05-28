@@ -144,6 +144,64 @@ function sbUpdate(table, filter, body) {
   .catch(function(e){return {data:null,error:e};});
 }
 
+
+// ── NEWS TICKER ──
+var _tickerLoaded = false;
+var _RSS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+var _RSS_FEEDS = [
+  {url:'https://feeds.bbci.co.uk/news/business/rss.xml',lang:'en',label:'BBC'},
+  {url:'https://rss.cnn.com/rss/money_news_international.rss',lang:'en',label:'CNN Money'},
+  {url:'https://www.argaam.com/ar/rss/latest-news',lang:'ar',label:'أرقام'},
+  {url:'https://alarabiya.net/tools/rss',lang:'ar',label:'العربية'},
+];
+
+var _FALLBACK_NEWS = [
+  {title:'Global markets rally on positive economic data',link:'#',lang:'en',source:'Markets'},
+  {title:'Oil steady as OPEC+ maintains output levels',link:'#',lang:'en',source:'Energy'},
+  {title:'Tech sector leads gains amid AI investment surge',link:'#',lang:'en',source:'Tech'},
+  {title:'Saudi Vision 2030 projects accelerate in Q2 2026',link:'#',lang:'en',source:'KSA'},
+  {title:'الأسواق الخليجية تسجل مكاسب في تداولات اليوم',link:'#',lang:'ar',source:'أسواق'},
+  {title:'النفط يستقر وسط ترقب قرارات أوبك+',link:'#',lang:'ar',source:'طاقة'},
+  {title:'نمو قطاع التقنية في المملكة يتجاوز التوقعات',link:'#',lang:'ar',source:'تقنية'},
+  {title:'مشاريع رؤية 2030 تحقق إنجازات قياسية',link:'#',lang:'ar',source:'رؤية 2030'},
+];
+
+async function loadNewsTicker(){
+  if(_tickerLoaded)return;
+  var items=[];
+  for(var i=0;i<_RSS_FEEDS.length;i++){
+    try{
+      var r=await fetch(_RSS_PROXY+encodeURIComponent(_RSS_FEEDS[i].url)+'&count=5');
+      var d=await r.json();
+      if(d.status==='ok'&&d.items){
+        d.items.slice(0,4).forEach(function(it){
+          items.push({title:it.title,link:it.link||'#',lang:_RSS_FEEDS[i].lang,source:_RSS_FEEDS[i].label});
+        });
+      }
+    }catch(e){}
+  }
+  if(!items.length)items=_FALLBACK_NEWS;
+  _tickerLoaded=true;
+  var el=document.getElementById('news-ticker-inner');
+  if(!el)return;
+  var html=items.map(function(it){
+    return '<a href="'+it.link+'" target="_blank" class="ticker-item">'
+      +'<span class="ticker-source">'+it.source+'</span>'
+      +'<span class="ticker-title">'+it.title+'</span>'
+      +'</a><span class="ticker-sep">◆</span>';
+  }).join('');
+  el.innerHTML=html+html; // duplicate for seamless loop
+  // Adjust animation speed based on content length
+  var totalW=el.scrollWidth/2;
+  var speed=Math.max(40,totalW/5);
+  el.style.animationDuration=speed+'s';
+}
+
+// Load ticker after page loads
+window.addEventListener('load',function(){
+  setTimeout(loadNewsTicker,1500);
+});
+
 </script>
 <style>
 :root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
@@ -186,9 +244,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 .modal{background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:20px;}
 .mti{font-size:16px;font-weight:800;font-family:'Syne',sans-serif;margin-bottom:16px;}
 .mft{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+
+/* NEWS TICKER */
+.news-ticker-bar{width:100%;background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(124,58,237,.06));border-bottom:1px solid rgba(6,182,212,.2);overflow:hidden;height:32px;display:flex;align-items:center;position:sticky;top:0;z-index:100;}
+.ticker-label{background:linear-gradient(135deg,#06b6d4,#7c3aed);color:#fff;font-size:10px;font-weight:700;padding:0 10px;height:32px;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;letter-spacing:.5px;}
+.ticker-scroll{flex:1;overflow:hidden;height:32px;display:flex;align-items:center;}
+.ticker-inner{display:flex;align-items:center;white-space:nowrap;animation:tickerMove 60s linear infinite;}
+.ticker-inner:hover{animation-play-state:paused;}
+.ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 8px;text-decoration:none;color:var(--ink2);font-size:11px;transition:color .15s;}
+.ticker-item:hover{color:var(--teal);}
+.ticker-source{background:rgba(6,182,212,.12);color:var(--teal);border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;white-space:nowrap;}
+.ticker-title{max-width:300px;overflow:hidden;text-overflow:ellipsis;}
+.ticker-sep{color:rgba(6,182,212,.4);margin:0 8px;font-size:10px;}
+@keyframes tickerMove{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
 </style>
 </head>
 <body>
+
+<!-- NEWS TICKER -->
+<div class="news-ticker-bar" id="news-ticker-bar">
+  <div class="ticker-label">📡 LIVE NEWS</div>
+  <div class="ticker-scroll">
+    <div class="ticker-inner" id="news-ticker-inner">
+      <span style="color:var(--ink3);font-size:11px;padding:0 20px;">Loading news...</span>
+    </div>
+  </div>
+  <button onclick="document.getElementById('news-ticker-bar').style.display='none'" style="background:none;border:none;color:var(--ink3);font-size:14px;cursor:pointer;padding:0 8px;flex-shrink:0;" title="Close">✕</button>
+</div>
+
 
 <div id="loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;">
   <div style="font-size:32px;">⏳</div>
@@ -232,6 +316,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('ep-attendance',this)">📋 Attendance</button>
       <button class="tab" onclick="showTab('ep-news',this)">📰 News</button>
       <button class="tab" onclick="showTab('ep-meetings-inv',this)">📅 Meetings</button>
+      <button class="tab" onclick="showTab('ep-actions',this)">📋 Action Items</button>
     </div>
 
     <!-- MY TASKS -->
@@ -341,6 +426,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         </div>
       </div>
 
+
+      <div class="tp" id="tp-ep-actions">
+        <div class="panel">
+          <div class="ph"><div class="pt">📋 My Action Items</div><button class="btn bbo bsm" onclick="loadMyActionItems()" style="font-size:10px;">↻</button></div>
+          <div class="pb" id="my-actions-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
+        </div>
+      </div>
+
     <!-- NEWS -->
     <div class="tp" id="tp-ep-news">
       <div class="panel">
@@ -385,6 +478,7 @@ function showTab(n,el){
   if(n==='ep-marketplace')loadMarketplace();
   if(n==='ep-attendance')loadAttendance();
   if(n==='ep-news')loadNews();
+  if(n==='ep-actions')loadMyActionItems();
   if(n==='ep-meetings-inv'){var el2=document.getElementById('tp-ep-meetings-inv');if(el2)el2.classList.add('on');loadPortalMeetings('ep-meeting-invites-list');}
 }
 
@@ -775,18 +869,5 @@ function openSupportModal(tid,ttitle){
   }).catch(function(){toast('Error','te');});
 }
 </script>
-
-<!-- VOICE UNLOCK BANNER -->
-<div id="voice-unlock-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;" onclick="unlockVoice()">
-  <span style="font-size:20px;">🔊</span>
-  <div>
-    <div style="font-size:13px;font-weight:700;color:#fff;">Enable Voice Notifications</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.8);">Tap to activate sound</div>
-  </div>
-</div>
-<style>
-@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(6,182,212,.3);}50%{box-shadow:0 4px 30px rgba(6,182,212,.6);}}
-</style>
-
 </body>
 </html>

@@ -144,6 +144,204 @@ function sbUpdate(table, filter, body) {
   .catch(function(e){return {data:null,error:e};});
 }
 
+
+async function saveWorkflow(){
+  var sel=document.getElementById('wf-client').value;
+  var title=document.getElementById('wf-title').value.trim();
+  if(!sel||!title){toast('Select client and enter title','te');return;}
+  var parts=sel.split('|');
+  var body={
+    client_id:parts[0],
+    client_name:parts[1],
+    title:title,
+    description:document.getElementById('wf-desc').value.trim()||null,
+    status:document.getElementById('wf-status').value,
+    show_to_client:document.getElementById('wf-show').checked,
+    created_by:memberData?memberData.name:null
+  };
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_workflow',{
+      method:'POST',
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      document.getElementById('wf-title').value='';
+      document.getElementById('wf-desc').value='';
+      document.getElementById('wf-show').checked=false;
+      var s=document.getElementById('wf-success');
+      if(s){s.style.display='block';setTimeout(function(){s.style.display='none';},3000);}
+      loadMyUpdates();
+      toast('✅ Update saved!','ts');
+    }else{toast('Error saving','te');}
+  }catch(e){toast('Error: '+e.message,'te');}
+}
+
+async function loadMyUpdates(){
+  var el=document.getElementById('my-updates-list');if(!el)return;
+  if(!memberData)return;
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_workflow?created_by=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc&limit=10',{
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+    });
+    var items=await r.json();
+    items=Array.isArray(items)?items:[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);font-size:13px;padding:16px;">No updates yet</div>';return;}
+    var sc={Completed:'pg','In Progress':'ptl',Pending:'pgo','On Hold':'pgr'};
+    el.innerHTML=items.map(function(w){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:7px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+          +'<div style="font-size:13px;font-weight:600;">'+w.title+'</div>'
+          +'<span class="pill '+(sc[w.status]||'pgr')+'">'+w.status+'</span>'
+        +'</div>'
+        +(w.client_name?'<div style="font-size:11px;color:var(--teal);margin-bottom:4px;">🏢 '+w.client_name+'</div>':'')
+        +(w.description?'<div style="font-size:12px;color:var(--ink2);">'+w.description.slice(0,80)+'</div>':'')
+        +'<div style="font-size:10px;color:var(--ink3);margin-top:5px;">'+new Date(w.created_at).toLocaleDateString()+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;font-size:12px;">Error loading</div>';}
+}
+
+
+// ── NEWS TICKER ──
+var _tickerLoaded = false;
+var _RSS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+var _RSS_FEEDS = [
+  {url:'https://feeds.bbci.co.uk/news/business/rss.xml',lang:'en',label:'BBC'},
+  {url:'https://rss.cnn.com/rss/money_news_international.rss',lang:'en',label:'CNN Money'},
+  {url:'https://www.argaam.com/ar/rss/latest-news',lang:'ar',label:'أرقام'},
+  {url:'https://alarabiya.net/tools/rss',lang:'ar',label:'العربية'},
+];
+
+var _FALLBACK_NEWS = [
+  {title:'Global markets rally on positive economic data',link:'#',lang:'en',source:'Markets'},
+  {title:'Oil steady as OPEC+ maintains output levels',link:'#',lang:'en',source:'Energy'},
+  {title:'Tech sector leads gains amid AI investment surge',link:'#',lang:'en',source:'Tech'},
+  {title:'Saudi Vision 2030 projects accelerate in Q2 2026',link:'#',lang:'en',source:'KSA'},
+  {title:'الأسواق الخليجية تسجل مكاسب في تداولات اليوم',link:'#',lang:'ar',source:'أسواق'},
+  {title:'النفط يستقر وسط ترقب قرارات أوبك+',link:'#',lang:'ar',source:'طاقة'},
+  {title:'نمو قطاع التقنية في المملكة يتجاوز التوقعات',link:'#',lang:'ar',source:'تقنية'},
+  {title:'مشاريع رؤية 2030 تحقق إنجازات قياسية',link:'#',lang:'ar',source:'رؤية 2030'},
+];
+
+async function loadNewsTicker(){
+  if(_tickerLoaded)return;
+  var items=[];
+  for(var i=0;i<_RSS_FEEDS.length;i++){
+    try{
+      var r=await fetch(_RSS_PROXY+encodeURIComponent(_RSS_FEEDS[i].url)+'&count=5');
+      var d=await r.json();
+      if(d.status==='ok'&&d.items){
+        d.items.slice(0,4).forEach(function(it){
+          items.push({title:it.title,link:it.link||'#',lang:_RSS_FEEDS[i].lang,source:_RSS_FEEDS[i].label});
+        });
+      }
+    }catch(e){}
+  }
+  if(!items.length)items=_FALLBACK_NEWS;
+  _tickerLoaded=true;
+  var el=document.getElementById('news-ticker-inner');
+  if(!el)return;
+  var html=items.map(function(it){
+    return '<a href="'+it.link+'" target="_blank" class="ticker-item">'
+      +'<span class="ticker-source">'+it.source+'</span>'
+      +'<span class="ticker-title">'+it.title+'</span>'
+      +'</a><span class="ticker-sep">◆</span>';
+  }).join('');
+  el.innerHTML=html+html; // duplicate for seamless loop
+  // Adjust animation speed based on content length
+  var totalW=el.scrollWidth/2;
+  var speed=Math.max(40,totalW/5);
+  el.style.animationDuration=speed+'s';
+}
+
+// Load ticker after page loads
+window.addEventListener('load',function(){
+  setTimeout(loadNewsTicker,1500);
+});
+
+
+async function loadMyActionItems(){
+  var el=document.getElementById('my-actions-list');if(!el)return;
+  var name=memberData?memberData.name:'';
+  if(!name)return;
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_actions?assignee=eq.'+encodeURIComponent(name)+'&order=created_at.desc&limit=50',{
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+    });
+    var items=await r.json();
+    items=Array.isArray(items)?items:[];
+    if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;font-size:13px;">No action items yet</div>';return;}
+
+    var html='';
+    // Open items first
+    var open=items.filter(function(i){return !i.done;});
+    var done=items.filter(function(i){return i.done;});
+
+    if(open.length){
+      html+='<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">⏳ Open ('+open.length+')</div>';
+      open.forEach(function(item){
+        var fromMeeting=item.source==='meeting';
+        html+='<div style="background:var(--card2);border:1px solid '+(fromMeeting?'rgba(124,58,237,.2)':'var(--border)')+';border-radius:9px;padding:11px;margin-bottom:7px;" id="ma-'+item.id+'">'
+          +'<div style="display:flex;align-items:flex-start;gap:8px;">'
+            +'<div style="width:18px;height:18px;border-radius:4px;border:2px solid rgba(34,197,94,.4);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:2px;" onclick="markActionDone(''+item.id+'')" title="Mark done"></div>'
+            +'<div style="flex:1;">'
+              +'<div style="font-size:13px;font-weight:600;">'+item.title+'</div>'
+              +(fromMeeting?'<div style="font-size:10px;color:#a78bfa;margin-top:3px;">🗓️ From Meeting'+(item.meeting_title?' · '+item.meeting_title:'')+(item.meeting_date?' · '+item.meeting_date:'')+'</div>':'')
+              +(item.notes?'<div style="font-size:11px;color:var(--ink3);margin-top:3px;font-style:italic;">'+item.notes+'</div>':'')
+              +(item.deadline?'<div style="font-size:10px;color:var(--red);margin-top:3px;">📅 Due: '+item.deadline+'</div>':'')
+            +'</div>'
+          +'</div>'
+          +'<div style="margin-top:8px;display:flex;gap:5px;">'
+            +'<input id="ma-note-'+item.id+'" class="fi" placeholder="Add note or update..." style="flex:1;font-size:11px;padding:6px 8px;" value="'+(item.notes||'')+'">'
+            +'<button onclick="updateMyAction(''+item.id+'')" style="background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:inherit;">💾</button>'
+            +'<button onclick="markActionDone(''+item.id+'')" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:inherit;">✅</button>'
+          +'</div>'
+        +'</div>';
+      });
+    }
+
+    if(done.length){
+      html+='<details style="margin-top:8px;"><summary style="font-size:11px;color:var(--ink3);cursor:pointer;padding:4px;">✅ '+done.length+' completed</summary>';
+      done.forEach(function(item){
+        html+='<div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.1);border-radius:8px;padding:9px;margin-top:5px;opacity:.7;">'
+          +'<div style="font-size:12px;font-weight:600;text-decoration:line-through;color:var(--ink3);">'+item.title+'</div>'
+          +(item.source==='meeting'?'<div style="font-size:10px;color:#a78bfa;">🗓️ From Meeting'+(item.meeting_title?' · '+item.meeting_title:'')+'</div>':'')
+          +(item.notes?'<div style="font-size:11px;color:var(--ink2);">'+item.notes+'</div>':'')
+        +'</div>';
+      });
+      html+='</details>';
+    }
+
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;">Error</div>';}
+}
+
+async function markActionDone(id){
+  try{
+    await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_actions?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json'},
+      body:JSON.stringify({done:true,updated_at:new Date().toISOString()})
+    });
+    loadMyActionItems();
+  }catch(e){toast('Error','te');}
+}
+
+async function updateMyAction(id){
+  var inp=document.getElementById('ma-note-'+id);
+  if(!inp)return;
+  try{
+    await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_actions?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json'},
+      body:JSON.stringify({notes:inp.value.trim(),updated_at:new Date().toISOString()})
+    });
+    toast('Saved','ts');
+    loadMyActionItems();
+  }catch(e){toast('Error','te');}
+}
+
 </script>
 <style>
 :root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
@@ -245,6 +443,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   input[type=date]{font-size:16px!important;}
   .svc-opt{font-size:11px;padding:4px 7px;}
 }
+
+/* NEWS TICKER */
+.news-ticker-bar{width:100%;background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(124,58,237,.06));border-bottom:1px solid rgba(6,182,212,.2);overflow:hidden;height:32px;display:flex;align-items:center;position:sticky;top:0;z-index:100;}
+.ticker-label{background:linear-gradient(135deg,#06b6d4,#7c3aed);color:#fff;font-size:10px;font-weight:700;padding:0 10px;height:32px;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;letter-spacing:.5px;}
+.ticker-scroll{flex:1;overflow:hidden;height:32px;display:flex;align-items:center;}
+.ticker-inner{display:flex;align-items:center;white-space:nowrap;animation:tickerMove 60s linear infinite;}
+.ticker-inner:hover{animation-play-state:paused;}
+.ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 8px;text-decoration:none;color:var(--ink2);font-size:11px;transition:color .15s;}
+.ticker-item:hover{color:var(--teal);}
+.ticker-source{background:rgba(6,182,212,.12);color:var(--teal);border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;white-space:nowrap;}
+.ticker-title{max-width:300px;overflow:hidden;text-overflow:ellipsis;}
+.ticker-sep{color:rgba(6,182,212,.4);margin:0 8px;font-size:10px;}
+@keyframes tickerMove{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
 </style>
 </head>
 <body>
@@ -270,6 +482,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 </div>
 
 <div id="main">
+
+<!-- NEWS TICKER -->
+<div class="news-ticker-bar" id="news-ticker-bar">
+  <div class="ticker-label">📡 LIVE NEWS</div>
+  <div class="ticker-scroll">
+    <div class="ticker-inner" id="news-ticker-inner">
+      <span style="color:var(--ink3);font-size:11px;padding:0 20px;">Loading news...</span>
+    </div>
+  </div>
+  <button onclick="document.getElementById('news-ticker-bar').style.display='none'" style="background:none;border:none;color:var(--ink3);font-size:14px;cursor:pointer;padding:0 8px;flex-shrink:0;" title="Close">✕</button>
+</div>
+
   <div class="hero">
     <div class="hero-top">
       <div style="display:flex;align-items:center;gap:8px;"><img src="logo.png.PNG" style="height:24px;width:auto;object-fit:contain;" alt="INTERSECT"><div class="brand" id="tm-brand">PartnerOS</div></div>
@@ -310,6 +534,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
         <button class="tab" onclick="showTab('team-news',this)">📰 News</button>
         <button class="tab" onclick="showTab('my-attendance',this)">📋 My Attendance</button>
         <button class="tab" onclick="showTab('my-tickets',this)">🎫 My Tickets</button>
+        <button class="tab" onclick="showTab('my-actions',this)">📋 Action Items</button>
       </div>
       <!-- MY TICKETS TAB -->
       <div class="tp" id="tp-my-tickets">
@@ -345,6 +570,44 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       </div>
 
 
+      <!-- ADD UPDATE TAB -->
+      <div class="tp" id="tp-workflow">
+        <div class="panel">
+          <div class="ph"><div class="pt">🔄 Add Client Update</div></div>
+          <div class="pb">
+            <div class="fg"><label class="fl">Client *</label>
+              <select class="fs" id="wf-client"><option value="">— Select Client —</option></select>
+            </div>
+            <div class="fg"><label class="fl">Title *</label>
+              <input class="fi" id="wf-title" placeholder="e.g. Meeting held, Document submitted...">
+            </div>
+            <div class="fg"><label class="fl">Description</label>
+              <textarea class="fta" id="wf-desc" placeholder="What happened? Any updates?"></textarea>
+            </div>
+            <div class="fg"><label class="fl">Status</label>
+              <select class="fs" id="wf-status">
+                <option value="In Progress">🔄 In Progress</option>
+                <option value="Completed">✅ Completed</option>
+                <option value="Pending">⏳ Pending</option>
+                <option value="On Hold">⏸ On Hold</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <input type="checkbox" id="wf-show" style="width:15px;height:15px;">
+              <label for="wf-show" style="font-size:13px;color:var(--ink2);cursor:pointer;">Show to client in their portal</label>
+            </div>
+            <button class="btn bbg bw" onclick="saveWorkflow()">💾 Save Update</button>
+            <div id="wf-success" style="display:none;margin-top:8px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:12px;color:#22c55e;text-align:center;">✅ Update saved!</div>
+          </div>
+        </div>
+
+        <!-- Recent Updates -->
+        <div class="panel">
+          <div class="ph"><div class="pt">📋 My Recent Updates</div><button class="btn bbo bsm" onclick="loadMyUpdates()" style="font-size:10px;">↻</button></div>
+          <div class="pb" id="my-updates-list"><div style="text-align:center;color:var(--ink3);padding:16px;">Loading...</div></div>
+        </div>
+      </div>
+
       <!-- MEETINGS TAB -->
       <div class="tp" id="tp-meetings">
         <!-- Upcoming meetings -->
@@ -368,6 +631,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
             <button class="btn bbg bw" onclick="requestTeamMeeting()">📤 Send Request</button>
             <div id="tm-mtg-success" style="display:none;margin-top:8px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;font-size:12px;color:#22c55e;text-align:center;">✅ Request sent!</div>
           </div>
+        </div>
+      </div>
+
+
+      <!-- MY ACTION ITEMS FROM MEETINGS -->
+      <div class="tp" id="tp-my-actions">
+        <div class="panel">
+          <div class="ph"><div class="pt">📋 My Action Items</div><button class="btn bbo bsm" onclick="loadMyActionItems()" style="font-size:10px;">↻</button></div>
+          <div class="pb" id="my-actions-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
         </div>
       </div>
 
@@ -1533,7 +1805,7 @@ async function saveWorkflow(){
   if(!sel||!title){toast('Select client and enter title','te');return;}
   var parts=sel.split('|');
   var body={client_id:parts[0],client_name:parts[1],title:title,description:document.getElementById('wf-desc').value.trim(),status:document.getElementById('wf-status').value,show_to_client:document.getElementById('wf-show').checked,created_by:memberData.name};
-  try{var _wr=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_workflow',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});if(_wr.ok){toast('Update saved!','ts');document.getElementById('wf-title').value='';document.getElementById('wf-desc').value='';}else{toast('Error saving','te');}}catch(e){toast('Error','te');}
+  if(sb)try{await (await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_workflow',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)}));toast('✅ Update saved!','ts');document.getElementById('wf-title').value='';document.getElementById('wf-desc').value='';}catch(e){toast('Error','te');}
 }
 
 async function saveRequest(){
@@ -4548,7 +4820,9 @@ function showTabE(n,el){
   if(n==='exp-updates')loadExpTasks();
   if(n==='my-attendance')loadMyAttendance();
   if(n==='my-tickets')loadMyTickets();
+  if(n==='my-actions')loadMyActionItems();
   if(n==='meetings')loadTeamMeetings();
+  if(n==='workflow'){loadMyUpdates();var wfc=document.getElementById('wf-client');if(wfc&&myClients&&myClients.length&&wfc.options.length<=1){wfc.innerHTML='<option value="">— Select Client —</option>'+myClients.map(function(c){return '<option value="'+c.id+'|'+c.name+'">'+c.name+'</option>';}).join('');}}
   document.querySelectorAll('#expert-tabs .tp').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.tpe').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('#expert-tabs .tab').forEach(function(t){t.classList.remove('on');});
@@ -4559,18 +4833,5 @@ function showTabE(n,el){
   if(n==='exp-news')loadExpNews();
 }
 </script>
-
-<!-- VOICE UNLOCK BANNER -->
-<div id="voice-unlock-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;" onclick="unlockVoice()">
-  <span style="font-size:20px;">🔊</span>
-  <div>
-    <div style="font-size:13px;font-weight:700;color:#fff;">Enable Voice Notifications</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.8);">Tap to activate sound</div>
-  </div>
-</div>
-<style>
-@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(6,182,212,.3);}50%{box-shadow:0 4px 30px rgba(6,182,212,.6);}}
-</style>
-
 </body>
 </html>

@@ -474,11 +474,11 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <div class="ni" onclick="gp('people',this)"><span class="nico">👥</span><span data-i="n_people">People Directory</span></div>
       <div class="ni" onclick="gp('experts',this)"><span class="nico">🌟</span><span data-i="n_experts">Expert Marketplace</span></div>
       <div class="ni" onclick="gp('requests',this)"><span class="nico">📋</span><span data-i="n_requests">Requests</span></div>
-      <div class="ni" onclick="gp('meetings',this)"><span class="nico">📋</span><span data-i="n_meetings">Meetings MoM</span></div>
+      <div class="ni" onclick="gp('meetings',this)"><span class="nico">📋</span><span data-i="n_meetings">Meetings MoM &amp; Follow-Up</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📈</span><span>Reports</span></div>
       <div class="ni" onclick="gp('contracts',this)"><span class="nico">📜</span><span>Contracts</span></div>
       <div class="ni" onclick="gp('attendance',this)"><span class="nico">📋</span><span>Attendance</span></div>
-      <div class="ni" onclick="gp('weekly',this)"><span class="nico">🎙️</span><span>Weekly Meeting</span></div>
+      <div class="ni" onclick="gp('weekly',this)"><span class="nico">🗓️</span><span>Meetings</span></div>
       <div class="ni" onclick="gp('catalog',this)"><span class="nico">🛒</span><span>Services Catalog</span></div>
       <div class="ni" onclick="gp('reports',this)"><span class="nico">📄</span><span data-i="n_reports">Reports</span></div>
       <div class="ni" onclick="gp('invoices',this)"><span class="nico">🧾</span><span data-i="n_inv">Invoices</span></div>
@@ -689,7 +689,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 
     <!-- MEETINGS -->
     <div class="page" id="page-meetings">
-      <div class="sh"><div class="st" data-i="n_meetings">Meetings MoM &amp; Follow-Up</div><button class="btn bg" onclick="om('m-meet')">+ Log Meeting</button></div>
+      <div class="sh"><div class="st" data-i="n_meetings">📋 Meetings MoM &amp; Follow-Up</div><button class="btn bg" onclick="om('m-meet')">+ Log Meeting</button></div>
       <div class="panel">
         <div class="ph"><div class="ptit">📅 Meeting Log</div></div>
         <div class="tw"><table class="tbl"><thead><tr><th>Title</th><th>Organization</th><th>Date</th><th>Follow-up</th><th>Actions</th><th></th></tr></thead><tbody id="meet-tb"></tbody></table></div>
@@ -901,10 +901,11 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
     <!-- WEEKLY MEETING -->
     <div class="page" id="page-weekly">
       <div class="sh">
-        <div class="st">🎙️ Meeting Room</div>
+        <div class="st">🗓️ Meetings</div>
         <div style="display:flex;gap:7px;">
           <button class="btn bg bsm" onclick="showMeetingTab('schedule',this)">📅 Schedule</button>
           <button class="btn bo bsm" onclick="showMeetingTab('room',this)">🎙️ Meeting Room</button>
+          <button class="btn bo bsm" onclick="showMeetingTab('followup',this)">✅ Follow-Up</button>
           <button class="btn bo bsm" onclick="showMeetingTab('history',this)">📋 History</button>
         </div>
       </div>
@@ -1052,6 +1053,35 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
               <div class="ph"><div class="ptit">📋 All Action Items</div></div>
               <div class="pb" id="room-all-actions" style="max-height:200px;overflow-y:auto;"></div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOLLOW-UP TAB -->
+      <div id="mtab-followup" style="display:none;">
+        <div class="g2">
+          <div class="panel">
+            <div class="ph">
+              <div class="ptit">✅ Action Items Follow-Up</div>
+              <button class="btn bo bsm" onclick="loadFollowUp()" style="font-size:10px;">↻ Refresh</button>
+            </div>
+            <div class="pb">
+              <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+                <select class="fs" id="fu-filter-person" style="flex:1;" onchange="loadFollowUp()">
+                  <option value="">👥 All People</option>
+                </select>
+                <select class="fs" id="fu-filter-status" style="width:130px;" onchange="loadFollowUp()">
+                  <option value="">All Status</option>
+                  <option value="open">⏳ Open</option>
+                  <option value="done">✅ Done</option>
+                </select>
+              </div>
+              <div id="fu-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Click Refresh to load</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="ph"><div class="ptit">📊 Follow-Up Summary</div></div>
+            <div class="pb" id="fu-summary"></div>
           </div>
         </div>
       </div>
@@ -1855,6 +1885,7 @@ function showMeetingTab(tab, el){
   if(tab==='schedule'){loadScheduledMeetings();loadInviteesList();}
   if(tab==='room'){initMeetingRoom();}
   if(tab==='history'){loadMeetingHistory();}
+  if(tab==='followup'){loadFollowUp();}
 }
 
 // ── SCHEDULE ──
@@ -2101,25 +2132,34 @@ async function savePersonActions(){
   var notes=document.getElementById('room-notes').value.trim();
   var actions=[];
   document.querySelectorAll('#room-actions-list input').forEach(function(inp){if(inp.value.trim())actions.push(inp.value.trim());});
-  // Save actions to DB and send Telegram
+  var mtgDate=new Date().toISOString().split('T')[0];
+  var mtgTitle=document.getElementById('room-title')?document.getElementById('room-title').textContent.replace('🎙️ Meeting Room','Weekly Meeting').trim():'Weekly Meeting';
   for(var i=0;i<actions.length;i++){
     var act=actions[i];
     try{
-      await sbPost('ix_actions',{title:act,assignee:p.name,priority:'medium',done:false});
-      // Notify via Telegram
+      var saved=await sbPost('ix_actions',{
+        title:act,
+        assignee:p.name,
+        assignee_id:p.id||null,
+        priority:'medium',
+        done:false,
+        source:'meeting',
+        meeting_date:mtgDate,
+        meeting_title:mtgTitle,
+        notes:notes||null
+      });
       if(p.telegram_chat_id){
+        var tgMsg='📋 Action Item from Meeting\n\n'+act+'\n\nMeeting: '+mtgTitle+'\nDate: '+mtgDate+(notes?'\nNotes: '+notes.slice(0,80):'');
         await fetch('https://api.telegram.org/bot8985981672:AAEeDXMaUgi57AHYr_t3A9AoZZp5iey28g0/sendMessage',{
           method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({chat_id:p.telegram_chat_id,text:'Action Item from Meeting: '+act,parse_mode:'Markdown'})
+          body:JSON.stringify({chat_id:p.telegram_chat_id,text:tgMsg})
         });
       }
     }catch(e){}
-    _roomAllActions.push({person:p.name,action:act,notes:notes});
+    _roomAllActions.push({person:p.name,action:act,notes:notes,id:null});
   }
-  // Save to minutes
   _roomAllActions.push({person:p.name,action:'__notes__',notes:notes});
   renderRoomAllActions();
-  // Move to next
   nextPerson();
   toast('✅ Saved! Moving to next person.','success');
 }
@@ -2160,6 +2200,133 @@ function renderRoomAllActions(){
       +d.actions.map(function(a){return '<div style="font-size:12px;padding:4px 8px;background:var(--card2);border-radius:5px;margin-bottom:3px;">▸ '+a+'</div>';}).join('')
     +'</div>';
   }).join('');
+}
+
+
+// ── FOLLOW-UP ──
+async function loadFollowUp(){
+  var el=document.getElementById('fu-list');
+  var summaryEl=document.getElementById('fu-summary');
+  if(!el)return;
+  el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div>';
+
+  var personFilter=document.getElementById('fu-filter-person').value;
+  var statusFilter=document.getElementById('fu-filter-status').value;
+
+  try{
+    // Load all meeting action items
+    var filter='source=eq.meeting&order=meeting_date.desc,created_at.desc&limit=100';
+    if(personFilter)filter+='&assignee=eq.'+encodeURIComponent(personFilter);
+    if(statusFilter==='done')filter+='&done=eq.true';
+    if(statusFilter==='open')filter+='&done=eq.false';
+
+    var items=await sbQ('ix_actions',filter,null);
+
+    // Populate person filter
+    var sel=document.getElementById('fu-filter-person');
+    if(sel&&sel.options.length<=1){
+      var people=[...new Set(items.map(function(i){return i.assignee;}).filter(Boolean))].sort();
+      people.forEach(function(p){
+        var opt=document.createElement('option');opt.value=p;opt.textContent=p;sel.appendChild(opt);
+      });
+    }
+
+    if(!items.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No meeting action items yet</div>';
+      return;
+    }
+
+    // Group by person
+    var byPerson={};
+    items.forEach(function(item){
+      if(!byPerson[item.assignee])byPerson[item.assignee]={open:[],done:[]};
+      if(item.done)byPerson[item.assignee].done.push(item);
+      else byPerson[item.assignee].open.push(item);
+    });
+
+    var html='';
+    Object.keys(byPerson).sort().forEach(function(name){
+      var d=byPerson[name];
+      var totalOpen=d.open.length;
+      var totalDone=d.done.length;
+      html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+          +'<div style="font-size:14px;font-weight:700;color:var(--teal);">'+name+'</div>'
+          +'<div style="display:flex;gap:5px;">'
+            +(totalOpen?'<span class="pill pgo">'+totalOpen+' Open</span>':'')
+            +(totalDone?'<span class="pill pg">'+totalDone+' Done</span>':'')
+          +'</div>'
+        +'</div>';
+
+      // Open items
+      d.open.forEach(function(item){
+        html+='<div style="background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:8px;padding:9px;margin-bottom:6px;" id="fu-item-'+item.id+'">'
+          +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+            +'<div style="flex:1;">'
+              +'<div style="font-size:12px;font-weight:600;">'+item.title+'</div>'
+              +'<div style="font-size:10px;color:var(--teal);margin-top:3px;">🗓️ '+item.meeting_title+(item.meeting_date?' · '+item.meeting_date:'')+'</div>'
+              +(item.notes?'<div style="font-size:11px;color:var(--ink3);margin-top:3px;font-style:italic;">'+item.notes.slice(0,60)+'</div>':'')
+            +'</div>'
+            +'<div style="display:flex;gap:5px;flex-shrink:0;">'
+              +'<button onclick="toggleActionDone(this.dataset.id,true)" data-id="'+item.id+'" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">✅ Done</button>'
+            +'</div>'
+          +'</div>'
+          +'<div style="margin-top:6px;display:flex;gap:5px;">'
+            +'<input id="fu-note-'+item.id+'" class="fi" placeholder="Add note..." style="flex:1;font-size:11px;padding:5px 8px;">'
+            +'<button onclick="saveActionNote(this.dataset.id)" data-id="'+item.id+'" style="background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:var(--teal);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">💬</button>'
+          +'</div>'
+        +'</div>';
+      });
+
+      // Done items (collapsed)
+      if(d.done.length){
+        html+='<details style="margin-top:4px;"><summary style="font-size:11px;color:var(--ink3);cursor:pointer;padding:4px;">✅ '+d.done.length+' completed</summary>';
+        d.done.forEach(function(item){
+          html+='<div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.1);border-radius:7px;padding:7px;margin-top:4px;opacity:.7;">'
+            +'<div style="font-size:12px;font-weight:600;text-decoration:line-through;color:var(--ink3);">'+item.title+'</div>'
+            +'<div style="font-size:10px;color:var(--ink3);">'+item.meeting_title+(item.meeting_date?' · '+item.meeting_date:'')+'</div>'
+            +(item.notes?'<div style="font-size:11px;color:var(--ink2);">'+item.notes+'</div>':'')
+            +'<button onclick="toggleActionDone(this.dataset.id,false)" data-id="'+item.id+'" style="background:none;border:1px solid var(--border);color:var(--ink3);border-radius:5px;padding:2px 7px;font-size:10px;cursor:pointer;margin-top:4px;">↩ Reopen</button>'
+          +'</div>';
+        });
+        html+='</details>';
+      }
+
+      html+='</div>';
+    });
+
+    el.innerHTML=html;
+
+    // Summary
+    var totalOpen=items.filter(function(i){return !i.done;}).length;
+    var totalDone=items.filter(function(i){return i.done;}).length;
+    var pct=items.length?Math.round(totalDone/items.length*100):0;
+    if(summaryEl){
+      summaryEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">'
+        +'<div style="background:var(--card2);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:10px;"><div style="font-size:22px;font-weight:800;color:var(--gold);font-family:Syne;">'+totalOpen+'</div><div style="font-size:10px;color:var(--ink3);">Open</div></div>'
+        +'<div style="background:var(--card2);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px;"><div style="font-size:22px;font-weight:800;color:#22c55e;font-family:Syne;">'+totalDone+'</div><div style="font-size:10px;color:var(--ink3);">Done</div></div>'
+        +'<div style="background:var(--card2);border:1px solid rgba(124,58,237,.2);border-radius:8px;padding:10px;"><div style="font-size:22px;font-weight:800;color:#a78bfa;font-family:Syne;">'+pct+'%</div><div style="font-size:10px;color:var(--ink3);">Complete</div></div>'
+      +'</div>';
+    }
+
+  }catch(e){el.innerHTML='<div style="color:var(--red);padding:12px;">Error: '+e.message+'</div>';}
+}
+
+async function toggleActionDone(id,done){
+  try{
+    await sbPatch('ix_actions','id=eq.'+id,{done:done,updated_at:new Date().toISOString()});
+    loadFollowUp();
+  }catch(e){toast('Error','te');}
+}
+
+async function saveActionNote(id){
+  var inp=document.getElementById('fu-note-'+id);
+  if(!inp||!inp.value.trim())return;
+  try{
+    await sbPatch('ix_actions','id=eq.'+id,{notes:inp.value.trim(),updated_at:new Date().toISOString()});
+    toast('Note saved','ts');
+    loadFollowUp();
+  }catch(e){toast('Error','te');}
 }
 
 function exportMinutes(){
