@@ -5,7 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Intersect PartnerOS</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
+// ── NEWS TICKER ──
+var _tickerLoaded = false;
+var _RSS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+var _RSS_FEEDS = [
+  {url:'https://feeds.bbci.co.uk/news/business/rss.xml',lang:'en',label:'BBC'},
+  {url:'https://rss.cnn.com/rss/money_news_international.rss',lang:'en',label:'CNN Money'},
+  {url:'https://www.argaam.com/ar/rss/latest-news',lang:'ar',label:'أرقام'},
+  {url:'https://alarabiya.net/tools/rss',lang:'ar',label:'العربية'},
+];
+
+var _FALLBACK_NEWS = [
+  {title:'Global markets rally on positive economic data',link:'#',lang:'en',source:'Markets'},
+  {title:'Oil steady as OPEC+ maintains output levels',link:'#',lang:'en',source:'Energy'},
+  {title:'Tech sector leads gains amid AI investment surge',link:'#',lang:'en',source:'Tech'},
+  {title:'Saudi Vision 2030 projects accelerate in Q2 2026',link:'#',lang:'en',source:'KSA'},
+  {title:'الأسواق الخليجية تسجل مكاسب في تداولات اليوم',link:'#',lang:'ar',source:'أسواق'},
+  {title:'النفط يستقر وسط ترقب قرارات أوبك+',link:'#',lang:'ar',source:'طاقة'},
+  {title:'نمو قطاع التقنية في المملكة يتجاوز التوقعات',link:'#',lang:'ar',source:'تقنية'},
+  {title:'مشاريع رؤية 2030 تحقق إنجازات قياسية',link:'#',lang:'ar',source:'رؤية 2030'},
+];
+
+async function loadNewsTicker(){
+  if(_tickerLoaded)return;
+  var items=[];
+  for(var i=0;i<_RSS_FEEDS.length;i++){
+    try{
+      var r=await fetch(_RSS_PROXY+encodeURIComponent(_RSS_FEEDS[i].url)+'&count=5');
+      var d=await r.json();
+      if(d.status==='ok'&&d.items){
+        d.items.slice(0,4).forEach(function(it){
+          items.push({title:it.title,link:it.link||'#',lang:_RSS_FEEDS[i].lang,source:_RSS_FEEDS[i].label});
+        });
+      }
+    }catch(e){}
+  }
+  if(!items.length)items=_FALLBACK_NEWS;
+  _tickerLoaded=true;
+  var el=document.getElementById('news-ticker-inner');
+  if(!el)return;
+  var html=items.map(function(it){
+    return '<a href="'+it.link+'" target="_blank" class="ticker-item">'
+      +'<span class="ticker-source">'+it.source+'</span>'
+      +'<span class="ticker-title">'+it.title+'</span>'
+      +'</a><span class="ticker-sep">◆</span>';
+  }).join('');
+  el.innerHTML=html+html; // duplicate for seamless loop
+  // Adjust animation speed based on content length
+  var totalW=el.scrollWidth/2;
+  var speed=Math.max(40,totalW/5);
+  el.style.animationDuration=speed+'s';
+}
+
+// Load ticker after page loads
+window.addEventListener('load',function(){
+  setTimeout(loadNewsTicker,1500);
+});
+
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <style>
 :root{
@@ -338,9 +396,24 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 .svc-opt input:checked+*{color:var(--teal);}
 .lb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:3px 7px;color:#e8ecf8;font-size:10px;cursor:pointer;font-family:inherit;}
 .lb.on{background:rgba(6,182,212,.2);border-color:#06b6d4;color:var(--teal);}
+
+/* NEWS TICKER */
+.news-ticker-bar{width:100%;background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(124,58,237,.06));border-bottom:1px solid rgba(6,182,212,.2);overflow:hidden;height:32px;display:flex;align-items:center;position:sticky;top:0;z-index:100;}
+.ticker-label{background:linear-gradient(135deg,#06b6d4,#7c3aed);color:#fff;font-size:10px;font-weight:700;padding:0 10px;height:32px;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;letter-spacing:.5px;}
+.ticker-scroll{flex:1;overflow:hidden;height:32px;display:flex;align-items:center;}
+.ticker-inner{display:flex;align-items:center;white-space:nowrap;animation:tickerMove 60s linear infinite;}
+.ticker-inner:hover{animation-play-state:paused;}
+.ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 8px;text-decoration:none;color:var(--ink2);font-size:11px;transition:color .15s;}
+.ticker-item:hover{color:var(--teal);}
+.ticker-source{background:rgba(6,182,212,.12);color:var(--teal);border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;white-space:nowrap;}
+.ticker-title{max-width:300px;overflow:hidden;text-overflow:ellipsis;}
+.ticker-sep{color:rgba(6,182,212,.4);margin:0 8px;font-size:10px;}
+@keyframes tickerMove{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
 </style>
 </head>
 <body>
+
 <div id="dash-err-display" style="display:none;position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:12px;font-size:12px;z-index:9999;word-break:break-all;cursor:pointer;" onclick="this.style.display='none'">Click to dismiss</div>
 <div class="toast" id="toast"></div>
 <div class="sbo" id="sbo" onclick="closeSB()"></div>
@@ -451,6 +524,18 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
         <span class="badge bacc" data-i="fa">Founders</span>
       </div>
     </header>
+
+<!-- NEWS TICKER -->
+<div class="news-ticker-bar" id="news-ticker-bar">
+  <div class="ticker-label">📡 LIVE NEWS</div>
+  <div class="ticker-scroll">
+    <div class="ticker-inner" id="news-ticker-inner">
+      <span style="color:var(--ink3);font-size:11px;padding:0 20px;">Loading news...</span>
+    </div>
+  </div>
+  <button onclick="document.getElementById('news-ticker-bar').style.display='none'" style="background:none;border:none;color:var(--ink3);font-size:14px;cursor:pointer;padding:0 8px;flex-shrink:0;" title="Close">✕</button>
+</div>
+
 
     <div class="content">
 
