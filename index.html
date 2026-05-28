@@ -36,11 +36,17 @@ async function loadNewsSourcesList(){
 }
 
 function openAddNewsSource(){
-  document.getElementById('ns-id').value='';
-  document.getElementById('ns-name').value='';
-  document.getElementById('ns-url').value='';
-  document.getElementById('ns-audience').value='all';
-  om('m-news-source');
+  var modal=document.getElementById('m-news-source');
+  if(!modal){console.error('Modal m-news-source not found');return;}
+  var nsId=document.getElementById('ns-id');
+  var nsName=document.getElementById('ns-name');
+  var nsUrl=document.getElementById('ns-url');
+  var nsAud=document.getElementById('ns-audience');
+  if(nsId)nsId.value='';
+  if(nsName)nsName.value='';
+  if(nsUrl)nsUrl.value='';
+  if(nsAud)nsAud.value='all';
+  modal.classList.add('on');
 }
 
 async function saveNewsSource(){
@@ -177,7 +183,7 @@ function showVoiceBanner(){
   if(done){_voiceUnlocked=true;return;}
   var b=document.getElementById('voice-unlock-banner');
   if(b){
-    b.style.display='flex';
+    b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';
     setTimeout(function(){if(b&&b.parentNode)b.style.display='none';},8000);
   }
 }
@@ -6340,7 +6346,7 @@ openReq=function(cid,cname){
 <
 
 <!-- VOICE UNLOCK BANNER -->
-<div id="voice-unlock-banner" style="display:none;position:fixed;bottom:16px;right:16px;left:auto;transform:none;z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:10px 16px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;max-width:260px;" onclick="unlockVoice()">
+<div id="voice-unlock-banner" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:10px 16px;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;max-width:260px;" onclick="unlockVoice()">
   <span style="font-size:20px;">🔊</span>
   <div>
     <div style="font-size:13px;font-weight:700;color:#fff;">Enable Voice Notifications</div>

@@ -236,7 +236,7 @@ function showVoiceBanner(){
   if(done){_voiceUnlocked=true;return;}
   var b=document.getElementById('voice-unlock-banner');
   if(b){
-    b.style.display='flex';
+    b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';
     setTimeout(function(){if(b&&b.parentNode)b.style.display='none';},8000);
   }
 }
