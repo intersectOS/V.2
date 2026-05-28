@@ -1972,7 +1972,7 @@ var sb = null;
 
 // Data arrays
 var AC=[], APeople=[], AOpps=[], AActions=[], AWorkflow=[], ARequests=[], AMeet=[], ANotifs=[], AInvoices=[], AProj=[], ATasks=[], AExpertReq=[];
-var AMeetings=AMeet, AClientServices=[], AServiceHistory=[], AContracts=[], ACatalog=[];
+var AMeet=AMeet, AClientServices=[], AServiceHistory=[], AContracts=[], ACatalog=[];
 var APartners=[];
 
 function t(k){return (T[lang]&&T[lang][k]) ? T[lang][k] : (T.en[k]||k);}
@@ -2930,7 +2930,7 @@ function renderFeed(){
 
   // ── MEETINGS ──
   if(!filterType||filterType==='meeting'){
-    AMeetings.slice(0,5).forEach(function(m){
+    AMeet.slice(0,5).forEach(function(m){
       items.push({d:m.created_at,i:'📅',x:'Meeting: '+m.title,sub:(m.organization||m.client_name||'')+(m.date?' · '+m.date:'')+(m.logged_by?' · by '+m.logged_by:''),c:'var(--teal)',type:'meeting',ref:m.organization||m.client_name});
     });
   }
@@ -4661,7 +4661,7 @@ function loadReports(){
   document.getElementById('rep-total-clients').textContent=AC.length;
   document.getElementById('rep-active-svcs').textContent=AClientServices.filter(function(s){return s.stage!=='COMPLETED'&&s.stage!=='ON HOLD';}).length;
   document.getElementById('rep-pending-reqs').textContent=ARequests.filter(function(r){return r.status==='Pending';}).length;
-  document.getElementById('rep-total-meetings').textContent=AMeetings.length;
+  document.getElementById('rep-total-meetings').textContent=AMeet.length;
 
   // Client Stage Funnel
   var stages=['OPEN','INITIATION','ACTIVE NEGOTIATIONS','MOU','LEGAL','PLANNING','EXECUTION','FINALIZATION','COMPLETED','ON HOLD'];
@@ -4740,7 +4740,7 @@ function loadReports(){
   var actEl=document.getElementById('rep-activity');
   if(actEl){
     var newClients=AC.filter(function(c){return new Date(c.created_at)>month_ago;}).length;
-    var newMeetings=AMeetings.filter(function(m){return new Date(m.created_at)>month_ago;}).length;
+    var newMeetings=AMeet.filter(function(m){return new Date(m.created_at)>month_ago;}).length;
     var newReqs=ARequests.filter(function(r){return new Date(r.created_at)>month_ago;}).length;
     var newSvcs=AClientServices.filter(function(s){return new Date(s.created_at)>month_ago;}).length;
     actEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
