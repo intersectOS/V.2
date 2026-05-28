@@ -145,62 +145,104 @@ function sbUpdate(table, filter, body) {
 }
 
 
-// ── NEWS TICKER ──
-var _tickerLoaded = false;
-var _RSS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
-var _RSS_FEEDS = [
-  {url:'https://feeds.bbci.co.uk/news/business/rss.xml',lang:'en',label:'BBC'},
-  {url:'https://rss.cnn.com/rss/money_news_international.rss',lang:'en',label:'CNN Money'},
-  {url:'https://www.argaam.com/ar/rss/latest-news',lang:'ar',label:'أرقام'},
-  {url:'https://alarabiya.net/tools/rss',lang:'ar',label:'العربية'},
-];
 
-var _FALLBACK_NEWS = [
-  {title:'Global markets rally on positive economic data',link:'#',lang:'en',source:'Markets'},
-  {title:'Oil steady as OPEC+ maintains output levels',link:'#',lang:'en',source:'Energy'},
-  {title:'Tech sector leads gains amid AI investment surge',link:'#',lang:'en',source:'Tech'},
-  {title:'Saudi Vision 2030 projects accelerate in Q2 2026',link:'#',lang:'en',source:'KSA'},
-  {title:'الأسواق الخليجية تسجل مكاسب في تداولات اليوم',link:'#',lang:'ar',source:'أسواق'},
-  {title:'النفط يستقر وسط ترقب قرارات أوبك+',link:'#',lang:'ar',source:'طاقة'},
-  {title:'نمو قطاع التقنية في المملكة يتجاوز التوقعات',link:'#',lang:'ar',source:'تقنية'},
-  {title:'مشاريع رؤية 2030 تحقق إنجازات قياسية',link:'#',lang:'ar',source:'رؤية 2030'},
-];
+// ── SMART NEWS TICKER ──
+var _tickerLoaded=false;
+var _RSS_PROXY='https://api.rss2json.com/v1/api.json?rss_url=';
 
-async function loadNewsTicker(){
+async function loadNewsTicker(audience){
   if(_tickerLoaded)return;
-  var items=[];
-  for(var i=0;i<_RSS_FEEDS.length;i++){
-    try{
-      var r=await fetch(_RSS_PROXY+encodeURIComponent(_RSS_FEEDS[i].url)+'&count=5');
-      var d=await r.json();
-      if(d.status==='ok'&&d.items){
-        d.items.slice(0,4).forEach(function(it){
-          items.push({title:it.title,link:it.link||'#',lang:_RSS_FEEDS[i].lang,source:_RSS_FEEDS[i].label});
-        });
-      }
-    }catch(e){}
-  }
-  if(!items.length)items=_FALLBACK_NEWS;
+  audience=audience||'all';
+  var el=document.getElementById('news-ticker-inner');if(!el)return;
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_news_sources?is_active=eq.true&order=name.asc',{
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+    });
+    var sources=await r.json();
+    sources=Array.isArray(sources)?sources:[];
+    var filtered=sources.filter(function(s){return s.audience==='all'||s.audience===audience;});
+    if(!filtered.length){useFallbackTicker();return;}
+    var allItems=[];
+    for(var i=0;i<filtered.length&&i<3;i++){
+      try{
+        var rr=await fetch(_RSS_PROXY+encodeURIComponent(filtered[i].rss_url)+'&count=4');
+        var data=await rr.json();
+        if(data.status==='ok'&&data.items){
+          data.items.slice(0,4).forEach(function(it){
+            allItems.push({title:it.title,link:it.link||'#',source:filtered[i].name});
+          });
+        }
+      }catch(e){}
+    }
+    if(!allItems.length){useFallbackTicker();return;}
+    _tickerLoaded=true;
+    renderTickerItems(el,allItems);
+  }catch(e){useFallbackTicker();}
+}
+
+function useFallbackTicker(){
+  var el=document.getElementById('news-ticker-inner');if(!el)return;
   _tickerLoaded=true;
-  var el=document.getElementById('news-ticker-inner');
-  if(!el)return;
+  var items=[
+    {title:'Global markets mixed amid economic data releases',link:'#',source:'Markets'},
+    {title:'Oil steadies as OPEC+ weighs output decisions',link:'#',source:'Energy'},
+    {title:'Saudi Vision 2030 projects reach new milestones',link:'#',source:'KSA'},
+    {title:'الأسواق الخليجية تتباين في تداولات الجلسة',link:'#',source:'أسواق'},
+    {title:'النفط يستقر وسط ترقب قرارات المنتجين',link:'#',source:'طاقة'},
+  ];
+  renderTickerItems(el,items);
+}
+
+function renderTickerItems(el,items){
   var html=items.map(function(it){
     return '<a href="'+it.link+'" target="_blank" class="ticker-item">'
       +'<span class="ticker-source">'+it.source+'</span>'
       +'<span class="ticker-title">'+it.title+'</span>'
       +'</a><span class="ticker-sep">◆</span>';
   }).join('');
-  el.innerHTML=html+html; // duplicate for seamless loop
-  // Adjust animation speed based on content length
-  var totalW=el.scrollWidth/2;
-  var speed=Math.max(40,totalW/5);
-  el.style.animationDuration=speed+'s';
+  el.innerHTML=html+html;
+  var spd=Math.max(40,el.scrollWidth/10);
+  el.style.animationDuration=spd+'s';
 }
 
-// Load ticker after page loads
-window.addEventListener('load',function(){
-  setTimeout(loadNewsTicker,1500);
-});
+
+
+function unlockVoice(){
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var buf=ctx.createBuffer(1,1,22050);
+    var src=ctx.createBufferSource();
+    src.buffer=buf;src.connect(ctx.destination);src.start(0);
+  }catch(e){}
+  _voiceUnlocked=true;_voiceEnabled=true;
+  try{localStorage.setItem('ix_voice_unlocked','1');}catch(e){}
+  // Remove banner permanently
+  var b=document.getElementById('voice-unlock-banner');
+  if(b){b.style.display='none';setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b);},300);}
+  // Play greeting
+  setTimeout(function(){
+    var name=(typeof memberData!=='undefined'&&memberData&&memberData.name)?memberData.name:
+             (typeof clientData!=='undefined'&&clientData&&clientData.name)?clientData.name:
+             (typeof partnerData!=='undefined'&&partnerData&&partnerData.name)?partnerData.name:'Welcome';
+    var pending=(typeof ARequests!=='undefined')?ARequests.filter(function(r){return r.status==='Pending';}).length:0;
+    var lang=localStorage.getItem('ix_lang')||'en';
+    _voiceGreeted=false;
+    if(typeof voiceGreet==='function')voiceGreet(name,pending,lang);
+  },400);
+}
+
+function showVoiceBanner(){
+  var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  var done=localStorage.getItem('ix_voice_unlocked')==='1';
+  if(done){_voiceUnlocked=true;return;}
+  if(isMobile&&!done&&(typeof _voiceEnabled==='undefined'||_voiceEnabled)){
+    var b=document.getElementById('voice-unlock-banner');
+    if(b){
+      b.style.display='flex';
+      setTimeout(function(){if(b)b.style.display='none';},8000);
+    }
+  }
+}
 
 </script>
 <style>
