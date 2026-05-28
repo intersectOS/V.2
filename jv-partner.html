@@ -143,10 +143,107 @@ function sbUpdate(table, filter, body) {
   .catch(function(e){return {data:null,error:e};});
 }
 
+
+async function submitJvUpdate(){
+  var text=document.getElementById('jv-upd-text').value.trim();
+  if(!text){alert('Please enter update text');return;}
+  var name=partnerData?partnerData.name:'JV Partner';
+  var body={title:text.slice(0,60),description:text,status:'Completed',created_by:name,show_to_client:true};
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_workflow',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
+    if(r.ok){document.getElementById('jv-upd-text').value='';alert('Update submitted!');}
+    else{alert('Error saving');}
+  }catch(e){alert('Error: '+e.message);}
+}
+
+
+// ── NEWS TICKER ──
+var _tickerLoaded = false;
+var _RSS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+var _RSS_FEEDS = [
+  {url:'https://feeds.bbci.co.uk/news/business/rss.xml',lang:'en',label:'BBC'},
+  {url:'https://rss.cnn.com/rss/money_news_international.rss',lang:'en',label:'CNN Money'},
+  {url:'https://www.argaam.com/ar/rss/latest-news',lang:'ar',label:'أرقام'},
+  {url:'https://alarabiya.net/tools/rss',lang:'ar',label:'العربية'},
+];
+
+var _FALLBACK_NEWS = [
+  {title:'Global markets rally on positive economic data',link:'#',lang:'en',source:'Markets'},
+  {title:'Oil steady as OPEC+ maintains output levels',link:'#',lang:'en',source:'Energy'},
+  {title:'Tech sector leads gains amid AI investment surge',link:'#',lang:'en',source:'Tech'},
+  {title:'Saudi Vision 2030 projects accelerate in Q2 2026',link:'#',lang:'en',source:'KSA'},
+  {title:'الأسواق الخليجية تسجل مكاسب في تداولات اليوم',link:'#',lang:'ar',source:'أسواق'},
+  {title:'النفط يستقر وسط ترقب قرارات أوبك+',link:'#',lang:'ar',source:'طاقة'},
+  {title:'نمو قطاع التقنية في المملكة يتجاوز التوقعات',link:'#',lang:'ar',source:'تقنية'},
+  {title:'مشاريع رؤية 2030 تحقق إنجازات قياسية',link:'#',lang:'ar',source:'رؤية 2030'},
+];
+
+async function loadNewsTicker(){
+  if(_tickerLoaded)return;
+  var items=[];
+  for(var i=0;i<_RSS_FEEDS.length;i++){
+    try{
+      var r=await fetch(_RSS_PROXY+encodeURIComponent(_RSS_FEEDS[i].url)+'&count=5');
+      var d=await r.json();
+      if(d.status==='ok'&&d.items){
+        d.items.slice(0,4).forEach(function(it){
+          items.push({title:it.title,link:it.link||'#',lang:_RSS_FEEDS[i].lang,source:_RSS_FEEDS[i].label});
+        });
+      }
+    }catch(e){}
+  }
+  if(!items.length)items=_FALLBACK_NEWS;
+  _tickerLoaded=true;
+  var el=document.getElementById('news-ticker-inner');
+  if(!el)return;
+  var html=items.map(function(it){
+    return '<a href="'+it.link+'" target="_blank" class="ticker-item">'
+      +'<span class="ticker-source">'+it.source+'</span>'
+      +'<span class="ticker-title">'+it.title+'</span>'
+      +'</a><span class="ticker-sep">◆</span>';
+  }).join('');
+  el.innerHTML=html+html; // duplicate for seamless loop
+  // Adjust animation speed based on content length
+  var totalW=el.scrollWidth/2;
+  var speed=Math.max(40,totalW/5);
+  el.style.animationDuration=speed+'s';
+}
+
+// Load ticker after page loads
+window.addEventListener('load',function(){
+  setTimeout(loadNewsTicker,1500);
+});
+
 </script>
-<style>:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;}.hero{border-bottom:1px solid var(--border);padding:18px 20px 14px;}.hero-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}.brand{font-size:10px;letter-spacing:3px;color:var(--ink3);text-transform:uppercase;font-family:'Syne',sans-serif;}.logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:'Syne',sans-serif;}.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}.tab{padding:7px 13px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}.tab.on{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2);color:var(--gold);}.tp{display:none;padding:14px 16px;}.tp.on{display:block;}.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}.ph{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);}.pt{font-size:13px;font-weight:700;}.pb{padding:14px;}.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}.fta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;resize:vertical;min-height:70px;}.fs{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}.fl{font-size:11px;font-weight:600;color:var(--ink3);}.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}.bbg{background:var(--grad);border-color:transparent;color:#fff;}.bbo{background:transparent;border-color:var(--border);color:var(--ink2);}.bsm{padding:5px 10px;font-size:11px;}.bw{width:100%;padding:11px;font-size:13px;}.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}.pgo{background:rgba(245,158,11,.1);color:var(--gold);}.pg{background:rgba(34,197,94,.1);color:#22c55e;}.pr{background:rgba(239,68,68,.1);color:var(--red);}.pgr{background:rgba(74,82,112,.2);color:var(--ink3);}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center;}</style>
+<style>:root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;}.hero{border-bottom:1px solid var(--border);padding:18px 20px 14px;}.hero-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}.brand{font-size:10px;letter-spacing:3px;color:var(--ink3);text-transform:uppercase;font-family:'Syne',sans-serif;}.logout-btn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:'Syne',sans-serif;}.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}.tab{padding:7px 13px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}.tab.on{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2);color:var(--gold);}.tp{display:none;padding:14px 16px;}.tp.on{display:block;}.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}.ph{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);}.pt{font-size:13px;font-weight:700;}.pb{padding:14px;}.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}.fta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;resize:vertical;min-height:70px;}.fs{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit;outline:none;}.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}.fl{font-size:11px;font-weight:600;color:var(--ink3);}.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--ink2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}.bbg{background:var(--grad);border-color:transparent;color:#fff;}.bbo{background:transparent;border-color:var(--border);color:var(--ink2);}.bsm{padding:5px 10px;font-size:11px;}.bw{width:100%;padding:11px;font-size:13px;}.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}.pgo{background:rgba(245,158,11,.1);color:var(--gold);}.pg{background:rgba(34,197,94,.1);color:#22c55e;}.pr{background:rgba(239,68,68,.1);color:var(--red);}.pgr{background:rgba(74,82,112,.2);color:var(--ink3);}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center;}
+/* NEWS TICKER */
+.news-ticker-bar{width:100%;background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(124,58,237,.06));border-bottom:1px solid rgba(6,182,212,.2);overflow:hidden;height:32px;display:flex;align-items:center;position:sticky;top:0;z-index:100;}
+.ticker-label{background:linear-gradient(135deg,#06b6d4,#7c3aed);color:#fff;font-size:10px;font-weight:700;padding:0 10px;height:32px;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;letter-spacing:.5px;}
+.ticker-scroll{flex:1;overflow:hidden;height:32px;display:flex;align-items:center;}
+.ticker-inner{display:flex;align-items:center;white-space:nowrap;animation:tickerMove 60s linear infinite;}
+.ticker-inner:hover{animation-play-state:paused;}
+.ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 8px;text-decoration:none;color:var(--ink2);font-size:11px;transition:color .15s;}
+.ticker-item:hover{color:var(--teal);}
+.ticker-source{background:rgba(6,182,212,.12);color:var(--teal);border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;white-space:nowrap;}
+.ticker-title{max-width:300px;overflow:hidden;text-overflow:ellipsis;}
+.ticker-sep{color:rgba(6,182,212,.4);margin:0 8px;font-size:10px;}
+@keyframes tickerMove{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+</style>
 </head>
 <body>
+
+<!-- NEWS TICKER -->
+<div class="news-ticker-bar" id="news-ticker-bar">
+  <div class="ticker-label">📡 LIVE NEWS</div>
+  <div class="ticker-scroll">
+    <div class="ticker-inner" id="news-ticker-inner">
+      <span style="color:var(--ink3);font-size:11px;padding:0 20px;">Loading news...</span>
+    </div>
+  </div>
+  <button onclick="document.getElementById('news-ticker-bar').style.display='none'" style="background:none;border:none;color:var(--ink3);font-size:14px;cursor:pointer;padding:0 8px;flex-shrink:0;" title="Close">✕</button>
+</div>
+
 <div id="loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;"><div style="font-size:32px;">⏳</div><div style="font-size:13px;color:var(--ink3);">Loading...</div></div>
 <div id="error-sc" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;padding:24px;text-align:center;"><div style="font-size:48px;">🚫</div><div style="font-family:Syne;font-size:18px;font-weight:700;color:var(--red);">Access Denied</div><div style="font-size:13px;color:var(--ink3);">Please <a href="portal.html" style="color:var(--teal);">login first</a></div></div>
 
@@ -257,17 +354,4 @@ async function loadNews(){
   try{var r=await sbFetch('ix_news','',{order:"created_at.desc",limit:20});var items=r.data||[];if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">No news</div>';return;}el.innerHTML=items.map(function(n){return '<div style="background:var(--card2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:9px;padding:12px;margin-bottom:8px;"><div style="font-size:13px;font-weight:700;margin-bottom:5px;">'+n.title+'</div><div style="font-size:12px;color:var(--ink2);line-height:1.6;">'+n.content+'</div>'+(n.link?'<a href="'+n.link+'" target="_blank" style="font-size:11px;color:var(--teal);">→ Read more</a>':'')+'<div style="font-size:10px;color:var(--ink3);margin-top:5px;">'+new Date(n.created_at).toLocaleDateString()+'</div></div>';}).join('');}catch(e){}
 }
 </script>
-
-<!-- VOICE UNLOCK BANNER -->
-<div id="voice-unlock-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;" onclick="unlockVoice()">
-  <span style="font-size:20px;">🔊</span>
-  <div>
-    <div style="font-size:13px;font-weight:700;color:#fff;">Enable Voice Notifications</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.8);">Tap to activate sound</div>
-  </div>
-</div>
-<style>
-@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(6,182,212,.3);}50%{box-shadow:0 4px 30px rgba(6,182,212,.6);}}
-</style>
-
 </body></html>
