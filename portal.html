@@ -34,32 +34,307 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
 .err{color:var(--red);font-size:12px;text-align:center;margin-top:8px;display:none;padding:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;}
 @media(max-width:480px){.card{padding:24px 16px;}.role-grid{gap:6px;}.rbtn{padding:10px 5px;}.rico{font-size:18px;}.rname{font-size:10px;}}
 
-/* NEWS TICKER */
-.news-ticker-bar{width:100%;background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(124,58,237,.06));border-bottom:1px solid rgba(6,182,212,.2);overflow:hidden;height:32px;display:flex;align-items:center;position:sticky;top:0;z-index:100;}
-.ticker-label{background:linear-gradient(135deg,#06b6d4,#7c3aed);color:#fff;font-size:10px;font-weight:700;padding:0 10px;height:32px;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;letter-spacing:.5px;}
-.ticker-scroll{flex:1;overflow:hidden;height:32px;display:flex;align-items:center;}
-.ticker-inner{display:flex;align-items:center;white-space:nowrap;animation:tickerMove 60s linear infinite;}
-.ticker-inner:hover{animation-play-state:paused;}
-.ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 8px;text-decoration:none;color:var(--ink2);font-size:11px;transition:color .15s;}
-.ticker-item:hover{color:var(--teal);}
-.ticker-source{background:rgba(6,182,212,.12);color:var(--teal);border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;white-space:nowrap;}
-.ticker-title{max-width:300px;overflow:hidden;text-overflow:ellipsis;}
-.ticker-sep{color:rgba(6,182,212,.4);margin:0 8px;font-size:10px;}
-@keyframes tickerMove{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+100%{transform:translateX(-50%);}}
 
 </style>
 </head>
 <body>
 
-<!-- NEWS TICKER -->
-<div class="news-ticker-bar" id="news-ticker-bar">
-  <div class="ticker-label">📡 LIVE NEWS</div>
-  <div class="ticker-scroll">
-    <div class="ticker-inner" id="news-ticker-inner">
-      <span style="color:var(--ink3);font-size:11px;padding:0 20px;">Loading news...</span>
-    </div>
+<div class="lang-bar">
+  <button class="lb on" onclick="setLang('en')">EN</button>
+  <button class="lb" onclick="setLang('ar')">AR</button>
+  <button class="lb" onclick="setLang('es')">ES</button>
+  <button class="lb" onclick="setLang('fr')">FR</button>
+</div>
+
+<div class="card">
+  <div class="logo">
+    <img src="logo.png.PNG" style="width:150px;max-width:70%;height:auto;display:block;margin:0 auto 8px;" alt="INTERSECT">
+    <div class="logo-sub">PartnerOS · Secure Access</div>
   </div>
-  <button onclick="document.getElementById('news-ticker-bar').style.display='none'" style="background:none;border:none;color:var(--ink3);font-size:14px;cursor:pointer;padding:0 8px;flex-shrink:0;" title="Close">✕</button>
+
+  <div class="stitle">Select your role</div>
+  <div class="role-grid" id="role-grid">
+    <div class="rbtn sel" data-role="client" onclick="selectRole(this)"><div class="rico">🏢</div><div class="rname">Client</div></div>
+    <div class="rbtn" data-role="partner" onclick="selectRole(this)"><div class="rico">🤝</div><div class="rname">Success Partner</div></div>
+    <div class="rbtn" data-role="strategic" onclick="selectRole(this)"><div class="rico">⚙️</div><div class="rname">Strategic Partner</div></div>
+    <div class="rbtn" data-role="jv" onclick="selectRole(this)"><div class="rico">🏦</div><div class="rname">JV Partner</div></div>
+    <div class="rbtn" data-role="team" onclick="selectRole(this)"><div class="rico">👥</div><div class="rname">Team</div></div>
+    <div class="rbtn" data-role="expert" onclick="selectRole(this)"><div class="rico">🌟</div><div class="rname">Expert</div></div>
+    <div class="rbtn" data-role="consultant" onclick="selectRole(this)"><div class="rico">🎓</div><div class="rname">Consultant</div></div>
+    <div class="rbtn" data-role="freelancer" onclick="selectRole(this)"><div class="rico">💼</div><div class="rname">Freelancer</div></div>
+    <div class="rbtn" data-role="coordinator" onclick="selectRole(this)"><div class="rico">📋</div><div class="rname">Coordinator</div></div>
+  </div>
+
+  <div class="stitle">Login</div>
+  <input class="fi" id="un" type="text" placeholder="Username" dir="ltr" autocomplete="username">
+  <input class="fi" id="pw" type="password" placeholder="Password" dir="ltr" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+  <button class="lbtn" id="lbtn" onclick="greetOnce();login()">→ Access Portal</button>
+  <div class="err" id="err"></div>
+</div>
+
+<script>
+var ROLE = 'client';
+var SB = 'https://zmiywdpfdvllsxalklrv.supabase.co';
+var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+
+function selectRole(el) {
+  ROLE = el.dataset.role;
+  document.querySelectorAll('.rbtn').forEach(function(b){ b.classList.remove('sel'); });
+  el.classList.add('sel');
+  greetOnce();
+}
+
+function showErr(msg) {
+  var e = document.getElementById('err');
+  e.textContent = msg;
+  e.style.display = 'block';
+  if (msg.includes('Invalid') || msg.includes('invalid')) {
+    portalSpeak(_errorMsgs[_curLang] || _errorMsgs['en']);
+  }
+}
+
+function setLang(l) {
+  _curLang = l;
+  document.querySelectorAll('.lb').forEach(function(b){ b.classList.remove('on'); });
+  event.target.classList.add('on');
+  greetOnce();
+}
+
+async function qry(table, filter) {
+  var url = SB + '/rest/v1/' + table + '?' + filter + '&limit=1';
+  var r = await fetch(url, { headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY } });
+  var d = await r.json();
+  return Array.isArray(d) ? d : [];
+}
+
+function save(type, data) {
+  var s = JSON.stringify(data);
+  try { localStorage.setItem('ix_portal_type', type); } catch(e){}
+  try { localStorage.setItem('ix_portal_data', s); } catch(e){}
+  try { sessionStorage.setItem('ix_portal_data', s); } catch(e){}
+  try { sessionStorage.setItem('ix_portal_type', type); } catch(e){}
+}
+
+async function login() {
+  var user = document.getElementById('un').value.trim();
+  var pass = document.getElementById('pw').value;
+  document.getElementById('err').style.display = 'none';
+
+  if (!user || !pass) { showErr('Please enter username and password'); return; }
+
+  var btn = document.getElementById('lbtn');
+  btn.textContent = 'Checking...';
+  btn.disabled = true;
+  portalSpeak(_checkingMsgs[_curLang] || _checkingMsgs['en']);
+
+  try {
+    // ── CLIENT ──
+    if (ROLE === 'client') {
+      var d = await qry('ix_clients_v2', 'username=eq.' + encodeURIComponent(user));
+      if (d.length && d[0].portal_password === pass) {
+        save('client', d[0]);
+        portalSpeak((_successMsgs[_curLang]||_successMsgs['en'])(d[0].name||'Client'));
+        setTimeout(function(){ window.location.href = 'client.html'; }, 1500);
+        return;
+      }
+      showErr('Invalid username or password');
+
+    // ── PARTNER ──
+    } else if (ROLE === 'partner' || ROLE === 'strategic' || ROLE === 'jv') {
+      var d = await qry('ix_partners', 'username=eq.' + encodeURIComponent(user));
+      if (d.length && d[0].portal_password === pass) {
+        var pt = d[0].partner_type || ROLE;
+        save(pt, d[0]);
+        var map = { success_partner:'success-partner.html', strategic:'strategic-partner.html', jv:'jv-partner.html' };
+        window.location.href = (map[pt] || 'success-partner.html') + '?uid=' + d[0].id;
+        return;
+      }
+      showErr('Invalid username or password');
+
+    // ── TEAM / EXPERT / CONSULTANT / FREELANCER ──
+    } else if (ROLE === 'team' || ROLE === 'expert' || ROLE === 'consultant' || ROLE === 'freelancer') {
+      var ptype = ROLE === 'team' ? 'employee' : ROLE;
+      var d = await qry('ix_people', 'username=eq.' + encodeURIComponent(user) + '&person_type=eq.' + ptype);
+      if (!d.length) d = await qry('ix_people', 'username=eq.' + encodeURIComponent(user));
+      if (d.length && d[0].portal_password && d[0].portal_password.trim() === pass.trim()) {
+        var pt2 = d[0].person_type || 'employee';
+        save(pt2, d[0]);
+        portalSpeak((_successMsgs[_curLang]||_successMsgs['en'])(d[0].name||'Team Member'));
+        var map2 = { expert:'expert.html', consultant:'consultant.html', freelancer:'freelancer.html', employee:'team.html' };
+        var dest2 = (map2[pt2] || 'team.html') + '?uid=' + d[0].id;
+        setTimeout(function(){ window.location.href = dest2; }, 1500);
+        return;
+      }
+      showErr('Invalid username or password');
+
+    // ── COORDINATOR ──
+    } else if (ROLE === 'coordinator') {
+      var d = await qry('ix_people', 'username=eq.' + encodeURIComponent(user));
+      if (d.length && d[0].portal_password === pass) {
+        save('coordinator', d[0]);
+        window.location.href = 'transcript.html';
+        return;
+      }
+      if (pass === 'coordinator2026') {
+        window.location.href = 'transcript.html';
+        return;
+      }
+      showErr('Invalid coordinator credentials');
+    }
+
+  } catch(err) {
+    showErr('Connection error — please try again');
+    console.error(err);
+  }
+
+  btn.textContent = '→ Access Portal';
+  btn.disabled = false;
+}
+
+// ── PORTAL VOICE ──
+var _langMap = {'en':'en-US','ar':'ar-SA','es':'es-ES','fr':'fr-FR'};
+var _curLang = 'en';
+
+function portalSpeak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = _langMap[_curLang] || 'en-US';
+  u.rate = 1.0;
+  u.volume = 1.0;
+  var voices = window.speechSynthesis.getVoices();
+  var match = voices.find(function(v){ return v.lang.startsWith(u.lang.split('-')[0]); });
+  if (match) u.voice = match;
+  window.speechSynthesis.speak(u);
+}
+
+var _greetMsgs = {
+  'en': 'Welcome to Intersect PartnerOS. Please select your role and sign in.',
+  'ar': 'أهلاً بك في إنترسكت. الرجاء اختيار فئتك وتسجيل الدخول.',
+  'es': 'Bienvenido a Intersect PartnerOS. Por favor seleccione su rol e inicie sesión.',
+  'fr': 'Bienvenue sur Intersect PartnerOS. Veuillez sélectionner votre rôle et vous connecter.'
+};
+
+var _checkingMsgs = {
+  'en': 'Verifying your credentials...',
+  'ar': 'جاري التحقق من بياناتك...',
+  'es': 'Verificando sus credenciales...',
+  'fr': 'Vérification de vos identifiants...'
+};
+
+var _successMsgs = {
+  'en': function(name){ return 'Welcome, ' + name + '. Redirecting to your portal.'; },
+  'ar': function(name){ return 'أهلاً ' + name + '. جاري تحويلك إلى البوابة.'; },
+  'es': function(name){ return 'Bienvenido, ' + name + '. Redirigiendo a su portal.'; },
+  'fr': function(name){ return 'Bienvenue, ' + name + '. Redirection vers votre portail.'; }
+};
+
+var _errorMsgs = {
+  'en': 'Invalid credentials. Please try again.',
+  'ar': 'بيانات غير صحيحة. حاول مرة أخرى.',
+  'es': 'Credenciales inválidas. Por favor intente de nuevo.',
+  'fr': 'Identifiants invalides. Veuillez réessayer.'
+};
+
+// Greet on first interaction
+var _greeted = false;
+function greetOnce() {
+  if (_greeted) return;
+  _greeted = true;
+  // Load voices (Chrome async)
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = function() {
+      portalSpeak(_greetMsgs[_curLang] || _greetMsgs['en']);
+    };
+  } else {
+    portalSpeak(_greetMsgs[_curLang] || _greetMsgs['en']);
+  }
+}
+
+
+
+
+
+  audience=audience||'all';
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_news_sources?is_active=eq.true&order=name.asc',{
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+    });
+    var sources=await r.json();
+    sources=Array.isArray(sources)?sources:[];
+    var filtered=sources.filter(function(s){return s.audience==='all'||s.audience===audience;});
+    var allItems=[];
+    for(var i=0;i<filtered.length&&i<3;i++){
+      try{
+        var data=await rr.json();
+        if(data.status==='ok'&&data.items){
+          data.items.slice(0,4).forEach(function(it){
+            allItems.push({title:it.title,link:it.link||'#',source:filtered[i].name});
+          });
+        }
+      }catch(e){}
+    }
+}
+
+  var items=[
+    {title:'Global markets mixed amid economic data releases',link:'#',source:'Markets'},
+    {title:'Oil steadies as OPEC+ weighs output decisions',link:'#',source:'Energy'},
+    {title:'Saudi Vision 2030 projects reach new milestones',link:'#',source:'KSA'},
+    {title:'الأسواق الخليجية تتباين في تداولات الجلسة',link:'#',source:'أسواق'},
+    {title:'النفط يستقر وسط ترقب قرارات المنتجين',link:'#',source:'طاقة'},
+  ];
+}
+
+  var html=items.map(function(it){
+  }).join('');
+  el.innerHTML=html+html;
+  var spd=Math.max(40,el.scrollWidth/10);
+  el.style.animationDuration=spd+'s';
+}
+
+
+
+function unlockVoice(){
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var buf=ctx.createBuffer(1,1,22050);
+    var src=ctx.createBufferSource();
+    src.buffer=buf;src.connect(ctx.destination);src.start(0);
+  }catch(e){}
+  _voiceUnlocked=true;_voiceEnabled=true;
+  try{localStorage.setItem('ix_voice_unlocked','1');}catch(e){}
+  // Remove banner permanently
+  var b=document.getElementById('voice-unlock-banner');
+  if(b){b.style.display='none';setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b);},300);}
+  // Play greeting
+  setTimeout(function(){
+    var name=(typeof memberData!=='undefined'&&memberData&&memberData.name)?memberData.name:
+             (typeof clientData!=='undefined'&&clientData&&clientData.name)?clientData.name:
+             (typeof partnerData!=='undefined'&&partnerData&&partnerData.name)?partnerData.name:'Welcome';
+    var pending=(typeof ARequests!=='undefined')?ARequests.filter(function(r){return r.status==='Pending';}).length:0;
+    var lang=localStorage.getItem('ix_lang')||'en';
+    _voiceGreeted=false;
+    if(typeof voiceGreet==='function')voiceGreet(name,pending,lang);
+  },400);
+}
+
+function showVoiceBanner(){
+  var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  var done=localStorage.getItem('ix_voice_unlocked')==='1';
+  if(done){_voiceUnlocked=true;return;}
+  if(isMobile&&!done&&(typeof _voiceEnabled==='undefined'||_voiceEnabled)){
+    var b=document.getElementById('voice-unlock-banner');
+    if(b){
+      b.style.display='flex';
+      setTimeout(function(){if(b)b.style.display='none';},8000);
+    }
+  }
+}
+
+</script>
+</body>
+</html>
 </div>
 
 
@@ -277,14 +552,9 @@ function greetOnce() {
 
 
 
-// ── SMART NEWS TICKER ──
-var _tickerLoaded=false;
-var _RSS_PROXY='https://api.rss2json.com/v1/api.json?rss_url=';
 
-async function loadNewsTicker(audience){
-  if(_tickerLoaded)return;
+
   audience=audience||'all';
-  var el=document.getElementById('news-ticker-inner');if(!el)return;
   try{
     var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_news_sources?is_active=eq.true&order=name.asc',{
       headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
@@ -292,11 +562,9 @@ async function loadNewsTicker(audience){
     var sources=await r.json();
     sources=Array.isArray(sources)?sources:[];
     var filtered=sources.filter(function(s){return s.audience==='all'||s.audience===audience;});
-    if(!filtered.length){useFallbackTicker();return;}
     var allItems=[];
     for(var i=0;i<filtered.length&&i<3;i++){
       try{
-        var rr=await fetch(_RSS_PROXY+encodeURIComponent(filtered[i].rss_url)+'&count=4');
         var data=await rr.json();
         if(data.status==='ok'&&data.items){
           data.items.slice(0,4).forEach(function(it){
@@ -305,15 +573,8 @@ async function loadNewsTicker(audience){
         }
       }catch(e){}
     }
-    if(!allItems.length){useFallbackTicker();return;}
-    _tickerLoaded=true;
-    renderTickerItems(el,allItems);
-  }catch(e){useFallbackTicker();}
 }
 
-function useFallbackTicker(){
-  var el=document.getElementById('news-ticker-inner');if(!el)return;
-  _tickerLoaded=true;
   var items=[
     {title:'Global markets mixed amid economic data releases',link:'#',source:'Markets'},
     {title:'Oil steadies as OPEC+ weighs output decisions',link:'#',source:'Energy'},
@@ -321,15 +582,9 @@ function useFallbackTicker(){
     {title:'الأسواق الخليجية تتباين في تداولات الجلسة',link:'#',source:'أسواق'},
     {title:'النفط يستقر وسط ترقب قرارات المنتجين',link:'#',source:'طاقة'},
   ];
-  renderTickerItems(el,items);
 }
 
-function renderTickerItems(el,items){
   var html=items.map(function(it){
-    return '<a href="'+it.link+'" target="_blank" class="ticker-item">'
-      +'<span class="ticker-source">'+it.source+'</span>'
-      +'<span class="ticker-title">'+it.title+'</span>'
-      +'</a><span class="ticker-sep">◆</span>';
   }).join('');
   el.innerHTML=html+html;
   var spd=Math.max(40,el.scrollWidth/10);
