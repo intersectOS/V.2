@@ -5492,8 +5492,8 @@ async function loadAttendance(){
   // Load actual attendees from ix_workflow
   try{
     var rNames=await sbQ('ix_workflow','status=eq.attendance',{select:'created_by'});
-    if(rNames.data){
-      var names=[...new Set(rNames.data.map(function(r){return r.created_by;}))].filter(Boolean);
+    if(Array.isArray(rNames)&&rNames.length){
+      var names=[...new Set(rNames.map(function(r){return r.created_by;}))].filter(Boolean);
       if(pfSel){
         var curVal=pfSel.value;
         pfSel.innerHTML='<option value="">👥 All Team</option>'+names.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('');
@@ -5506,7 +5506,7 @@ async function loadAttendance(){
     // Load data based on view
     var attFilter='status=eq.attendance';
     var attOpts={order:'created_at.asc'};
-    if(view==='day'){attFilter+='&context_value=eq.'+date;}
+    if(view==='day'){attFilter+='&title=eq.'+encodeURIComponent('[ATTENDANCE] '+date);}
     else if(view==='month'){var monthStart=date.slice(0,7)+'-01';attFilter+='&created_at=gte.'+monthStart;}
     else{attOpts={order:'created_at.desc',limit:200};}
     if(personFilter){attFilter+='&created_by=eq.'+encodeURIComponent(personFilter);}
@@ -5517,7 +5517,7 @@ async function loadAttendance(){
 
     // Load this month for KPIs
     var monthStart2=today.slice(0,7)+'-01';
-    var rMonth=await sbQ('ix_workflow','status=eq.attendance&'+col+'=gte.'+monthStart2+'',null);
+    var rMonth=await sbQ('ix_workflow','status=eq.attendance&created_at=gte.'+monthStart2,null);
     var monthRecs=(rMonth||[]).map(function(rec){return {person_name:rec.created_by,check_in_time:rec.created_at,date:rec.context_value};});
     var todayRecs=monthRecs.filter(function(x){return x.date===today;});
 
