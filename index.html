@@ -36,11 +36,18 @@ async function loadNewsSourcesList(){
 }
 
 function openAddNewsSource(){
-  ['ns-id','ns-name','ns-url'].forEach(function(id){
-    var el=document.getElementById(id);if(el)el.value='';
-  });
+  // Clear fields
+  ['ns-id','ns-name','ns-url'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   var aud=document.getElementById('ns-audience');if(aud)aud.value='all';
-  om('m-news-source');
+  // Show modal using both methods
+  var modal=document.getElementById('m-news-source');
+  if(modal){
+    modal.classList.add('on');
+    modal.style.display='flex';
+    modal.style.alignItems='center';
+    modal.style.justifyContent='center';
+    modal.style.zIndex='9999';
+  }
 }
 
 async function saveNewsSource(){
@@ -594,6 +601,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <div class="ni" onclick="gp('experts',this)"><span class="nico">🌟</span><span data-i="n_experts">Expert Marketplace</span></div>
       <div class="ni" onclick="gp('requests',this)"><span class="nico">📋</span><span data-i="n_requests">Requests</span></div>
       <div class="ni" onclick="gp('meetings',this)"><span class="nico">📋</span><span data-i="n_meetings">Meetings MoM &amp; Follow-Up</span></div>
+      <div class="ni" onclick="gp('reports',this)"><span class="nico">📈</span><span>Reports</span></div>
       <div class="ni" onclick="gp('contracts',this)"><span class="nico">📜</span><span>Contracts</span></div>
       <div class="ni" onclick="gp('attendance',this)"><span class="nico">📋</span><span>Attendance</span></div>
       <div class="ni" onclick="gp('weekly',this)"><span class="nico">🗓️</span><span>Meetings</span></div>
@@ -1965,7 +1973,7 @@ var sb = null;
 
 // Data arrays
 var AC=[], APeople=[], AOpps=[], AActions=[], AWorkflow=[], ARequests=[], AMeet=[], ANotifs=[], AInvoices=[], AProj=[], ATasks=[], AExpertReq=[];
-var AClientServices=[], AServiceHistory=[], AContracts=[], ACatalog=[];
+var AMeet=AMeet, AClientServices=[], AServiceHistory=[], AContracts=[], ACatalog=[];
 var APartners=[];
 
 function t(k){return (T[lang]&&T[lang][k]) ? T[lang][k] : (T.en[k]||k);}
@@ -2721,15 +2729,14 @@ function gp(n,el){
     news:lNews,
     contracts:function(){loadContracts();},
     catalog:loadCatalog,
-    settings:function(){
-      loadSettings&&loadSettings();
-      loadNewsSourcesList();
-      var k=document.getElementById('claude-key');
-      if(k){var saved=localStorage.getItem('ix_claude_key');k.placeholder=saved?'••••••••• (saved)':'sk-ant-...';}
-    },
+    settings:function(){loadSettings&&loadSettings();loadNewsSourcesList();},
     partners:function(){sbQ('ix_partners','',{order:'created_at.desc'}).then(function(r){APartners=r||[];renderPartners();});},
     attendance:loadAttendance,
-    weekly:function(){initWeeklyPage();}
+    weekly:function(){initWeeklyPage();},
+    settings:function(){
+      var k=document.getElementById('claude-key');
+      if(k){var saved=localStorage.getItem('ix_claude_key');k.placeholder=saved?'••••••••• (saved)':'sk-ant-...';}
+    }
   };
   if(renderMap[n])renderMap[n]();
 }
@@ -2756,18 +2763,23 @@ async function loadAll(){
   ];
   await Promise.all(tables.map(async function(tbl){
     try{
-      var r=await sbQ(tbl[0],'',{order:tbl[2]+'.desc'});
-      tbl[1](Array.isArray(r)?r:[]);
+      var r={data:await sbQ(tbl[0],'',{order:tbl[2]+'.desc'})};
+      if(!r){
+        console.warn('Load error for '+tbl[0]+':',r.error.message);
+        tbl[1]([]);
+      } else {
+        tbl[1](r||[]);
+      }
     }catch(e){
       console.warn('Exception for '+tbl[0]+':',e.message);
       tbl[1]([]);
     }
   }));
   // Also load partners and client services
-  try{var rp=await sbQ('ix_partners','',{order:'created_at.desc'});APartners=rp||[];}catch(e){}
-  try{var rcs=await sbQ('ix_client_services','',{order:'created_at.desc'});AClientServices=rcs||[];}catch(e){}
-  try{var rsh=await sbQ('ix_service_history','',{order:'created_at.desc',limit:200});AServiceHistory=rsh||[];}catch(e){}
-  try{var rct=await sbQ('ix_contracts','',{order:'end_date.asc'});AContracts=rct||[];}catch(e){}
+  try{var rp=await sbQ('ix_partners','',{order:'created_at.desc'});if(!rp.error)APartners=rp||[];}catch(e){}
+  try{var rcs=await sbQ('ix_client_services','',{order:'created_at.desc'});if(!rcs.error)AClientServices=rcs||[];}catch(e){}
+  try{var rsh=await sbQ('ix_service_history','',{order:'created_at.desc',limit:200});if(!rsh.error)AServiceHistory=rsh||[];}catch(e){}
+  try{var rct=await sbQ('ix_contracts','',{order:'end_date.asc'});if(!rct.error)AContracts=rct||[];}catch(e){}
   renderOV();
   updateNotifBadge();
   setTimeout(triggerVoiceGreet, 2000);
@@ -5496,7 +5508,7 @@ async function loadAttendance(){
 
     // Load this month for KPIs
     var monthStart2=today.slice(0,7)+'-01';
-    var rMonth=await sbQ('ix_workflow','status=eq.attendance&created_at=gte.'+monthStart2,null);
+    var rMonth=await sbQ('ix_workflow','status=eq.attendance&'+col+'=gte.'+monthStart2+'',null);
     var monthRecs=(rMonth||[]).map(function(rec){return {person_name:rec.created_by,check_in_time:rec.created_at,date:rec.context_value};});
     var todayRecs=monthRecs.filter(function(x){return x.date===today;});
 
@@ -6040,7 +6052,7 @@ function initCharts(){
 
 // ── UTILS ──
 function om(id){document.getElementById(id).classList.add('on');}
-function cm(id){document.getElementById(id).classList.remove('on');}
+function cm(id){var el=document.getElementById(id);if(el){el.classList.remove('on');el.style.display='';}}
 document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.mo').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('on');});});});
 function SE(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 function SB2(id,p){var e=document.getElementById(id);if(e)e.style.width=Math.min(100,Math.max(0,p))+'%';}
