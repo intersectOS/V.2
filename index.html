@@ -36,17 +36,11 @@ async function loadNewsSourcesList(){
 }
 
 function openAddNewsSource(){
-  var modal=document.getElementById('m-news-source');
-  if(!modal){console.error('Modal m-news-source not found');return;}
-  var nsId=document.getElementById('ns-id');
-  var nsName=document.getElementById('ns-name');
-  var nsUrl=document.getElementById('ns-url');
-  var nsAud=document.getElementById('ns-audience');
-  if(nsId)nsId.value='';
-  if(nsName)nsName.value='';
-  if(nsUrl)nsUrl.value='';
-  if(nsAud)nsAud.value='all';
-  modal.classList.add('on');
+  ['ns-id','ns-name','ns-url'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';
+  });
+  var aud=document.getElementById('ns-audience');if(aud)aud.value='all';
+  om('m-news-source');
 }
 
 async function saveNewsSource(){
@@ -600,7 +594,6 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <div class="ni" onclick="gp('experts',this)"><span class="nico">🌟</span><span data-i="n_experts">Expert Marketplace</span></div>
       <div class="ni" onclick="gp('requests',this)"><span class="nico">📋</span><span data-i="n_requests">Requests</span></div>
       <div class="ni" onclick="gp('meetings',this)"><span class="nico">📋</span><span data-i="n_meetings">Meetings MoM &amp; Follow-Up</span></div>
-      <div class="ni" onclick="gp('reports',this)"><span class="nico">📈</span><span>Reports</span></div>
       <div class="ni" onclick="gp('contracts',this)"><span class="nico">📜</span><span>Contracts</span></div>
       <div class="ni" onclick="gp('attendance',this)"><span class="nico">📋</span><span>Attendance</span></div>
       <div class="ni" onclick="gp('weekly',this)"><span class="nico">🗓️</span><span>Meetings</span></div>
@@ -2728,14 +2721,15 @@ function gp(n,el){
     news:lNews,
     contracts:function(){loadContracts();},
     catalog:loadCatalog,
-    settings:function(){loadSettings&&loadSettings();loadNewsSourcesList();},
-    partners:function(){sbQ('ix_partners','',{order:'created_at.desc'}).then(function(r){APartners=r||[];renderPartners();});},
-    attendance:loadAttendance,
-    weekly:function(){initWeeklyPage();},
     settings:function(){
+      loadSettings&&loadSettings();
+      loadNewsSourcesList();
       var k=document.getElementById('claude-key');
       if(k){var saved=localStorage.getItem('ix_claude_key');k.placeholder=saved?'••••••••• (saved)':'sk-ant-...';}
-    }
+    },
+    partners:function(){sbQ('ix_partners','',{order:'created_at.desc'}).then(function(r){APartners=r||[];renderPartners();});},
+    attendance:loadAttendance,
+    weekly:function(){initWeeklyPage();}
   };
   if(renderMap[n])renderMap[n]();
 }
@@ -5502,7 +5496,7 @@ async function loadAttendance(){
 
     // Load this month for KPIs
     var monthStart2=today.slice(0,7)+'-01';
-    var rMonth=await sbQ('ix_workflow','status=eq.attendance&'+col+'=gte.'+monthStart2+'',null);
+    var rMonth=await sbQ('ix_workflow','status=eq.attendance&created_at=gte.'+monthStart2,null);
     var monthRecs=(rMonth||[]).map(function(rec){return {person_name:rec.created_by,check_in_time:rec.created_at,date:rec.context_value};});
     var todayRecs=monthRecs.filter(function(x){return x.date===today;});
 
