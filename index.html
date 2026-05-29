@@ -2761,23 +2761,18 @@ async function loadAll(){
   ];
   await Promise.all(tables.map(async function(tbl){
     try{
-      var r={data:await sbQ(tbl[0],'',{order:tbl[2]+'.desc'})};
-      if(!r){
-        console.warn('Load error for '+tbl[0]+':',r.error.message);
-        tbl[1]([]);
-      } else {
-        tbl[1](r||[]);
-      }
+      var r=await sbQ(tbl[0],'',{order:tbl[2]+'.desc'});
+      tbl[1](Array.isArray(r)?r:[]);
     }catch(e){
       console.warn('Exception for '+tbl[0]+':',e.message);
       tbl[1]([]);
     }
   }));
   // Also load partners and client services
-  try{var rp=await sbQ('ix_partners','',{order:'created_at.desc'});if(!rp.error)APartners=rp||[];}catch(e){}
-  try{var rcs=await sbQ('ix_client_services','',{order:'created_at.desc'});if(!rcs.error)AClientServices=rcs||[];}catch(e){}
-  try{var rsh=await sbQ('ix_service_history','',{order:'created_at.desc',limit:200});if(!rsh.error)AServiceHistory=rsh||[];}catch(e){}
-  try{var rct=await sbQ('ix_contracts','',{order:'end_date.asc'});if(!rct.error)AContracts=rct||[];}catch(e){}
+  try{var rp=await sbQ('ix_partners','',{order:'created_at.desc'});APartners=rp||[];}catch(e){}
+  try{var rcs=await sbQ('ix_client_services','',{order:'created_at.desc'});AClientServices=rcs||[];}catch(e){}
+  try{var rsh=await sbQ('ix_service_history','',{order:'created_at.desc',limit:200});AServiceHistory=rsh||[];}catch(e){}
+  try{var rct=await sbQ('ix_contracts','',{order:'end_date.asc'});AContracts=rct||[];}catch(e){}
   renderOV();
   updateNotifBadge();
   setTimeout(triggerVoiceGreet, 2000);
