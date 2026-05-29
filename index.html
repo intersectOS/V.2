@@ -14,7 +14,7 @@ async function loadNewsSourcesList(){
   var el=document.getElementById('news-sources-list');if(!el)return;
   try{
     var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_news_sources?order=audience.asc,name.asc',{
-      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+      headers:{'apikey':'sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Authorization':'Bearer sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH'}
     });
     var items=await r.json();
     _newsSources=Array.isArray(items)?items:[];
@@ -57,7 +57,7 @@ async function saveNewsSource(){
   try{
     var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_news_sources',{
       method:'POST',
-      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+      headers:{'apikey':'sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Authorization':'Bearer sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Content-Type':'application/json','Prefer':'return=representation'},
       body:JSON.stringify({name:name,rss_url:url,audience:audience,is_active:true})
     });
     if(r.ok){cm('m-news-source');loadNewsSourcesList();toast('Source added','ts');}
@@ -68,7 +68,7 @@ async function saveNewsSource(){
 async function toggleNewsSource(id,active){
   await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_news_sources?id=eq.'+id,{
     method:'PATCH',
-    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json'},
+    headers:{'apikey':'sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Authorization':'Bearer sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Content-Type':'application/json'},
     body:JSON.stringify({is_active:active})
   });
   loadNewsSourcesList();
@@ -78,7 +78,7 @@ async function deleteNewsSource(id){
   if(!confirm('Delete this source?'))return;
   await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_news_sources?id=eq.'+id,{
     method:'DELETE',
-    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+    headers:{'apikey':'sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Authorization':'Bearer sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH'}
   });
   loadNewsSourcesList();
 }
@@ -95,7 +95,7 @@ async function loadNewsTicker(audience){
     // Get sources for this audience from Supabase
     var filter='is_active=eq.true&order=name.asc';
     var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_news_sources?'+filter,{
-      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}
+      headers:{'apikey':'sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Authorization':'Bearer sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH'}
     });
     var sources=await r.json();
     sources=Array.isArray(sources)?sources:[];
@@ -1946,7 +1946,7 @@ function applyDashTranslations(){
 }
 
 var SB_URL_HC = 'https://zmiywdpfdvllsxalklrv.supabase.co';
-var SB_KEY_HC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+var SB_KEY_HC = 'sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH';
 
 // Storage
 var PK='ix_pass', LK='ix_lang', BK='ix_base';
@@ -1972,7 +1972,7 @@ var sb = null;
 
 // Data arrays
 var AC=[], APeople=[], AOpps=[], AActions=[], AWorkflow=[], ARequests=[], AMeet=[], ANotifs=[], AInvoices=[], AProj=[], ATasks=[], AExpertReq=[];
-var AMeet=AMeet, AClientServices=[], AServiceHistory=[], AContracts=[], ACatalog=[];
+var AClientServices=[], AServiceHistory=[], AContracts=[], ACatalog=[];
 var APartners=[];
 
 function t(k){return (T[lang]&&T[lang][k]) ? T[lang][k] : (T.en[k]||k);}
@@ -2626,8 +2626,8 @@ if (window.speechSynthesis) {
 
 
 var _SB='https://zmiywdpfdvllsxalklrv.supabase.co';
-var _KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
-var _H={'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'};
+var _KEY='sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH';
+var _H={'apikey':'sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Authorization':'Bearer sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH'};
 
 async function sbQ(table,filter,opts){
   opts=opts||{};
@@ -2762,23 +2762,18 @@ async function loadAll(){
   ];
   await Promise.all(tables.map(async function(tbl){
     try{
-      var r={data:await sbQ(tbl[0],'',{order:tbl[2]+'.desc'})};
-      if(!r){
-        console.warn('Load error for '+tbl[0]+':',r.error.message);
-        tbl[1]([]);
-      } else {
-        tbl[1](r||[]);
-      }
+      var r=await sbQ(tbl[0],'',{order:tbl[2]+'.desc'});
+      tbl[1](Array.isArray(r)?r:[]);
     }catch(e){
       console.warn('Exception for '+tbl[0]+':',e.message);
       tbl[1]([]);
     }
   }));
   // Also load partners and client services
-  try{var rp=await sbQ('ix_partners','',{order:'created_at.desc'});if(!rp.error)APartners=rp||[];}catch(e){}
-  try{var rcs=await sbQ('ix_client_services','',{order:'created_at.desc'});if(!rcs.error)AClientServices=rcs||[];}catch(e){}
-  try{var rsh=await sbQ('ix_service_history','',{order:'created_at.desc',limit:200});if(!rsh.error)AServiceHistory=rsh||[];}catch(e){}
-  try{var rct=await sbQ('ix_contracts','',{order:'end_date.asc'});if(!rct.error)AContracts=rct||[];}catch(e){}
+  try{var rp=await sbQ('ix_partners','',{order:'created_at.desc'});APartners=rp||[];}catch(e){}
+  try{var rcs=await sbQ('ix_client_services','',{order:'created_at.desc'});AClientServices=rcs||[];}catch(e){}
+  try{var rsh=await sbQ('ix_service_history','',{order:'created_at.desc',limit:200});AServiceHistory=rsh||[];}catch(e){}
+  try{var rct=await sbQ('ix_contracts','',{order:'end_date.asc'});AContracts=rct||[];}catch(e){}
   renderOV();
   updateNotifBadge();
   setTimeout(triggerVoiceGreet, 2000);
@@ -3470,7 +3465,7 @@ async function savePerson(){
     try{
       var ru=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_people?id=eq.'+editId,{
         method:'PATCH',
-        headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+        headers:{'apikey':'sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Authorization':'Bearer sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Content-Type':'application/json','Prefer':'return=representation'},
         body:JSON.stringify(p)
       });
       var rdu=await ru.json();
@@ -3485,7 +3480,7 @@ async function savePerson(){
   try{
     var rr=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_people',{
       method:'POST',
-      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},
+      headers:{'apikey':'sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Authorization':'Bearer sb_publishable_0YrC6_nZKr_JPYq8QSvhTw_F94wN7NH','Content-Type':'application/json','Prefer':'return=representation'},
       body:JSON.stringify(p)
     });
     var rd=await rr.json();
