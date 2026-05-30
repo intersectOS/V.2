@@ -1857,12 +1857,18 @@ function openAdvisors() {
         + '<div style="font-size:10px;font-weight:700;color:var(--gold);margin-bottom:4px;">💡 Example Scenario</div>'
         + '<div style="font-size:11px;color:var(--ink3);line-height:1.5;">' + a.scenario + '</div>'
       + '</div>'
-      + '<a href="' + url + '" target="_blank" onclick="cm(\'m-advisors\')" '
+      + '<a href="' + url + '" target="_blank" onclick="var _m=document.getElementById(\'m-advisors\');if(_m){_m.style.display=\'none\';_m.classList.remove(\'on\');}" '
         + 'style="display:inline-flex;align-items:center;gap:5px;background:var(--grad);border:none;border-radius:7px;padding:7px 12px;color:#fff;font-size:11px;font-weight:700;text-decoration:none;font-family:Syne,sans-serif;">'
         + 'Open ' + a.icon + '</a>'
     + '</div>';
   }).join('');
-  om('m-advisors');
+  var _modal = document.getElementById('m-advisors');
+  if (_modal) {
+    _modal.style.display = 'flex';
+    _modal.style.alignItems = 'center';
+    _modal.style.justifyContent = 'center';
+    _modal.classList.add('on');
+  }
 }
 
 // INTERSECT PartnerOS — Complete Clean JS
