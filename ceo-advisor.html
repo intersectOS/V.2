@@ -745,16 +745,10 @@ async function sendMessage() {
 
   addTyping();
 
-  setTimeout(async () => {
-    removeTyping();
-    const resp = matchIntent(text) || buildGenericResponse(text);
-    var html = renderResponse(resp);
-    if (currentLang && currentLang !== 'en') {
-      html = await translateText(html, currentLang);
-    }
-    addAdvisorMsg(html);
-    document.getElementById('sendBtn').disabled = false;
-  }, 900 + Math.random() * 600);
+  removeTyping();
+  var reply = await askGemini(text);
+  addAdvisorMsg(formatGeminiResponse(reply));
+  document.getElementById('sendBtn').disabled = false;
 }
 
 function askQuestion(text) {
