@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHRO Advisor — Intersect OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0f;--card:#13131a;--card2:#1a1a24;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.04);--ink:#e8e8f0;--ink2:#9090a8;--ink3:#5a5a72;--teal:#06b6d4;--purple:#7c3aed;--gold:#f59e0b;--green:#22c55e;--red:#ef4444;--orange:#f97316;--grad:linear-gradient(135deg,#f97316,#7c3aed);}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(19,19,26,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.back-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--ink2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;}
+.back-btn:hover{background:rgba(255,255,255,.1);color:var(--ink);}
+.advisor-badge{display:flex;align-items:center;gap:12px;}
+.advisor-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(249,115,22,.2),rgba(124,58,237,.2));border:1px solid rgba(249,115,22,.3);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.advisor-info h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+.advisor-info p{font-size:11px;color:var(--ink3);margin-top:2px;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 8px rgba(249,115,22,.5);animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.5;}}
+.lang-bar{display:flex;gap:6px;padding:8px 20px;background:rgba(13,13,20,.9);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.lang-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--ink3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.lang-btn:hover{background:rgba(255,255,255,.08);color:var(--ink2);}
+.lang-btn.active{background:rgba(249,115,22,.15);border-color:rgba(249,115,22,.3);color:var(--orange);}
+.context-banner{background:linear-gradient(135deg,rgba(249,115,22,.06),rgba(124,58,237,.04));border-bottom:1px solid var(--border2);padding:10px 20px;}
+.context-inner{font-size:11px;color:var(--ink3);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.context-inner span{background:rgba(249,115,22,.12);color:var(--orange);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;}
+.quick-section{padding:16px 20px 0;}
+.quick-label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
+.quick-btn{background:var(--card);border:1px solid var(--border);color:var(--ink2);border-radius:10px;padding:10px 14px;font-size:12px;text-align:left;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;line-height:1.4;}
+.quick-btn:hover{background:var(--card2);border-color:rgba(249,115,22,.3);color:var(--ink);}
+.chat-area{padding:20px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 310px);overflow-y:auto;}
+.msg{display:flex;gap:10px;align-items:flex-start;}
+.msg.user{flex-direction:row-reverse;}
+.msg-avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.msg.advisor .msg-avatar{background:linear-gradient(135deg,rgba(249,115,22,.2),rgba(124,58,237,.15));border:1px solid rgba(249,115,22,.2);}
+.msg.user .msg-avatar{background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);}
+.msg-bubble{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;max-width:680px;font-size:13px;line-height:1.6;}
+.msg.user .msg-bubble{background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.2);}
+.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--orange);margin-bottom:8px;}
+.bullet-list{margin:8px 0;padding-left:0;list-style:none;}
+.bullet-list li{padding:5px 0 5px 18px;position:relative;color:var(--ink2);font-size:12px;}
+.bullet-list li::before{content:'→';position:absolute;left:0;color:var(--orange);font-size:11px;}
+.highlight{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:12px;color:var(--gold);line-height:1.5;}
+.framework-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px;}
+.framework-table th{background:rgba(249,115,22,.08);color:var(--orange);padding:7px 10px;text-align:left;font-weight:600;border-bottom:1px solid rgba(249,115,22,.15);}
+.framework-table td{padding:6px 10px;border-bottom:1px solid var(--border2);color:var(--ink2);}
+.framework-table tr:last-child td{border-bottom:none;}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.tag{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;}
+.tag.orange{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.2);}
+.tag.teal{background:rgba(6,182,212,.1);color:var(--teal);border:1px solid rgba(6,182,212,.2);}
+.tag.purple{background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2);}
+.tag.gold{background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.2);}
+.tag.green{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+.tag.red{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.metrics-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:10px 0;}
+.metric-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.metric-val{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--orange);}
+.metric-lbl{font-size:10px;color:var(--ink3);margin-top:3px;}
+.metric-target{font-size:10px;color:var(--green);margin-top:2px;}
+.input-area{position:sticky;bottom:0;padding:14px 20px;background:rgba(10,10,15,.95);border-top:1px solid var(--border);backdrop-filter:blur(10px);}
+.input-row{display:flex;gap:10px;align-items:center;}
+.input-box{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 16px;color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+.input-box:focus{border-color:rgba(249,115,22,.4);}
+.send-btn{background:var(--grad);border:none;border-radius:10px;padding:11px 18px;color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+.send-btn:hover{opacity:.9;}
+.send-btn:disabled{opacity:.4;}
+.thinking{display:flex;gap:4px;align-items:center;padding:8px 0;}
+.thinking span{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:bounce .8s ease-in-out infinite;}
+.thinking span:nth-child(2){animation-delay:.15s;}
+.thinking span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,80%,100%{transform:scale(0.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+@media(max-width:600px){.quick-grid{grid-template-columns:1fr 1fr;}.metrics-row{grid-template-columns:repeat(3,1fr);}.lang-bar{gap:4px;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" id="back-btn" onclick="history.back()">← Back</button>
+  <div class="advisor-badge">
+    <div class="advisor-icon">👥</div>
+    <div class="advisor-info">
+      <h2>CHRO Advisor</h2>
+      <p id="advisor-subtitle">Hiring · Compensation · Org Design · Retention · Culture</p>
+    </div>
+  </div>
+  <div class="status-dot"></div>
+</div>
+
+<div class="lang-bar" id="lang-bar"></div>
+
+<div class="context-banner">
+  <div class="context-inner" id="context-banner">
+    👥 Frameworks from <span>people_strategy</span> <span>comp_frameworks</span> <span>org_design</span> <span>performance_mgmt</span>
+  </div>
+</div>
+
+<div class="quick-section">
+  <div class="quick-label" id="quick-label">Quick Questions</div>
+  <div class="quick-grid" id="quick-grid"></div>
+</div>
+
+<div class="chat-area" id="chat">
+  <div class="msg advisor">
+    <div class="msg-avatar">👥</div>
+    <div><div class="msg-bubble" id="welcome-msg">
+      <div class="section-title">Welcome to CHRO Advisor</div>
+      <div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">People strategy and operational HR — hiring, compensation, org design, and culture that actually scales.</div>
+      <div class="highlight">First question I always ask: <strong>Which roles are blocking revenue right now if unfilled for 30+ days?</strong> Prioritize those. Everything else is important but not urgent.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <input class="input-box" id="user-input" placeholder="Ask about hiring, comp bands, org design, retention, performance..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendMessage();}">
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">Send →</button>
+  </div>
+</div>
+
+<script>
+var LANGS = {
+  en:{dir:'ltr',subtitle:'Hiring · Compensation · Org Design · Retention · Culture',back:'← Back',quick_label:'Quick Questions',placeholder:'Ask about hiring, comp bands, org design, retention, performance...',send:'Send →',welcome_title:'Welcome to CHRO Advisor',welcome_body:'People strategy and operational HR — hiring, compensation, org design, and culture that actually scales.',welcome_hl:'First question: <strong>Which roles are blocking revenue if unfilled for 30+ days?</strong> Prioritize those.',quick:['👥 Build a hiring plan for next quarter','💰 How do we set up compensation bands?','🏗️ When do we need to add a management layer?','🚨 We are losing good people — what do we do?','📊 How do we run a performance review cycle?','🎯 How do we design career ladders?']},
+  ar:{dir:'rtl',subtitle:'التوظيف · التعويض · تصميم المنظمة · الاحتفاظ · الثقافة',back:'رجوع',quick_label:'أسئلة سريعة',placeholder:'اسأل عن التوظيف، نطاقات الرواتب، تصميم المنظمة...',send:'إرسال',welcome_title:'مرحباً بك في مستشار الموارد البشرية',welcome_body:'استراتيجية الأفراد والموارد البشرية التشغيلية — التوظيف والتعويض وتصميم المنظمة والثقافة.',welcome_hl:'أول سؤال: <strong>أي الأدوار تعيق الإيرادات إذا ظلت شاغرة أكثر من 30 يوماً؟</strong>',quick:['👥 بناء خطة توظيف للربع القادم','💰 كيف نضع نطاقات الرواتب؟','🏗️ متى نحتاج إضافة طبقة إدارية؟','🚨 نخسر موظفين جيدين — ماذا نفعل؟','📊 كيف ندير دورة تقييم الأداء؟','🎯 كيف نصمم مسارات المهنة؟']},
+  es:{dir:'ltr',subtitle:'Contratación · Compensación · Diseño Org · Retención · Cultura',back:'Volver',quick_label:'Preguntas Rápidas',placeholder:'Pregunta sobre contratación, bandas salariales, diseño org...',send:'Enviar',welcome_title:'Bienvenido al Asesor CHRO',welcome_body:'Estrategia de personas y RRHH operacional — contratación, compensación, diseño org y cultura.',welcome_hl:'Primera pregunta: <strong>¿Qué roles bloquean ingresos si quedan vacantes 30+ días?</strong>',quick:['👥 Plan de contratación para el próximo trimestre','💰 Cómo establecer bandas salariales?','🏗️ Cuándo agregar una capa de gestión?','🚨 Perdemos buena gente, qué hacemos?','📊 Cómo ejecutar ciclo de evaluación?','🎯 Diseño de escalera de carrera?']},
+  fr:{dir:'ltr',subtitle:'Recrutement · Rémunération · Conception Org · Rétention · Culture',back:'Retour',quick_label:'Questions Rapides',placeholder:'Posez des questions sur le recrutement, les grilles salariales...',send:'Envoyer',welcome_title:'Bienvenue au Conseiller CHRO',welcome_body:'Stratégie RH et RH opérationnel — recrutement, rémunération, conception org et culture.',welcome_hl:'Première question: <strong>Quels rôles bloquent les revenus si vacants 30+ jours?</strong>',quick:['👥 Plan de recrutement prochain trimestre','💰 Comment établir des grilles salariales?','🏗️ Quand ajouter une couche managériale?','🚨 On perd de bonnes personnes, que faire?','📊 Cycle évaluation performance?','🎯 Concevoir des échelles de carrière?']},
+  de:{dir:'ltr',subtitle:'Einstellung · Vergütung · Org-Design · Bindung · Kultur',back:'Zurück',quick_label:'Schnelle Fragen',placeholder:'Fragen zu Einstellung, Gehaltsbändern, Org-Design...',send:'Senden',welcome_title:'Willkommen beim CHRO-Berater',welcome_body:'Personalstrategie und operatives HR — Einstellung, Vergütung, Org-Design und Kultur.',welcome_hl:'Erste Frage: <strong>Welche Rollen blockieren Einnahmen, wenn sie 30+ Tage unbesetzt sind?</strong>',quick:['👥 Einstellungsplan für nächstes Quartal','💰 Gehaltsbänder einrichten?','🏗️ Wann Managementebene hinzufügen?','🚨 Wir verlieren gute Leute, was tun?','📊 Performance-Review-Zyklus?','🎯 Karriereleitern gestalten?']},
+  it:{dir:'ltr',subtitle:'Assunzioni · Compensazione · Design Org · Retention · Cultura',back:'Indietro',quick_label:'Domande Rapide',placeholder:'Chiedi di assunzioni, fasce salariali, design org...',send:'Invia',welcome_title:'Benvenuto al Consulente CHRO',welcome_body:'Strategia HR e HR operativo — assunzioni, compensazione, design org e cultura.',welcome_hl:'Prima domanda: <strong>Quali ruoli bloccano i ricavi se vacanti per 30+ giorni?</strong>',quick:['👥 Piano di assunzioni prossimo trimestre','💰 Come impostare le fasce salariali?','🏗️ Quando aggiungere un livello gestionale?','🚨 Stiamo perdendo buone persone?','📊 Ciclo di valutazione delle performance?','🎯 Progettare percorsi di carriera?']},
+  pt:{dir:'ltr',subtitle:'Contratação · Remuneração · Design Org · Retenção · Cultura',back:'Voltar',quick_label:'Perguntas Rápidas',placeholder:'Pergunte sobre contratação, faixas salariais, design org...',send:'Enviar',welcome_title:'Bem-vindo ao Consultor CHRO',welcome_body:'Estratégia de pessoas e RH operacional — contratação, remuneração, design org e cultura.',welcome_hl:'Primeira pergunta: <strong>Quais funções bloqueiam receitas se vagas por 30+ dias?</strong>',quick:['👥 Plano de contratação próximo trimestre','💰 Como definir faixas salariais?','🏗️ Quando adicionar camada de gestão?','🚨 Estamos perdendo boas pessoas?','📊 Ciclo de avaliação de desempenho?','🎯 Projetar escada de carreira?']},
+  ru:{dir:'ltr',subtitle:'Найм · Компенсации · Дизайн Орг · Удержание · Культура',back:'Назад',quick_label:'Быстрые Вопросы',placeholder:'Спросите о найме, диапазонах зарплат, дизайне организации...',send:'Отправить',welcome_title:'Добро пожаловать к советнику CHRO',welcome_body:'Стратегия работы с персоналом — найм, компенсации, дизайн организации и культура.',welcome_hl:'Первый вопрос: <strong>Какие роли блокируют выручку, если вакантны 30+ дней?</strong>',quick:['👥 План найма на следующий квартал','💰 Как настроить диапазоны зарплат?','🏗️ Когда добавить уровень управления?','🚨 Теряем хороших людей, что делать?','📊 Цикл оценки эффективности?','🎯 Проектирование карьерных лестниц?']},
+  zh:{dir:'ltr',subtitle:'招聘 · 薪酬 · 组织设计 · 留人 · 文化',back:'返回',quick_label:'快速问题',placeholder:'询问招聘、薪酬带、组织设计、留人...',send:'发送',welcome_title:'欢迎使用CHRO顾问',welcome_body:'人员战略和运营HR——招聘、薪酬、组织设计和文化。',welcome_hl:'第一个问题：<strong>哪些职位空缺30天以上会阻碍收入？</strong>',quick:['👥 制定下季度招聘计划','💰 如何建立薪酬带？','🏗️ 何时需要增加管理层？','🚨 我们在流失好员工？','📊 绩效评估周期？','🎯 设计职业阶梯？']},
+  ja:{dir:'ltr',subtitle:'採用 · 報酬 · 組織設計 · 定着 · 文化',back:'戻る',quick_label:'クイック質問',placeholder:'採用、給与レンジ、組織設計、定着について質問...',send:'送信',welcome_title:'CHROアドバイザーへようこそ',welcome_body:'人材戦略と運営HR——採用、報酬、組織設計、文化。',welcome_hl:'最初の質問：<strong>30日以上空席なら収益をブロックする役職は？</strong>',quick:['👥 来四半期の採用計画','💰 給与レンジの設定方法？','🏗️ 管理層を追加するタイミング？','🚨 優秀な人材を失っている？','📊 業績評価サイクル？','🎯 キャリアラダーの設計？']},
+  ko:{dir:'ltr',subtitle:'채용 · 보상 · 조직 설계 · 유지 · 문화',back:'뒤로',quick_label:'빠른 질문',placeholder:'채용, 급여 밴드, 조직 설계, 유지에 대해 질문...',send:'전송',welcome_title:'CHRO 어드바이저에 오신 것을 환영합니다',welcome_body:'인사 전략 및 운영 HR — 채용, 보상, 조직 설계, 문화.',welcome_hl:'첫 번째 질문: <strong>30일 이상 공석 시 수익을 막는 직책은?</strong>',quick:['👥 다음 분기 채용 계획','💰 급여 밴드 설정 방법?','🏗️ 관리 계층 추가 시기?','🚨 좋은 직원을 잃고 있다?','📊 성과 평가 주기?','🎯 커리어 래더 설계?']}
+};
+
+var _GKEY = 'AIzaSyAvJxUoPoQGnGvmAofivA_33mSBXxRhwyU';
+var _langMap = {en:'en',ar:'ar',es:'es',fr:'fr',de:'de',it:'it',pt:'pt',ru:'ru',zh:'zh-CN',ja:'ja',ko:'ko'};
+
+async function translateText(text, targetLang) {
+  if (!targetLang || targetLang === 'en') return text;
+  try {
+    var r = await fetch('https://translation.googleapis.com/language/translate/v2?key=' + _GKEY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({q:text, source:'en', target:_langMap[targetLang]||targetLang, format:'html'})
+    });
+    var d = await r.json();
+    if (d.data && d.data.translations && d.data.translations[0]) return d.data.translations[0].translatedText;
+  } catch(e) {}
+  return text;
+}
+
+var CHRO_KNOWLEDGE = {
+  hiring: {
+    kw:['hire','hiring','recruit','headcount','plan','talent','staff','role','open role','backfill','جلب','contratar','recruter','einstellen'],
+    respond: function() { return {
+      sections:[{title:'👥 Hiring Strategy by Stage',content:'Every hire needs a business case. What revenue or risk does this role address?'}],
+      metrics:[{val:'< 45 days',lbl:'Time to fill (IC roles)',target:'> 45 days = broken process'},{val:'> 85%',lbl:'Offer acceptance rate',target:'< 80% = comp or process problem'},{val:'< 5%',lbl:'90-day voluntary turnover',target:'Onboarding failure if higher'},{val:'20-30%',lbl:'Internal promotions (mgr+)',target:'< 10% = career dev failing'}],
+      bullets:['Job scorecard FIRST, not a job description. Define 30/60/90-day outcomes, not responsibilities.','Seed stage: hire generalists who thrive in ambiguity. Series A+: mix in specialists.','Source order: founder network → referrals → direct outreach → job boards. Never reverse this.','Decision within 48 hours of final interview. Top candidates have 3+ offers simultaneously.','Structured interview = same questions, same scorecard, multiple interviewers. Reduces bias and improves prediction.','Never exploding offers. Pressure tactics lose the best candidates.'],
+      highlight:'The most expensive hiring mistake is a mis-hire at VP/Director level. Cost = 6-12 months salary + 12-18 months of org disruption. Use a retained search firm for these roles.',
+      framework:{title:'Hiring Process by Stage',headers:['Stage','Critical Hires','Common Mistakes'],rows:[['Seed (1-15)','Generalists, founding engineers','Specialists too early, job boards first'],['Series A (15-50)','VP Eng/Product, first recruiter','Promoting ICs without mgmt training'],['Series B (50-150)','Dedicated recruiters, ATS setup','Over-indexing on brand-name experience'],['Series C+ (150+)','HRBPs, L&D budget, succession plan','Too many layers too fast']]},
+      tags:[{l:'Scorecard first',t:'orange'},{l:'48hr decision',t:'gold'},{l:'Internal mobility 20-30%',t:'teal'}]
+    };}
+  },
+  comp: {
+    kw:['comp','compensation','salary','band','pay','equity','bonus','raise','refresh','total comp','market rate','benchmark','رواتب','salario','rémunération','gehalt'],
+    respond: function() { return {
+      sections:[{title:'💰 Compensation Framework',content:'Define your philosophy first. Ambiguity in comp = pay equity lawsuits and trust erosion.'}],
+      metrics:[{val:'P50',lbl:'Base salary target',target:'P50 base + equity = P65-75 total'},{val:'>90%',lbl:'Employees within band',target:'< 80% = bands stale or wrong'},{val:'0.95-1.05',lbl:'Compa-ratio target',target:'< 0.85 = flight risk'},{val:'Annual',lbl:'Band refresh cadence',target:'Eng: every 6 months in hot markets'}],
+      bullets:['Compa-ratio = employee salary / band midpoint. Flag anyone below 0.85 (flight risk) or above 1.15 (needs promotion).','Band width: ±20% from midpoint for ICs. 10-20% overlap between levels is normal.','Equity refresh: after every funding round, annually for top 20% performers, after every promotion.','Pay equity audit: annually, mandatory at Series B+. Run regression controlling for level, tenure, performance.','Total comp = base + variable/bonus + equity (annualized) + benefits ($15-25K employer cost for family health).','Merit and promotion budgets must be SEPARATE. Never fund promotions from the merit pool.'],
+      highlight:'The counter-offer signal: if you are regularly in counter-offer situations, your bands are stale. Fix the bands for everyone — not just the person who got an offer.',
+      framework:{title:'Compensation Band Example (Series B, US, P50)',headers:['Level','Min','Midpoint','Max'],rows:[['L2 Software Engineer','$115K','$135K','$160K'],['L3 Senior SWE','$150K','$175K','$205K'],['L4 Staff SWE','$195K','$225K','$260K'],['M1 Eng Manager','$175K','$205K','$235K'],['M3 Director, Eng','$255K','$300K','$345K']]},
+      tags:[{l:'Compa-ratio < 0.85 = flag',t:'red'},{l:'Equity refresh annually',t:'gold'},{l:'Pay equity audit yearly',t:'teal'}]
+    };}
+  },
+  org: {
+    kw:['org','structure','layer','manager','span','design','reorg','reorgan','title','career ladder','promotion','level','hierarchy','هيكل','estructura','organisation','organisationsdesign'],
+    respond: function() { return {
+      sections:[{title:'🏗️ Org Design Principles',content:'Structure follows strategy. Optimize for the bottleneck. Bias toward flatness until it breaks.'}],
+      metrics:[{val:'6-10',lbl:'IC manager span (predictable)',target:'< 4 = over-management'},{val:'4-6',lbl:'Manager of managers span',target:'> 12 = feedback loops collapse'},{val:'>4 ICs',lbl:'Min direct reports per manager',target:'Below 4 = overhead role'},{val:'Rule of 7',lbl:'When to split teams',target:'1:1s skipped = time to split'}],
+      bullets:['Add management layers when: manager has 7+ reports AND 1:1s are skipped, feedback quality drops.','Title inflation trap: VP titles require managing managers (not just ICs). Director = managing multiple ICs or large function.','IC vs Management track: explicitly separate. Staff/Principal/Distinguished prevents forcing ICs into management.','Career ladder: 4 dimensions per level — Scope, Impact, Craft, Influence. Behaviors not aspirations.','Reorg timing: after strategy shifts, leadership departures, acquisition. Never "shake things up".','Conway Law: your org structure becomes your product architecture. Design intentionally.'],
+      highlight:'The most common scaling failure: promoting top ICs to management without training. IC skills do not equal management skills. Management is a different job. Require explicit training before (not after) promotion.',
+      framework:{title:'Management Layer Triggers by Stage',headers:['Stage','Team Size','Action'],rows:[['0-15 people','All report to founders','No layers — everyone is player-coach'],['15-30 people','First managers emerge','Player-coach leads, not full managers yet'],['30-60 people','Second layer forms','Each function has a head; squads form'],['60-150 people','Director layer needed','Large functions need VP + Director + Manager'],['150+ people','Full VP layer','Clear IC → Manager → Director → VP path']]},
+      tags:[{l:'Structure follows strategy',t:'orange'},{l:'Rule of 7',t:'gold'},{l:'IC track separate',t:'teal'}]
+    };}
+  },
+  retention: {
+    kw:['retain','retention','attrition','turnover','leaving','quit','flight risk','engage','eNPS','culture','morale','stay','losing people','الاحتفاظ','retención','rétention','mitarbeiterbindung'],
+    respond: function() { return {
+      sections:[{title:'🚨 Retention Framework',content:'70% of engagement variance is explained by manager quality. Fix managers first, everything else second.'}],
+      metrics:[{val:'< 10%',lbl:'Regrettable attrition (annual)',target:'> 15% = structural problem'},{val:'> 30',lbl:'eNPS target',target:'< 0 = something is broken'},{val:'> 3.8/5',lbl:'Manager effectiveness',target:'Run quarterly, act within 30 days'},{val:'Stay interviews',lbl:'Once per year per employee',target:'Not their direct manager'}],
+      bullets:['What actually drives retention (in order): manager quality, growth trajectory, comp competitiveness, mission belief, team quality, flexibility.','What does NOT work: pizza parties, vague culture initiatives, annual reviews with no action, forced fun events.','30-60-90 onboarding: structured onboarding cuts 90-day turnover by 50%+. Most companies skip this.','Stay interview questions: "What is keeping you here?" and "What would make you consider leaving?" — ask HR/skip-level, not their manager.','Exit interviews: ask "When did you first think about leaving?" and "Was there a specific event?" — the trigger data is what matters.','Track exit themes by manager. 3 exits from same manager citing the same reason = data, not coincidence.'],
+      highlight:'If your top performers are leaving, check: (1) their manager, (2) their comp vs. band midpoint, (3) their growth trajectory. In that order. Most attrition is preventable if caught at the stay interview stage.',
+      framework:{title:'Retention Intervention by Risk Level',headers:['Risk Signal','Likely Cause','Intervention'],rows:[['eNPS < 10','Manager or culture issue','Stay interviews + manager coaching'],['Comp below 0.90 compa-ratio','Bands stale','Market adjustment — separate from merit'],['No clear next role','Career path missing','Career ladder + skip-level conversation'],['Multiple exits same team','Manager problem','HR investigation + manager PIP if needed'],['Equity fully vested, no refresh','Retention hook gone','Immediate equity refresh for key people']]},
+      tags:[{l:'Manager quality is #1',t:'orange'},{l:'Stay interviews',t:'gold'},{l:'Act within 30 days',t:'teal'}]
+    };}
+  },
+  performance: {
+    kw:['performance','review','rating','pip','manage out','underperform','calibration','feedback','annual review','1:1','goal','okr','performance management','أداء','rendimiento','performance','leistung'],
+    respond: function() { return {
+      sections:[{title:'📊 Performance Management System',content:'Continuous beats annual. Annual reviews with no mid-year touchpoints are theater.'}],
+      metrics:[{val:'Weekly',lbl:'1:1s — non-negotiable',target:'30 min: blockers, priorities, relationship'},{val:'Quarterly',lbl:'Formal reviews — written',target:'Self-assessment + manager assessment'},{val:'< 10%',lbl:'Exceptional rating (calibrated)',target:'If everyone is exceptional, no one is'},{val:'55-65%',lbl:'Meets expectations',target:'Target distribution for healthy org'}],
+      bullets:['Calibration session: managers submit ratings independently → HR facilitates 2hr cross-team calibration → outliers must be justified.','Performance distribution: Exceptional 5-10%, Exceeds 20-25%, Meets 55-65%, Needs improvement 8-12%, Underperforming 2-5%.','PIP structure: specific observable behaviors with dates, measurable milestones, support provided, clear consequences, weekly check-ins.','Underperformer rule: diagnose first — skill gap (can) vs. will gap (won). Different interventions.','Never: "quiet manage out" without clear feedback. Both legally risky and unfair to the employee.','Top performers notice when underperformers are tolerated. The cost of inaction is your best people leaving.'],
+      highlight:'The most avoided management task is the most damaging when avoided. One underperformer tolerated for 6+ months costs you 2-3 top performers who see it happen and conclude that performance does not matter here.',
+      framework:{title:'Merit Increase Matrix (Compa-ratio × Performance)',headers:['Performance','< 0.90 comp-ratio','0.90-1.00','1.00-1.10','> 1.10'],rows:[['Exceptional (5)','12-15%','8-12%','5-8%','3-5%'],['Exceeds (4)','8-12%','5-8%','3-5%','1-3%'],['Meets (3)','5-8%','3-5%','2-3%','0-2%'],['Needs impr (2)','0-2%','0-1%','0%','0%']]},
+      tags:[{l:'Calibrate across teams',t:'orange'},{l:'Keep merit + promo separate',t:'gold'},{l:'Document everything',t:'teal'}]
+    };}
+  },
+  default: {
+    respond: function() { return {
+      sections:[{title:'👥 CHRO Advisor',content:'Let me address that from a people leadership perspective:'}],
+      bullets:['Every people decision must pass two tests: is it fair to the person AND supported by the data?','Culture is behavior, not values on a wall. Measure it (eNPS quarterly), act on it within 30 days.','The CHRO works at the intersection of human complexity and business reality. Neither can be ignored.','Key diagnostic questions: What is your regrettable attrition rate? Are managers your retention asset or your attrition cause?','People problems compound silently. A culture problem ignored at 30 people is a crisis at 100 people.'],
+      highlight:"The CHRO's real job: make sure the company has the right people in the right roles with the right incentives to do the work that matters — and that they want to stay.",
+      tags:[{l:'Empathy + data',t:'orange'},{l:'Fair and business-aligned',t:'gold'}]
+    };}
+  }
+};
+
+var currentLang = 'en';
+var isThinking = false;
+
+function initLangBar() {
+  var bar = document.getElementById('lang-bar');
+  var codes = ['en','ar','es','fr','de','it','pt','ru','zh','ja','ko'];
+  var names = {en:'EN',ar:'AR',es:'ES',fr:'FR',de:'DE',it:'IT',pt:'PT',ru:'RU',zh:'中文',ja:'日本語',ko:'한국어'};
+  bar.innerHTML = codes.map(function(c){
+    return '<button class="lang-btn'+(c==='en'?' active':'')+'" onclick="setLang(\''+c+'\',this)">'+names[c]+'</button>';
+  }).join('');
+}
+
+function setLang(code, btn) {
+  currentLang = code;
+  var L = LANGS[code];
+  if (!L) return;
+  document.documentElement.dir = L.dir;
+  document.documentElement.lang = code;
+  document.getElementById('advisor-subtitle').textContent = L.subtitle;
+  document.getElementById('back-btn').textContent = L.back;
+  document.getElementById('quick-label').textContent = L.quick_label;
+  document.getElementById('user-input').placeholder = L.placeholder;
+  document.getElementById('send-btn').textContent = L.send;
+  buildQuickGrid(L.quick);
+  var wm = document.getElementById('welcome-msg');
+  if (wm) {
+    wm.innerHTML = '<div class="section-title">'+L.welcome_title+'</div>'
+      +'<div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">'+L.welcome_body+'</div>'
+      +'<div class="highlight">'+L.welcome_hl+'</div>';
+  }
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  if (btn) btn.classList.add('active');
+}
+
+function buildQuickGrid(questions) {
+  document.getElementById('quick-grid').innerHTML = questions.map(function(q){
+    return '<button class="quick-btn" onclick="askQuestion(this.innerText)">'+q+'</button>';
+  }).join('');
+}
+
+function findMatch(q) {
+  var lower = q.toLowerCase();
+  var best = null, bestScore = 0;
+  for (var key in CHRO_KNOWLEDGE) {
+    if (key === 'default') continue;
+    var topic = CHRO_KNOWLEDGE[key];
+    var score = (topic.kw||[]).filter(function(kw){return lower.includes(kw);}).length;
+    if (score > bestScore) { bestScore = score; best = topic; }
+  }
+  return best || CHRO_KNOWLEDGE.default;
+}
+
+function renderResponse(res) {
+  var html = '';
+  if (res.sections) res.sections.forEach(function(s){
+    html += '<div class="section-title">'+s.title+'</div>';
+    if (s.content) html += '<div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">'+s.content+'</div>';
+  });
+  if (res.metrics) {
+    html += '<div class="metrics-row">';
+    res.metrics.forEach(function(m){html += '<div class="metric-card"><div class="metric-val">'+m.val+'</div><div class="metric-lbl">'+m.lbl+'</div><div class="metric-target">'+m.target+'</div></div>';});
+    html += '</div>';
+  }
+  if (res.bullets && res.bullets.length) {
+    html += '<ul class="bullet-list">';
+    res.bullets.forEach(function(b){html += '<li>'+b+'</li>';});
+    html += '</ul>';
+  }
+  if (res.highlight) html += '<div class="highlight">'+res.highlight+'</div>';
+  if (res.framework) {
+    html += '<div style="font-size:11px;font-weight:700;color:var(--ink2);margin:10px 0 6px;">'+res.framework.title+'</div>';
+    html += '<table class="framework-table"><thead><tr>';
+    res.framework.headers.forEach(function(h){html += '<th>'+h+'</th>';});
+    html += '</tr></thead><tbody>';
+    res.framework.rows.forEach(function(row){
+      html += '<tr>';
+      row.forEach(function(cell){html += '<td>'+cell+'</td>';});
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  }
+  if (res.tags && res.tags.length) {
+    html += '<div class="tags">';
+    res.tags.forEach(function(t){html += '<span class="tag '+t.t+'">'+t.l+'</span>';});
+    html += '</div>';
+  }
+  return html;
+}
+
+function addMessage(role, html) {
+  var chat = document.getElementById('chat');
+  var div = document.createElement('div');
+  div.className = 'msg ' + role;
+  var avatar = role === 'advisor' ? '👥' : '👤';
+  div.innerHTML = '<div class="msg-avatar">'+avatar+'</div><div><div class="msg-bubble">'+html+'</div></div>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showThinking() {
+  var chat = document.getElementById('chat');
+  var div = document.createElement('div');
+  div.className = 'msg advisor'; div.id = 'thinking-msg';
+  div.innerHTML = '<div class="msg-avatar">👥</div><div><div class="msg-bubble"><div class="thinking"><span></span><span></span><span></span></div></div></div>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+function hideThinking() { var el = document.getElementById('thinking-msg'); if (el) el.remove(); }
+
+async function sendMessage() {
+  var input = document.getElementById('user-input');
+  var btn = document.getElementById('send-btn');
+  var q = input.value.trim();
+  if (!q || isThinking) return;
+  addMessage('user', q);
+  input.value = '';
+  isThinking = true; btn.disabled = true;
+  showThinking();
+  await new Promise(function(r){setTimeout(r, 500 + Math.random()*400);});
+  hideThinking();
+  var topic = findMatch(q);
+  var res = topic.respond();
+  var html = renderResponse(res);
+  if (currentLang !== 'en') { try { html = await translateText(html, currentLang); } catch(e) {} }
+  addMessage('advisor', html);
+  isThinking = false; btn.disabled = false;
+  input.focus();
+}
+
+function askQuestion(q) { document.getElementById('user-input').value = q; sendMessage(); }
+
+initLangBar();
+buildQuickGrid(LANGS.en.quick);
+</script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRO Advisor — Intersect OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0f;--card:#13131a;--card2:#1a1a24;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.04);--ink:#e8e8f0;--ink2:#9090a8;--ink3:#5a5a72;--teal:#06b6d4;--purple:#7c3aed;--gold:#f59e0b;--green:#22c55e;--red:#ef4444;--lime:#84cc16;--grad:linear-gradient(135deg,#84cc16,#06b6d4);}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(19,19,26,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.back-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--ink2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;}
+.advisor-badge{display:flex;align-items:center;gap:12px;}
+.advisor-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(132,204,22,.2),rgba(6,182,212,.2));border:1px solid rgba(132,204,22,.3);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.advisor-info h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+.advisor-info p{font-size:11px;color:var(--ink3);margin-top:2px;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px rgba(132,204,22,.5);animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.5;}}
+.lang-bar{display:flex;gap:6px;padding:8px 20px;background:rgba(13,13,20,.9);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.lang-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--ink3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.lang-btn:hover{background:rgba(255,255,255,.08);color:var(--ink2);}
+.lang-btn.active{background:rgba(132,204,22,.15);border-color:rgba(132,204,22,.3);color:var(--lime);}
+.context-banner{background:linear-gradient(135deg,rgba(132,204,22,.06),rgba(6,182,212,.04));border-bottom:1px solid var(--border2);padding:10px 20px;}
+.context-inner{font-size:11px;color:var(--ink3);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.context-inner span{background:rgba(132,204,22,.12);color:var(--lime);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;}
+.quick-section{padding:16px 20px 0;}
+.quick-label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
+.quick-btn{background:var(--card);border:1px solid var(--border);color:var(--ink2);border-radius:10px;padding:10px 14px;font-size:12px;text-align:left;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;line-height:1.4;}
+.quick-btn:hover{background:var(--card2);border-color:rgba(132,204,22,.3);color:var(--ink);}
+.chat-area{padding:20px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 310px);overflow-y:auto;}
+.msg{display:flex;gap:10px;align-items:flex-start;}
+.msg.user{flex-direction:row-reverse;}
+.msg-avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.msg.advisor .msg-avatar{background:linear-gradient(135deg,rgba(132,204,22,.2),rgba(6,182,212,.15));border:1px solid rgba(132,204,22,.2);}
+.msg.user .msg-avatar{background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);}
+.msg-bubble{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;max-width:680px;font-size:13px;line-height:1.6;}
+.msg.user .msg-bubble{background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.2);}
+.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--lime);margin-bottom:8px;}
+.bullet-list{margin:8px 0;padding-left:0;list-style:none;}
+.bullet-list li{padding:5px 0 5px 18px;position:relative;color:var(--ink2);font-size:12px;}
+.bullet-list li::before{content:'→';position:absolute;left:0;color:var(--lime);font-size:11px;}
+.highlight{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:12px;color:var(--gold);line-height:1.5;}
+.framework-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px;}
+.framework-table th{background:rgba(132,204,22,.08);color:var(--lime);padding:7px 10px;text-align:left;font-weight:600;border-bottom:1px solid rgba(132,204,22,.15);}
+.framework-table td{padding:6px 10px;border-bottom:1px solid var(--border2);color:var(--ink2);}
+.framework-table tr:last-child td{border-bottom:none;}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.tag{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;}
+.tag.lime{background:rgba(132,204,22,.1);color:var(--lime);border:1px solid rgba(132,204,22,.2);}
+.tag.teal{background:rgba(6,182,212,.1);color:var(--teal);border:1px solid rgba(6,182,212,.2);}
+.tag.purple{background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2);}
+.tag.gold{background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.2);}
+.tag.red{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.metrics-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:10px 0;}
+.metric-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.metric-val{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--lime);}
+.metric-lbl{font-size:10px;color:var(--ink3);margin-top:3px;}
+.metric-target{font-size:10px;color:var(--green);margin-top:2px;}
+.input-area{position:sticky;bottom:0;padding:14px 20px;background:rgba(10,10,15,.95);border-top:1px solid var(--border);backdrop-filter:blur(10px);}
+.input-row{display:flex;gap:10px;align-items:center;}
+.input-box{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 16px;color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+.input-box:focus{border-color:rgba(132,204,22,.4);}
+.send-btn{background:var(--grad);border:none;border-radius:10px;padding:11px 18px;color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.send-btn:disabled{opacity:.4;}
+.thinking{display:flex;gap:4px;align-items:center;padding:8px 0;}
+.thinking span{width:6px;height:6px;border-radius:50%;background:var(--lime);animation:bounce .8s ease-in-out infinite;}
+.thinking span:nth-child(2){animation-delay:.15s;}
+.thinking span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,80%,100%{transform:scale(0.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+@media(max-width:600px){.quick-grid{grid-template-columns:1fr 1fr;}.metrics-row{grid-template-columns:repeat(3,1fr);}.lang-bar{gap:4px;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" id="back-btn" onclick="history.back()">← Back</button>
+  <div class="advisor-badge">
+    <div class="advisor-icon">📈</div>
+    <div class="advisor-info">
+      <h2>CRO Advisor</h2>
+      <p id="advisor-subtitle">NRR · Pipeline · Pricing · Sales Model · Forecasting</p>
+    </div>
+  </div>
+  <div class="status-dot"></div>
+</div>
+
+<div class="lang-bar" id="lang-bar"></div>
+
+<div class="context-banner">
+  <div class="context-inner">
+    📈 Frameworks from <span>nrr_playbook</span> <span>sales_playbook</span> <span>pricing_strategy</span> <span>revenue_forecast</span>
+  </div>
+</div>
+
+<div class="quick-section">
+  <div class="quick-label" id="quick-label">Quick Questions</div>
+  <div class="quick-grid" id="quick-grid"></div>
+</div>
+
+<div class="chat-area" id="chat">
+  <div class="msg advisor">
+    <div class="msg-avatar">📈</div>
+    <div><div class="msg-bubble" id="welcome-msg">
+      <div class="section-title">Welcome to CRO Advisor</div>
+      <div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">Revenue frameworks for building predictable, scalable revenue engines — from pipeline to pricing to NRR.</div>
+      <div class="highlight">First question I always ask: <strong>What is your NRR?</strong> If it is below 100%, you are filling a bucket with a hole in it. Fix retention before pouring more acquisition spend in.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <input class="input-box" id="user-input" placeholder="Ask about NRR, pipeline, pricing, sales model, forecasting..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendMessage();}">
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">Send →</button>
+  </div>
+</div>
+
+<script>
+var LANGS = {
+  en:{dir:'ltr',subtitle:'NRR · Pipeline · Pricing · Sales Model · Forecasting',back:'← Back',quick_label:'Quick Questions',placeholder:'Ask about NRR, pipeline, pricing, sales model, forecasting...',send:'Send →',welcome_title:'Welcome to CRO Advisor',welcome_body:'Revenue frameworks for building predictable, scalable revenue engines — from pipeline to pricing to NRR.',welcome_hl:'First question: <strong>What is your NRR?</strong> Below 100% = filling a bucket with a hole. Fix retention before more acquisition spend.',quick:['📊 How do we improve our NRR?','💰 How do we set pricing correctly?','🔮 How do we forecast revenue for next quarter?','📋 How do we build a sales process from scratch?','⚡ Our win rate is dropping — what do we do?','📈 How do we scale the sales team?']},
+  ar:{dir:'rtl',subtitle:'NRR · الخط · التسعير · نموذج المبيعات · التوقعات',back:'رجوع',quick_label:'أسئلة سريعة',placeholder:'اسأل عن NRR، خط المبيعات، التسعير...',send:'إرسال',welcome_title:'مرحباً بك في مستشار الإيرادات',welcome_body:'أطر الإيرادات لبناء محركات إيرادات يمكن التنبؤ بها وقابلة للتوسع.',welcome_hl:'أول سؤال: <strong>ما هو NRR لديكم؟</strong> أقل من 100% = تملأ دلو به ثقب. أصلح الاحتفاظ أولاً.',quick:['📊 كيف نحسن NRR لدينا؟','💰 كيف نضع التسعير بشكل صحيح؟','🔮 كيف نتوقع الإيرادات للربع القادم؟','📋 كيف نبني عملية مبيعات من الصفر؟','⚡ معدل الفوز لدينا ينخفض — ماذا نفعل؟','📈 كيف نوسع فريق المبيعات؟']},
+  es:{dir:'ltr',subtitle:'NRR · Pipeline · Precios · Modelo de Ventas · Pronóstico',back:'Volver',quick_label:'Preguntas Rápidas',placeholder:'Pregunta sobre NRR, pipeline, precios, modelo de ventas...',send:'Enviar',welcome_title:'Bienvenido al Asesor CRO',welcome_body:'Marcos de ingresos para construir motores de ingresos predecibles y escalables.',welcome_hl:'Primera pregunta: <strong>¿Cuál es tu NRR?</strong> Por debajo del 100% = llenando un balde con agujero. Arregla retención primero.',quick:['📊 Cómo mejorar nuestro NRR?','💰 Cómo establecer precios correctamente?','🔮 Cómo pronosticar ingresos del próximo trimestre?','📋 Cómo construir proceso de ventas desde cero?','⚡ Nuestra tasa de cierre cae — qué hacemos?','📈 Cómo escalar el equipo de ventas?']},
+  fr:{dir:'ltr',subtitle:'NRR · Pipeline · Tarification · Modèle de Vente · Prévisions',back:'Retour',quick_label:'Questions Rapides',placeholder:'Posez des questions sur NRR, pipeline, tarification...',send:'Envoyer',welcome_title:'Bienvenue au Conseiller CRO',welcome_body:'Cadres de revenus pour construire des moteurs de revenus prévisibles et évolutifs.',welcome_hl:'Première question: <strong>Quel est votre NRR?</strong> En dessous de 100% = remplir un seau percé. Corrigez la rétention d\'abord.',quick:['📊 Comment améliorer notre NRR?','💰 Comment fixer correctement les prix?','🔮 Comment prévoir les revenus du prochain trimestre?','📋 Comment construire un processus de vente?','⚡ Notre taux de conversion chute — que faire?','📈 Comment scaler l\'équipe de vente?']},
+  de:{dir:'ltr',subtitle:'NRR · Pipeline · Preisgestaltung · Vertriebsmodell · Prognose',back:'Zurück',quick_label:'Schnelle Fragen',placeholder:'Fragen zu NRR, Pipeline, Preisgestaltung, Vertriebsmodell...',send:'Senden',welcome_title:'Willkommen beim CRO-Berater',welcome_body:'Umsatz-Frameworks für vorhersehbare, skalierbare Umsatzmotoren.',welcome_hl:'Erste Frage: <strong>Wie ist Ihre NRR?</strong> Unter 100% = Eimer mit Loch befüllen. Erst Retention verbessern.',quick:['📊 Wie verbessern wir unsere NRR?','💰 Wie setzen wir Preise richtig?','🔮 Umsatzprognose für nächstes Quartal?','📋 Verkaufsprozess von Grund auf aufbauen?','⚡ Win-Rate sinkt — was tun?','📈 Vertriebsteam skalieren?']},
+  it:{dir:'ltr',subtitle:'NRR · Pipeline · Prezzi · Modello di Vendita · Previsioni',back:'Indietro',quick_label:'Domande Rapide',placeholder:'Chiedi di NRR, pipeline, prezzi, modello di vendita...',send:'Invia',welcome_title:'Benvenuto al Consulente CRO',welcome_body:'Framework di ricavi per costruire motori di ricavi prevedibili e scalabili.',welcome_hl:'Prima domanda: <strong>Qual è la tua NRR?</strong> Sotto il 100% = riempire un secchio con un buco. Correggi la retention prima.',quick:['📊 Come migliorare la nostra NRR?','💰 Come impostare correttamente i prezzi?','🔮 Come prevedere i ricavi del prossimo trimestre?','📋 Come costruire un processo di vendita?','⚡ Il win rate sta scendendo — cosa fare?','📈 Come scalare il team di vendita?']},
+  pt:{dir:'ltr',subtitle:'NRR · Pipeline · Precificação · Modelo de Vendas · Previsão',back:'Voltar',quick_label:'Perguntas Rápidas',placeholder:'Pergunte sobre NRR, pipeline, precificação, modelo de vendas...',send:'Enviar',welcome_title:'Bem-vindo ao Consultor CRO',welcome_body:'Frameworks de receita para construir motores de receita previsíveis e escaláveis.',welcome_hl:'Primeira pergunta: <strong>Qual é o seu NRR?</strong> Abaixo de 100% = encher um balde com buraco. Corrija a retenção primeiro.',quick:['📊 Como melhorar nosso NRR?','💰 Como definir preços corretamente?','🔮 Como prever receita do próximo trimestre?','📋 Como construir processo de vendas do zero?','⚡ Win rate caindo — o que fazer?','📈 Como escalar a equipe de vendas?']},
+  ru:{dir:'ltr',subtitle:'NRR · Пайплайн · Ценообразование · Модель Продаж · Прогноз',back:'Назад',quick_label:'Быстрые Вопросы',placeholder:'Спросите о NRR, пайплайне, ценообразовании...',send:'Отправить',welcome_title:'Добро пожаловать к советнику CRO',welcome_body:'Фреймворки доходов для построения предсказуемых, масштабируемых машин доходов.',welcome_hl:'Первый вопрос: <strong>Какой у вас NRR?</strong> Ниже 100% = наполнять ведро с дырой. Сначала исправьте удержание.',quick:['📊 Как улучшить NRR?','💰 Как правильно установить цены?','🔮 Прогноз выручки на следующий квартал?','📋 Построить процесс продаж с нуля?','⚡ Win rate падает — что делать?','📈 Масштабировать команду продаж?']},
+  zh:{dir:'ltr',subtitle:'NRR · 管道 · 定价 · 销售模型 · 预测',back:'返回',quick_label:'快速问题',placeholder:'询问NRR、销售管道、定价、销售模型...',send:'发送',welcome_title:'欢迎使用CRO顾问',welcome_body:'收入框架——构建可预测、可扩展的收入引擎。',welcome_hl:'第一个问题：<strong>你们的NRR是多少？</strong>低于100% = 往有洞的桶里倒水。先修复留存。',quick:['📊 如何提高NRR？','💰 如何正确定价？','🔮 如何预测下季度收入？','📋 如何从头建立销售流程？','⚡ 赢率下降——怎么办？','📈 如何扩展销售团队？']},
+  ja:{dir:'ltr',subtitle:'NRR · パイプライン · 価格設定 · セールスモデル · 予測',back:'戻る',quick_label:'クイック質問',placeholder:'NRR、パイプライン、価格設定、セールスモデルについて質問...',send:'送信',welcome_title:'CROアドバイザーへようこそ',welcome_body:'予測可能でスケーラブルな収益エンジンを構築するための収益フレームワーク。',welcome_hl:'最初の質問：<strong>NRRはいくつですか？</strong>100%未満 = 穴の開いたバケツを満たす。先にリテンションを修正。',quick:['📊 NRRをどう改善する？','💰 正しく価格設定する方法？','🔮 来四半期の収益予測？','📋 ゼロから営業プロセスを構築？','⚡ 勝率が下がっている——どうする？','📈 営業チームのスケーリング？']},
+  ko:{dir:'ltr',subtitle:'NRR · 파이프라인 · 가격 책정 · 영업 모델 · 예측',back:'뒤로',quick_label:'빠른 질문',placeholder:'NRR, 파이프라인, 가격 책정, 영업 모델에 대해 질문...',send:'전송',welcome_title:'CRO 어드바이저에 오신 것을 환영합니다',welcome_body:'예측 가능하고 확장 가능한 수익 엔진 구축을 위한 수익 프레임워크.',welcome_hl:'첫 번째 질문: <strong>NRR이 얼마인가요?</strong> 100% 미만 = 구멍 난 양동이 채우기. 먼저 유지율을 수정하세요.',quick:['📊 NRR을 어떻게 개선하나요?','💰 올바른 가격 책정 방법?','🔮 다음 분기 수익 예측?','📋 영업 프로세스 처음부터 구축?','⚡ 승률이 떨어지고 있다——어떻게?','📈 영업 팀 확장 방법?']}
+};
+
+var _GKEY = 'AIzaSyAvJxUoPoQGnGvmAofivA_33mSBXxRhwyU';
+var _langMap = {en:'en',ar:'ar',es:'es',fr:'fr',de:'de',it:'it',pt:'pt',ru:'ru',zh:'zh-CN',ja:'ja',ko:'ko'};
+
+async function translateText(text, targetLang) {
+  if (!targetLang || targetLang === 'en') return text;
+  try {
+    var r = await fetch('https://translation.googleapis.com/language/translate/v2?key=' + _GKEY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({q:text, source:'en', target:_langMap[targetLang]||targetLang, format:'html'})
+    });
+    var d = await r.json();
+    if (d.data && d.data.translations && d.data.translations[0]) return d.data.translations[0].translatedText;
+  } catch(e) {}
+  return text;
+}
+
+var CRO_KNOWLEDGE = {
+  nrr: {
+    kw:['nrr','net revenue retention','grr','churn','retention','expand','upsell','cross-sell','contract','waterfall','cohort','arr','الاحتفاظ','retención','rétention','kundenbindung'],
+    respond: function() { return {
+      sections:[{title:'📊 NRR — The Revenue Health Signal',content:'NRR = (Opening + Expansion - Contraction - Churn) / Opening. Below 100% means you are shrinking even while acquiring.'}],
+      metrics:[{val:'> 110%',lbl:'Healthy NRR (mid-market)',target:'> 120% = world-class'},{val:'> 85%',lbl:'GRR (gross retention floor)',target:'< 80% = structural churn problem'},{val:'> 20%',lbl:'Expansion % of total ARR',target:'< 20% = upsell motion not working'},{val:'< 15%',lbl:'Single customer % of ARR',target:'> 15% = concentration risk'}],
+      bullets:['NRR waterfall: Opening ARR + New Logo + Expansion - Contraction - Churn = Closing ARR. Track every component monthly.','GRR is the floor: if GRR is 80% and NRR is 105%, your expansion is covering 25 points of churn. That is fragile. Fix GRR, not just upsell.','NRR by cohort: measure each acquisition month separately. A cohort with 84% NRR while overall NRR is 105% is a hidden problem that will surface in 12 months.','At-risk account signals: product usage declining 2+ months in a row, support tickets increasing, champion left, contract renewal approaching without EBR done.','Expansion playbook: seat adds (license expansion), tier upgrades (feature upsell), new use cases (land and expand), additional products (cross-sell).','NRR fixes in priority order: (1) fix logo churn first — highest impact. (2) reduce contraction. (3) add expansion motion.'],
+      highlight:'The NRR trap: high NRR driven entirely by expansion from a few large accounts. If your top 3 customers left, what would NRR be? Calculate logo-adjusted NRR. Concentration makes NRR fragile.',
+      framework:{title:'NRR Benchmarks by Segment',headers:['Segment','Good GRR','Good NRR','Exceptional NRR'],rows:[['SMB-focused','80-85%','95-105%','> 110%'],['Mid-Market','85-90%','105-115%','> 120%'],['Enterprise','90-95%','115-130%','> 140%'],['PLG self-serve','75-85%','100-115%','> 120%']]},
+      tags:[{l:'NRR < 100% = leaky bucket',t:'red'},{l:'Fix GRR before upsell',t:'gold'},{l:'Cohort analysis monthly',t:'lime'}]
+    };}
+  },
+  pricing: {
+    kw:['price','pricing','raise','cost','tier','package','value','seat','usage','model','underpriced','overpriced','willingness','تسعير','precios','tarification','preisgestaltung'],
+    respond: function() { return {
+      sections:[{title:'💰 Pricing Strategy Framework',content:'Most SaaS companies are underpriced by 20-40%. Pricing is not a one-time decision — it is an ongoing hypothesis about value and willingness to pay.'}],
+      metrics:[{val:'< 20%',lbl:'Price objection threshold',target:'< 20% objecting = underpriced'},{val:'30-40%',lbl:'Target win rate',target:'> 50% = likely underpriced'},{val:'10-20%',lbl:'Value capture (% of value delivered)',target:'Customers pay 10-20% of outcome value'},{val:'15-25%',lbl:'Annual vs monthly premium',target:'Incentivize annual prepay'}],
+      bullets:['Value-based pricing formula: (1) Define the economic outcome (revenue increase, cost reduction, risk reduction). (2) Quantify per customer in dollars. (3) Price at 10-20% of value delivered. (4) Validate with win rate and willingness-to-pay interviews.','Win rate signal: win rate > 35% = you are likely underpriced. Win rate < 20% = price too high OR value demonstration is broken. Distinguish between the two.','Price increase green lights: customer usage growing QoQ, NPS > 40, win rate > 35%, no price increase in 2+ years, competitors raising prices.','Packaging (Good/Better/Best): Starter = removes friction, proves value. Professional = primary revenue tier, 60-70% of customers. Enterprise = custom pricing, captures maximum value.','Usage-based pricing works when: value scales non-linearly with usage, land-and-expand is the motion, low barrier to entry is a strategic choice.','Grandfathering policy: 90-day minimum notice before price change for existing customers. Never retroactive. Frame as a loyalty benefit, not an apology.'],
+      highlight:'The pricing mistake that costs the most: "too expensive" appearing in > 40% of loss notes usually means the value demonstration is broken, not the price. Before cutting price, improve how you prove ROI to the prospect.',
+      framework:{title:'Pricing Model Selection',headers:['Model','Best For','Expansion Mechanism','Risk'],rows:[['Per seat','Collaboration tools, viral products','More users = more revenue','Seat hoarding at high prices'],['Usage-based','APIs, data, AI, infrastructure','Usage grows = revenue grows','Unpredictable revenue'],['Tiered (Good/Better/Best)','Multi-persona, multi-use-case','Tier upgrades','Feature gating friction'],['Flat rate','Simple products, early stage','None — must add tiers','Leaves money on table'],['Hybrid platform + usage','Enterprise SaaS, complex products','Both seats and usage','Complex billing']]},
+      tags:[{l:'Value-based not cost-plus',t:'lime'},{l:'Win rate > 35% = underpriced',t:'gold'},{l:'Prove ROI before cutting price',t:'teal'}]
+    };}
+  },
+  pipeline: {
+    kw:['pipeline','forecast','coverage','deal','stage','win rate','conversion','funnel','quota','miss','close','opportunity','الخط','oleoducto','pipeline','vertriebspipeline'],
+    respond: function() { return {
+      sections:[{title:'🔮 Pipeline & Forecasting Framework',content:'Pipeline math must be explicit: leads → MQLs → SQLs → opportunities → closed. Show conversion rates at each stage.'}],
+      metrics:[{val:'3x+',lbl:'Pipeline coverage ratio',target:'< 2x entering quarter = forecasting a miss'},{val:'>80%',lbl:'Forecast accuracy',target:'< 80% = sandbagging or pipeline quality'},{val:'60-70%',lbl:'Quota attainment % of reps',target:'< 50% = calibration problem'},{val:'Stage',lbl:'Conversion rates per stage',target:'Find where deals die — fix that stage'}],
+      bullets:['Pipeline coverage = total pipeline / quarterly quota. 3x minimum. < 2x entering the quarter means you are already in trouble — pipeline cannot be created fast enough to close in time.','Weighted pipeline model: multiply ARR per stage × historical win rate for that stage. Sum of weighted values = forecast. Adjust for rep-level sandbagging patterns.','Three scenarios: conservative (60% confidence), base (80% confidence), upside (100% confidence). Board forecast = conservative. Internal target = base.','Where deals die: map stage-to-stage conversion rates monthly. The stage with the worst conversion is your sales process constraint. Fix that stage before hiring more reps.','Magic number = Net New ARR × 4 / Prior Quarter S&M Spend. > 0.75 = efficient growth. < 0.5 = fix unit economics before spending more on sales.','CAC payback = S&M spend / New Logo ARR × (1 / Gross Margin). > 24 months = capital efficiency problem, not a sales problem.'],
+      highlight:'The pipeline warning most CROs miss: pipeline coverage that looks like 3x in January but is made of deals that have been in the pipeline for 6+ months. Age-weighted pipeline coverage is more honest. Deals older than 2x average sales cycle are effectively not in the pipeline.',
+      framework:{title:'Pipeline Stage Conversion Benchmarks (B2B SaaS)',headers:['Stage','Benchmark','Below = Problem'],rows:[['Lead → Meeting booked (outbound)','2-5% of contacts','< 2% = messaging or targeting broken'],['Discovery → Demo','60-80% proceed','< 50% = qualification failing'],['Demo → Trial/POC','40-60%','< 30% = demo not showing value'],['Trial/POC → Proposal','50-70%','< 40% = success criteria undefined'],['Proposal → Close','30-50%','< 25% = late-stage objections unhandled']]},
+      tags:[{l:'3x coverage minimum',t:'lime'},{l:'3 scenarios always',t:'gold'},{l:'Magic number > 0.75',t:'teal'}]
+    };}
+  },
+  sales: {
+    kw:['sales','process','playbook','sdrs','ae','rep','quota','ramp','team','hire','comp','commission','territory','meddpicc','discovery','demo','close','مبيعات','ventas','ventes','vertrieb'],
+    respond: function() { return {
+      sections:[{title:'📋 Sales Process & Team Scaling',content:'A sales process is a repeatable series of steps that takes a prospect from first contact to closed revenue. Without it, you have individual heroics, not a scalable machine.'}],
+      metrics:[{val:'60-70%',lbl:'Quota attainment % (healthy)',target:'< 50% = calibration or comp problem'},{val:'3-6 mo',lbl:'AE ramp to quota-attaining',target:'> 9 months = onboarding broken'},{val:'5-8x',lbl:'AE OTE : quota ratio',target:'Quota = 5-8x total OTE'},{val:'MEDDPICC',lbl:'Qualification framework',target:'Metrics, Economic Buyer, Decision, Criteria...'}],
+      bullets:['Sales process stages: Lead → Discovery → Demo → Trial/POC → Proposal → Negotiation → Close → Handoff. Each needs entry criterion, exit criterion, owner.','Discovery before demo: never demo before you understand pain. Discovery = Situation, Problem, Implication, Need-payoff. The demo shows the workflow that solves their specific pain — not a feature tour.','MEDDPICC qualification: Metrics (what does success look like in numbers?), Economic Buyer (who controls the budget?), Decision criteria/process, Implicate the pain, Champion, Competition.','Quota setting: AE OTE × 5-8x = quota. 60-70% attainment target means quota is calibrated. < 50% attainment = quota too high or comp plan broken.','Ramp model: month 1-2 onboarding, month 3 first pipeline, month 4-5 first deals, month 6 50% quota, month 9 full quota attainment target.','SDR:AE ratio: 1:3 for outbound-heavy teams (high volume, low ACV). 1:1 for enterprise (high effort per account). PLG: SDRs handle PQLs only — not cold outbound.'],
+      highlight:'The single biggest sales process problem: reps skipping discovery and going straight to demo. A demo without confirmed pain is a feature tour, not a sales conversation. Enforce discovery exit criteria before allowing the demo to proceed.',
+      framework:{title:'Sales Comp Plan Structure',headers:['Component','% of OTE','Trigger','Accelerator'],rows:[['Base salary','50-60%','Guaranteed monthly','None'],['Quota bonus','40-50%','% of quota attained','100%+ quota = 1.5-2x rate'],['New logo SPIFs','Occasional','First deal in new segment','Fixed bonus per deal'],['Annual retention bonus','Optional at enterprise','NRR on book of business','Aligns sales with retention']]},
+      tags:[{l:'Discovery before demo',t:'lime'},{l:'MEDDPICC always',t:'gold'},{l:'60-70% attainment target',t:'teal'}]
+    };}
+  },
+  winrate: {
+    kw:['win rate','losing','lose','deal','competitor','objection','why','dropped','stalled','competitive','price','too expensive','not now','no decision','معدل الفوز','tasa de cierre','taux de conversion'],
+    respond: function() { return {
+      sections:[{title:'⚡ Win Rate Diagnostic',content:'Win rate declining while sales cycle extends = competitive pressure or ICP drift. Diagnose before acting.'}],
+      metrics:[{val:'30-40%',lbl:'Healthy win rate (competitive)',target:'> 50% = likely underpriced'},{val:'< 40%',lbl:'"Too expensive" in loss notes',target:'> 40% = value demo broken (not price)'},{val:'Win/loss',lbl:'Quarterly analysis required',target:'Interview 5 won + 5 lost per quarter'},{val:'ICP fit',lbl:'% of pipeline meeting ICP',target:'< 70% ICP = pipeline quality problem'}],
+      bullets:['Win rate < 20% diagnostic: (1) ICP drift — you are selling to wrong companies. (2) Value story broken — they do not understand the ROI. (3) Champion problem — no internal sponsor. (4) Competitive gap — product missing something.','Win rate > 50%: you are underpriced. Test a 15-20% price increase. A healthy win rate is 30-40% — if you win everything, you are leaving money on the table.','When "too expensive" is in loss notes: before cutting price, ask "Did they understand the ROI?" If you cannot quantify value in their language, price objection is really a value objection.','Stalled deals (no decision): create urgency without pressure. "What happens in your business if you do not solve this by Q2?" The cost of inaction must be made concrete.','Competitive losses: build battlecards per competitor. Win/loss interviews reveal which features matter. Do not respond to every feature gap — respond to the gaps that appear in > 30% of competitive losses.','ICP discipline: if > 30% of pipeline is not your ICP, your win rate will decline structurally. Better to have less pipeline with higher ICP fit.'],
+      highlight:'The most expensive win rate mistake: responding to declining win rates by discounting. Discounting trains prospects to wait for the discount and reduces the perceived value of your product. Price is a signal of quality. Discount structurally only for multi-year or volume deals.',
+      framework:{title:'Win Rate by Loss Reason',headers:['Loss Reason','Root Cause','Fix'],rows:[['Too expensive (> 40%)','Value demo broken, not pricing','Improve ROI proof, not price'],['Competitor has feature X','Product gap in ICP-critical area','Prioritize with CPO'],['No decision / stalled','Urgency not established','Quantify cost of inaction'],['Champion left','Single-threaded account','Multi-thread earlier in process'],['Poor ICP fit','Targeting problem','Tighten ICP, qualify harder early']]},
+      tags:[{l:'Win rate > 50% = underpriced',t:'lime'},{l:'Discount = value signal damage',t:'red'},{l:'Win/loss quarterly',t:'gold'}]
+    };}
+  },
+  default: {
+    respond: function() { return {
+      sections:[{title:'📈 CRO Advisor',content:'Let me address that from a revenue leadership perspective:'}],
+      bullets:['Revenue is not just sales. NRR × new logo growth × pricing = the revenue equation. All three must work together.','The leaky bucket test: if you stopped acquiring new customers today, would ARR grow, stay flat, or shrink? NRR answers this.','Pipeline coverage < 3x entering a quarter means the quarter is already at risk. Pipeline created within the quarter closes at < 20% of pipeline created two quarters ago.','The CRO owns the revenue number — not just new logo sales. Expansion, retention, and pricing are all revenue levers.','Board revenue reporting: ARR waterfall (opening + new + expansion - contraction - churn = closing), NRR trend, pipeline coverage, forecast vs. actual.'],
+      highlight:"The CRO's highest-leverage question: if we fixed NRR from 95% to 105%, what does that do to ARR in 24 months compared to hiring 5 more AEs? Model both. The answer is almost always that NRR improvement beats headcount.",
+      tags:[{l:'NRR first',t:'lime'},{l:'Pipeline = leading indicator',t:'gold'},{l:'Pricing is a lever',t:'teal'}]
+    };}
+  }
+};
+
+var currentLang = 'en';
+var isThinking = false;
+
+function initLangBar() {
+  var bar = document.getElementById('lang-bar');
+  var codes = ['en','ar','es','fr','de','it','pt','ru','zh','ja','ko'];
+  var names = {en:'EN',ar:'AR',es:'ES',fr:'FR',de:'DE',it:'IT',pt:'PT',ru:'RU',zh:'中文',ja:'日本語',ko:'한국어'};
+  bar.innerHTML = codes.map(function(c){
+    return '<button class="lang-btn'+(c==='en'?' active':'')+'" onclick="setLang(\''+c+'\',this)">'+names[c]+'</button>';
+  }).join('');
+}
+
+function setLang(code, btn) {
+  currentLang = code;
+  var L = LANGS[code];
+  if (!L) return;
+  document.documentElement.dir = L.dir;
+  document.documentElement.lang = code;
+  document.getElementById('advisor-subtitle').textContent = L.subtitle;
+  document.getElementById('back-btn').textContent = L.back;
+  document.getElementById('quick-label').textContent = L.quick_label;
+  document.getElementById('user-input').placeholder = L.placeholder;
+  document.getElementById('send-btn').textContent = L.send;
+  buildQuickGrid(L.quick);
+  var wm = document.getElementById('welcome-msg');
+  if (wm) {
+    wm.innerHTML = '<div class="section-title">'+L.welcome_title+'</div>'
+      +'<div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">'+L.welcome_body+'</div>'
+      +'<div class="highlight">'+L.welcome_hl+'</div>';
+  }
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  if (btn) btn.classList.add('active');
+}
+
+function buildQuickGrid(questions) {
+  document.getElementById('quick-grid').innerHTML = questions.map(function(q){
+    return '<button class="quick-btn" onclick="askQuestion(this.innerText)">'+q+'</button>';
+  }).join('');
+}
+
+function findMatch(q) {
+  var lower = q.toLowerCase();
+  var best = null, bestScore = 0;
+  for (var key in CRO_KNOWLEDGE) {
+    if (key === 'default') continue;
+    var score = (CRO_KNOWLEDGE[key].kw||[]).filter(function(kw){return lower.includes(kw);}).length;
+    if (score > bestScore) { bestScore = score; best = CRO_KNOWLEDGE[key]; }
+  }
+  return best || CRO_KNOWLEDGE.default;
+}
+
+function renderResponse(res) {
+  var html = '';
+  if (res.sections) res.sections.forEach(function(s){
+    html += '<div class="section-title">'+s.title+'</div>';
+    if (s.content) html += '<div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">'+s.content+'</div>';
+  });
+  if (res.metrics) {
+    html += '<div class="metrics-row">';
+    res.metrics.forEach(function(m){html += '<div class="metric-card"><div class="metric-val">'+m.val+'</div><div class="metric-lbl">'+m.lbl+'</div><div class="metric-target">'+m.target+'</div></div>';});
+    html += '</div>';
+  }
+  if (res.bullets && res.bullets.length) {
+    html += '<ul class="bullet-list">';
+    res.bullets.forEach(function(b){html += '<li>'+b+'</li>';});
+    html += '</ul>';
+  }
+  if (res.highlight) html += '<div class="highlight">'+res.highlight+'</div>';
+  if (res.framework) {
+    html += '<div style="font-size:11px;font-weight:700;color:var(--ink2);margin:10px 0 6px;">'+res.framework.title+'</div>';
+    html += '<table class="framework-table"><thead><tr>';
+    res.framework.headers.forEach(function(h){html += '<th>'+h+'</th>';});
+    html += '</tr></thead><tbody>';
+    res.framework.rows.forEach(function(row){
+      html += '<tr>';row.forEach(function(cell){html += '<td>'+cell+'</td>';});html += '</tr>';
+    });
+    html += '</tbody></table>';
+  }
+  if (res.tags && res.tags.length) {
+    html += '<div class="tags">';
+    res.tags.forEach(function(t){html += '<span class="tag '+t.t+'">'+t.l+'</span>';});
+    html += '</div>';
+  }
+  return html;
+}
+
+function addMessage(role, html) {
+  var chat = document.getElementById('chat');
+  var div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = '<div class="msg-avatar">'+(role==='advisor'?'📈':'👤')+'</div><div><div class="msg-bubble">'+html+'</div></div>';
+  chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+}
+
+function showThinking() {
+  var chat = document.getElementById('chat');
+  var div = document.createElement('div');
+  div.className = 'msg advisor'; div.id = 'thinking-msg';
+  div.innerHTML = '<div class="msg-avatar">📈</div><div><div class="msg-bubble"><div class="thinking"><span></span><span></span><span></span></div></div></div>';
+  chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+}
+function hideThinking() { var el = document.getElementById('thinking-msg'); if (el) el.remove(); }
+
+async function sendMessage() {
+  var input = document.getElementById('user-input');
+  var btn = document.getElementById('send-btn');
+  var q = input.value.trim();
+  if (!q || isThinking) return;
+  addMessage('user', q);
+  input.value = '';
+  isThinking = true; btn.disabled = true;
+  showThinking();
+  await new Promise(function(r){setTimeout(r, 500 + Math.random()*400);});
+  hideThinking();
+  var topic = findMatch(q);
+  var res = topic.respond();
+  var html = renderResponse(res);
+  if (currentLang !== 'en') { try { html = await translateText(html, currentLang); } catch(e) {} }
+  addMessage('advisor', html);
+  isThinking = false; btn.disabled = false;
+  input.focus();
+}
+
+function askQuestion(q) { document.getElementById('user-input').value = q; sendMessage(); }
+
+initLangBar();
+buildQuickGrid(LANGS.en.quick);
+</script>
+</body>
+</html>

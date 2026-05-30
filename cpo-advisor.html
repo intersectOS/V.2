@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPO Advisor — Intersect OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0f;--card:#13131a;--card2:#1a1a24;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.04);--ink:#e8e8f0;--ink2:#9090a8;--ink3:#5a5a72;--teal:#06b6d4;--purple:#7c3aed;--gold:#f59e0b;--green:#22c55e;--red:#ef4444;--indigo:#6366f1;--grad:linear-gradient(135deg,#6366f1,#7c3aed);}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(19,19,26,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.back-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--ink2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;}
+.advisor-badge{display:flex;align-items:center;gap:12px;}
+.advisor-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(124,58,237,.2));border:1px solid rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.advisor-info h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+.advisor-info p{font-size:11px;color:var(--ink3);margin-top:2px;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--indigo);box-shadow:0 0 8px rgba(99,102,241,.5);animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.5;}}
+.lang-bar{display:flex;gap:6px;padding:8px 20px;background:rgba(13,13,20,.9);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.lang-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--ink3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.lang-btn:hover{background:rgba(255,255,255,.08);color:var(--ink2);}
+.lang-btn.active{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.3);color:var(--indigo);}
+.context-banner{background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(124,58,237,.04));border-bottom:1px solid var(--border2);padding:10px 20px;}
+.context-inner{font-size:11px;color:var(--ink3);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.context-inner span{background:rgba(99,102,241,.12);color:var(--indigo);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;}
+.quick-section{padding:16px 20px 0;}
+.quick-label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
+.quick-btn{background:var(--card);border:1px solid var(--border);color:var(--ink2);border-radius:10px;padding:10px 14px;font-size:12px;text-align:left;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;line-height:1.4;}
+.quick-btn:hover{background:var(--card2);border-color:rgba(99,102,241,.3);color:var(--ink);}
+.chat-area{padding:20px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 310px);overflow-y:auto;}
+.msg{display:flex;gap:10px;align-items:flex-start;}
+.msg.user{flex-direction:row-reverse;}
+.msg-avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.msg.advisor .msg-avatar{background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(124,58,237,.15));border:1px solid rgba(99,102,241,.2);}
+.msg.user .msg-avatar{background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);}
+.msg-bubble{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;max-width:680px;font-size:13px;line-height:1.6;}
+.msg.user .msg-bubble{background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.2);}
+.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--indigo);margin-bottom:8px;}
+.bullet-list{margin:8px 0;padding-left:0;list-style:none;}
+.bullet-list li{padding:5px 0 5px 18px;position:relative;color:var(--ink2);font-size:12px;}
+.bullet-list li::before{content:'→';position:absolute;left:0;color:var(--indigo);font-size:11px;}
+.highlight{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:12px;color:var(--gold);line-height:1.5;}
+.framework-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px;}
+.framework-table th{background:rgba(99,102,241,.08);color:var(--indigo);padding:7px 10px;text-align:left;font-weight:600;border-bottom:1px solid rgba(99,102,241,.15);}
+.framework-table td{padding:6px 10px;border-bottom:1px solid var(--border2);color:var(--ink2);}
+.framework-table tr:last-child td{border-bottom:none;}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.tag{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;}
+.tag.indigo{background:rgba(99,102,241,.1);color:var(--indigo);border:1px solid rgba(99,102,241,.2);}
+.tag.teal{background:rgba(6,182,212,.1);color:var(--teal);border:1px solid rgba(6,182,212,.2);}
+.tag.purple{background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2);}
+.tag.gold{background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.2);}
+.tag.green{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+.metrics-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:10px 0;}
+.metric-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.metric-val{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--indigo);}
+.metric-lbl{font-size:10px;color:var(--ink3);margin-top:3px;}
+.metric-target{font-size:10px;color:var(--green);margin-top:2px;}
+.input-area{position:sticky;bottom:0;padding:14px 20px;background:rgba(10,10,15,.95);border-top:1px solid var(--border);backdrop-filter:blur(10px);}
+.input-row{display:flex;gap:10px;align-items:center;}
+.input-box{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 16px;color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+.input-box:focus{border-color:rgba(99,102,241,.4);}
+.send-btn{background:var(--grad);border:none;border-radius:10px;padding:11px 18px;color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.send-btn:disabled{opacity:.4;}
+.thinking{display:flex;gap:4px;align-items:center;padding:8px 0;}
+.thinking span{width:6px;height:6px;border-radius:50%;background:var(--indigo);animation:bounce .8s ease-in-out infinite;}
+.thinking span:nth-child(2){animation-delay:.15s;}
+.thinking span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,80%,100%{transform:scale(0.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+@media(max-width:600px){.quick-grid{grid-template-columns:1fr 1fr;}.metrics-row{grid-template-columns:repeat(3,1fr);}.lang-bar{gap:4px;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" id="back-btn" onclick="history.back()">← Back</button>
+  <div class="advisor-badge">
+    <div class="advisor-icon">🎨</div>
+    <div class="advisor-info">
+      <h2>CPO Advisor</h2>
+      <p id="advisor-subtitle">PMF · Roadmap · Prioritization · Product Org · Strategy</p>
+    </div>
+  </div>
+  <div class="status-dot"></div>
+</div>
+
+<div class="lang-bar" id="lang-bar"></div>
+
+<div class="context-banner">
+  <div class="context-inner">
+    🎨 Frameworks from <span>pmf_playbook</span> <span>product_strategy</span> <span>product_org_design</span> <span>jtbd</span>
+  </div>
+</div>
+
+<div class="quick-section">
+  <div class="quick-label" id="quick-label">Quick Questions</div>
+  <div class="quick-grid" id="quick-grid"></div>
+</div>
+
+<div class="chat-area" id="chat">
+  <div class="msg advisor">
+    <div class="msg-avatar">🎨</div>
+    <div><div class="msg-bubble" id="welcome-msg">
+      <div class="section-title">Welcome to CPO Advisor</div>
+      <div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">Product strategy, PMF measurement, roadmap prioritization, and product org design — from discovery to delivery to scaling.</div>
+      <div class="highlight">First question I always ask: <strong>Do you have product-market fit — and how do you know?</strong> Not a feeling. Not good reviews. A retention curve that flattens, a Sean Ellis score above 40%, and organic referrals. If you cannot answer this, everything else is secondary.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <input class="input-box" id="user-input" placeholder="Ask about PMF, roadmap, prioritization, product strategy..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendMessage();}">
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">Send →</button>
+  </div>
+</div>
+
+<script>
+var LANGS = {
+  en:{dir:'ltr',subtitle:'PMF · Roadmap · Prioritization · Product Org · Strategy',back:'← Back',quick_label:'Quick Questions',placeholder:'Ask about PMF, roadmap, prioritization, product strategy...',send:'Send →',welcome_title:'Welcome to CPO Advisor',welcome_body:'Product strategy, PMF measurement, roadmap prioritization, and product org design.',welcome_hl:'First question: <strong>Do you have product-market fit — and how do you know?</strong> Retention curve, Sean Ellis > 40%, organic referrals. If you cannot answer, everything else is secondary.',quick:['🎯 How do we know if we have PMF?','📋 How do we prioritize our roadmap?','🚀 Should we build vs. buy vs. partner?','🏗️ How do we structure our product team?','📊 What product metrics matter most?','🔍 Our churn is high — what do we do?']},
+  ar:{dir:'rtl',subtitle:'PMF · خارطة الطريق · الأولويات · تنظيم المنتج · الاستراتيجية',back:'رجوع',quick_label:'أسئلة سريعة',placeholder:'اسأل عن PMF، خارطة الطريق، الأولويات...',send:'إرسال',welcome_title:'مرحباً بك في مستشار المنتج',welcome_body:'استراتيجية المنتج، قياس PMF، تحديد أولويات خارطة الطريق وتصميم تنظيم المنتج.',welcome_hl:'أول سؤال: <strong>هل لديك توافق المنتج مع السوق — وكيف تعرف؟</strong>',quick:['🎯 كيف نعرف إذا كان لدينا PMF؟','📋 كيف نحدد أولويات خارطة الطريق؟','🚀 بناء أم شراء أم شراكة؟','🏗️ كيف نهيكل فريق المنتج؟','📊 ما هي أهم مقاييس المنتج؟','🔍 معدل الإلغاء مرتفع — ماذا نفعل؟']},
+  es:{dir:'ltr',subtitle:'PMF · Roadmap · Priorización · Org de Producto · Estrategia',back:'Volver',quick_label:'Preguntas Rápidas',placeholder:'Pregunta sobre PMF, roadmap, priorización...',send:'Enviar',welcome_title:'Bienvenido al Asesor CPO',welcome_body:'Estrategia de producto, medición de PMF, priorización del roadmap y diseño de org de producto.',welcome_hl:'Primera pregunta: <strong>¿Tienes product-market fit — y cómo lo sabes?</strong>',quick:['🎯 ¿Cómo sabemos si tenemos PMF?','📋 ¿Cómo priorizamos el roadmap?','🚀 ¿Construir vs comprar vs partner?','🏗️ ¿Cómo estructuramos el equipo de producto?','📊 ¿Qué métricas de producto importan más?','🔍 Churn alto — ¿qué hacemos?']},
+  fr:{dir:'ltr',subtitle:'PMF · Roadmap · Priorisation · Org Produit · Stratégie',back:'Retour',quick_label:'Questions Rapides',placeholder:'Posez des questions sur PMF, roadmap, priorisation...',send:'Envoyer',welcome_title:'Bienvenue au Conseiller CPO',welcome_body:'Stratégie produit, mesure du PMF, priorisation du roadmap et conception de l\'org produit.',welcome_hl:'Première question: <strong>Avez-vous un product-market fit — et comment le savez-vous?</strong>',quick:['🎯 Comment savoir si on a le PMF?','📋 Comment prioriser le roadmap?','🚀 Construire vs acheter vs partenariat?','🏗️ Comment structurer l\'équipe produit?','📊 Quelles métriques produit comptent?','🔍 Churn élevé — que faire?']},
+  de:{dir:'ltr',subtitle:'PMF · Roadmap · Priorisierung · Produkt-Org · Strategie',back:'Zurück',quick_label:'Schnelle Fragen',placeholder:'Fragen zu PMF, Roadmap, Priorisierung...',send:'Senden',welcome_title:'Willkommen beim CPO-Berater',welcome_body:'Produktstrategie, PMF-Messung, Roadmap-Priorisierung und Produkt-Org-Design.',welcome_hl:'Erste Frage: <strong>Haben Sie Product-Market Fit — und woher wissen Sie das?</strong>',quick:['🎯 Woher wissen wir, ob wir PMF haben?','📋 Wie priorisieren wir die Roadmap?','🚀 Bauen vs. kaufen vs. Partner?','🏗️ Wie strukturieren wir das Produkt-Team?','📊 Welche Produktmetriken sind wichtig?','🔍 Hohe Churn-Rate — was tun?']},
+  it:{dir:'ltr',subtitle:'PMF · Roadmap · Priorizzazione · Org Prodotto · Strategia',back:'Indietro',quick_label:'Domande Rapide',placeholder:'Chiedi di PMF, roadmap, priorizzazione...',send:'Invia',welcome_title:'Benvenuto al Consulente CPO',welcome_body:'Strategia prodotto, misurazione PMF, priorizzazione roadmap e progettazione org prodotto.',welcome_hl:'Prima domanda: <strong>Hai il product-market fit — e come lo sai?</strong>',quick:['🎯 Come sappiamo se abbiamo PMF?','📋 Come prioritizziamo il roadmap?','🚀 Costruire vs acquistare vs partnership?','🏗️ Come strutturiamo il team prodotto?','📊 Quali metriche prodotto contano?','🔍 Churn alto — cosa fare?']},
+  pt:{dir:'ltr',subtitle:'PMF · Roadmap · Priorização · Org de Produto · Estratégia',back:'Voltar',quick_label:'Perguntas Rápidas',placeholder:'Pergunte sobre PMF, roadmap, priorização...',send:'Enviar',welcome_title:'Bem-vindo ao Consultor CPO',welcome_body:'Estratégia de produto, medição de PMF, priorização do roadmap e design de org de produto.',welcome_hl:'Primeira pergunta: <strong>Você tem product-market fit — e como sabe?</strong>',quick:['🎯 Como saber se temos PMF?','📋 Como priorizar o roadmap?','🚀 Construir vs comprar vs parceria?','🏗️ Como estruturar equipe de produto?','📊 Quais métricas de produto importam?','🔍 Churn alto — o que fazer?']},
+  ru:{dir:'ltr',subtitle:'PMF · Роадмап · Приоритизация · Продукт-Орг · Стратегия',back:'Назад',quick_label:'Быстрые Вопросы',placeholder:'Спросите о PMF, роадмапе, приоритизации...',send:'Отправить',welcome_title:'Добро пожаловать к советнику CPO',welcome_body:'Продуктовая стратегия, измерение PMF, приоритизация роадмапа и дизайн продуктовой организации.',welcome_hl:'Первый вопрос: <strong>Есть ли у вас product-market fit — и как вы это знаете?</strong>',quick:['🎯 Как узнать, есть ли PMF?','📋 Как приоритизировать роадмап?','🚀 Строить vs покупать vs партнерство?','🏗️ Как структурировать продуктовую команду?','📊 Какие метрики продукта важны?','🔍 Высокий отток — что делать?']},
+  zh:{dir:'ltr',subtitle:'PMF · 路线图 · 优先级 · 产品组织 · 战略',back:'返回',quick_label:'快速问题',placeholder:'询问PMF、路线图、优先级、产品战略...',send:'发送',welcome_title:'欢迎使用CPO顾问',welcome_body:'产品战略、PMF测量、路线图优先级排序和产品组织设计。',welcome_hl:'第一个问题：<strong>你们有产品市场契合度吗——你怎么知道？</strong>',quick:['🎯 如何知道是否有PMF？','📋 如何优先排序路线图？','🚀 自建vs购买vs合作？','🏗️ 如何构建产品团队？','📊 哪些产品指标最重要？','🔍 流失率高——该怎么办？']},
+  ja:{dir:'ltr',subtitle:'PMF · ロードマップ · 優先順位 · プロダクト組織 · 戦略',back:'戻る',quick_label:'クイック質問',placeholder:'PMF、ロードマップ、優先順位、製品戦略について質問...',send:'送信',welcome_title:'CPOアドバイザーへようこそ',welcome_body:'製品戦略、PMF測定、ロードマップ優先順位付け、製品組織設計。',welcome_hl:'最初の質問：<strong>プロダクト・マーケット・フィットはありますか——そしてどう知るのか？</strong>',quick:['🎯 PMFがあるかどうかを知る方法？','📋 ロードマップの優先順位付け？','🚀 自作vs購入vsパートナーシップ？','🏗️ プロダクトチームの構造化？','📊 重要なプロダクト指標は？','🔍 高い解約率——どうする？']},
+  ko:{dir:'ltr',subtitle:'PMF · 로드맵 · 우선순위 · 프로덕트 조직 · 전략',back:'뒤로',quick_label:'빠른 질문',placeholder:'PMF, 로드맵, 우선순위, 제품 전략에 대해 질문...',send:'전송',welcome_title:'CPO 어드바이저에 오신 것을 환영합니다',welcome_body:'제품 전략, PMF 측정, 로드맵 우선순위 지정, 제품 조직 설계.',welcome_hl:'첫 번째 질문: <strong>제품-시장 적합성이 있나요 — 어떻게 아나요?</strong>',quick:['🎯 PMF가 있는지 어떻게 알 수 있나요?','📋 로드맵 우선순위 지정 방법?','🚀 구축 vs 구매 vs 파트너십?','🏗️ 프로덕트 팀 구조화 방법?','📊 가장 중요한 제품 지표는?','🔍 높은 이탈률 — 어떻게 해야 하나요?']}
+};
+
+var _GKEY = 'AIzaSyAvJxUoPoQGnGvmAofivA_33mSBXxRhwyU';
+var _langMap = {en:'en',ar:'ar',es:'es',fr:'fr',de:'de',it:'it',pt:'pt',ru:'ru',zh:'zh-CN',ja:'ja',ko:'ko'};
+
+async function translateText(text, targetLang) {
+  if (!targetLang || targetLang === 'en') return text;
+  try {
+    var r = await fetch('https://translation.googleapis.com/language/translate/v2?key=' + _GKEY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({q:text, source:'en', target:_langMap[targetLang]||targetLang, format:'html'})
+    });
+    var d = await r.json();
+    if (d.data && d.data.translations && d.data.translations[0]) return d.data.translations[0].translatedText;
+  } catch(e) {}
+  return text;
+}
+
+var CPO_KNOWLEDGE = {
+  pmf: {
+    kw:['pmf','product market fit','retention','churn','sean ellis','organic','signal','measure','fit','validate','الملاءمة','ajuste','adéquation','produktmarkt'],
+    respond: function() { return {
+      sections:[{title:'🎯 PMF Measurement Framework',content:'PMF is when the product pulls users in rather than pushing them. Three signals — run all three:'}],
+      metrics:[{val:'> 40%',lbl:'Sean Ellis "very disappointed"',target:'< 20% = value prop broken'},{val:'> 40%',lbl:'D30 retention (B2B SaaS)',target:'> 45% D90 = strong PMF'},{val:'> 20%',lbl:'Organic signup % (no incentive)',target:'Paid growth can mask no PMF'},{val:'Flattens',lbl:'Retention curve shape',target:'Drops to zero = no PMF'}],
+      bullets:['Signal 1 — Retention curve: cohort by signup week. Plot D1/D7/D30/D60/D90. Curve that flattens above 0 = PMF signal. Drops to zero = no recurring problem solved.','Signal 2 — Sean Ellis test: one question survey: "How would you feel if you could no longer use this?" > 40% "very disappointed" = PMF threshold.','Signal 3 — Organic growth: > 20% of new signups from referral or organic without paid incentive = word of mouth working.','Find your PMF segment first: compare attributes of retained vs. churned users (company size, title, first action, signup source). PMF is usually strong in one segment before it is broad.','If below thresholds: do not run more acquisition. Find the retained users. Understand why they stay. Build for them.','PMF is not binary — it degrades. Check Sean Ellis and D30 retention quarterly. Put both on the CPO dashboard.'],
+      highlight:'The PMF trap: convincing yourself you have PMF because enterprise customers are locked in by contract. Locked-in users and retained users are different. Run the Sean Ellis test only on users who could leave but do not.',
+      framework:{title:'PMF Benchmarks by Business Model',headers:['Model','D30 Retention','D90 Retention','Other Signal'],rows:[['B2B SaaS','> 40%','> 45%','NRR > 110%, NPS retained > 50'],['Consumer','> 20%','> 10%','DAU/MAU > 20%, referral rate > 20%'],['Enterprise SaaS','> 60%','> 45%','Expansion revenue, shorter sales cycles'],['PLG','> 25% free tier','> 15% free','PQL conversion 15-30%'],['Marketplace','> 30% buyers','> 20%','Both supply + demand retained']]},
+      tags:[{l:'All three signals',t:'indigo'},{l:'Segment first',t:'gold'},{l:'Quarterly check',t:'teal'}]
+    };}
+  },
+  roadmap: {
+    kw:['roadmap','priorit','backlog','feature','build','plan','quarter','what to build','jtbd','job','discovery','strategy','خارطة','hoja de ruta','feuille de route','roadmap'],
+    respond: function() { return {
+      sections:[{title:'📋 Roadmap Prioritization Framework',content:'The roadmap question is not "what should we build?" It is "what is the highest-impact thing to build for our best customers?"'}],
+      metrics:[{val:'JTBD',lbl:'Start with jobs-to-be-done',target:'Not features — outcomes'},{val:'ICE',lbl:'Impact × Confidence × Ease',target:'Score 1-10 per dimension'},{val:'50%+',lbl:'PM time in discovery',target:'Not in coordination'},{val:'3-5',lbl:'Max items per quarter',target:'More = no real priorities'}],
+      bullets:['JTBD interview format: "Walk me through the last time you [started/stopped] using this product." Extract: functional job, emotional job, social job, trigger event, competing solutions.','ICE scoring: Impact (how much does this move the north star?) × Confidence (how sure are we?) × Ease (how quickly can we build?). Sort by score.','Now / Next / Later format: 3 columns. Now = committed this quarter (fully resourced). Next = validated and queued. Later = ideas not yet validated.','Roadmap must connect to company OKRs. If a PM cannot explain which company objective an initiative serves, do not put it on the roadmap.','The build vs buy vs partner decision: Build when it is core differentiation. Buy when it is commodity capability. Partner when speed matters more than control.','Stakeholder management: roadmap is not a wish list from every team. It is a set of bets on what will most improve retention and expansion.'],
+      highlight:'The prioritization failure mode: teams build features requested by the loudest customers instead of the best customers. Your loudest customers are often not your most representative customers. Run JTBD interviews with your highest-retention cohort.',
+      framework:{title:'Roadmap Prioritization Matrix',headers:['Initiative','Impact (1-10)','Confidence (1-10)','Ease (1-10)','ICE Score'],rows:[['Example: Onboarding redesign','8','9','7','504'],['Example: New integration','5','6','8','240'],['Example: AI feature','9','4','3','108'],['Example: Performance fix','7','10','9','630']]},
+      tags:[{l:'JTBD first',t:'indigo'},{l:'ICE scoring',t:'gold'},{l:'OKR-linked only',t:'teal'}]
+    };}
+  },
+  churn: {
+    kw:['churn','retention','leaving','cancel','inactive','drop','lose','users','customers','مغادرة','abandono','désabonnement','abwanderung'],
+    respond: function() { return {
+      sections:[{title:'🔍 Churn Diagnostic Framework',content:'High churn is a symptom. The root cause is one of four things. Diagnose before acting.'}],
+      bullets:['Cause 1 — Onboarding failure: users never reach the aha moment. Symptom: high D1-D7 drop-off before core feature use. Fix: map the onboarding flow, find the drop-off step, reduce friction to first value.','Cause 2 — Product does not solve the job: value proposition is wrong or too weak. Symptom: flat retention curve with consistent churn across all cohorts. Fix: JTBD research on churned users.','Cause 3 — Wrong segment acquired: you are attracting customers who were never going to stay. Symptom: high churn in one acquisition channel, low in another. Fix: segment retention by acquisition source.','Cause 4 — Competitive displacement: a competitor is solving the job better. Symptom: churned users mention competitor in exit surveys. Fix: competitive analysis + win/loss.','Find the aha moment: what behavior in the first 7 days best predicts D90 retention? That is your aha moment. Redesign onboarding to get every user there faster.','Exit interviews: ask "When did you first think about leaving?" (the trigger, not the final straw) and "What are you using instead?"'],
+      highlight:'The onboarding benchmark: > 25-40% of new signups should reach the aha moment within 7 days (B2B SaaS). < 15% means onboarding is broken and retention problems are upstream, not downstream.',
+      framework:{title:'Churn Root Cause Diagnostic',headers:['Symptom','Root Cause','Fix'],rows:[['High D1-D7 drop before core feature','Onboarding failure','Reduce steps to first value'],['Flat churn across all cohorts','Wrong value prop','JTBD research on churned users'],['Churn varies by acquisition channel','Wrong segment','Cut lowest-retention channels'],['Exit surveys mention competitor','Competitive displacement','Win/loss analysis + product gap'],['Churn improves after customer success touch','Adoption problem','Proactive CS + in-product nudges']]},
+      tags:[{l:'Diagnose segment first',t:'indigo'},{l:'Aha moment',t:'gold'},{l:'Exit interviews',t:'teal'}]
+    };}
+  },
+  org: {
+    kw:['product team','org','pm','designer','engineer','ratio','structure','squad','stream','platform','trio','hire','cpo','head of product','منتج','equipo de producto','équipe produit','produkt-team'],
+    respond: function() { return {
+      sections:[{title:'🏗️ Product Org Design',content:'Product org structure by stage — and what breaks if you skip a step.'}],
+      metrics:[{val:'1:8',lbl:'PM:Engineer ratio (Series A)',target:'1:10-12 at Series B+'},{val:'50%+',lbl:'PM time in discovery',target:'Not in coordination or delivery'},{val:'Product trio',lbl:'PM + Designer + Tech Lead',target:'In discovery together, not handoff'},{val:'Stream teams',lbl:'End-to-end ownership',target:'Not feature factories'}],
+      bullets:['Seed: founder is the PM. Do not hire a "process PM" before PMF. First PM hire is a generalist who talks to customers constantly.','Series A: 2-4 PMs organized by product area. First hire owns a full customer journey, not a feature list.','Series B: Head of Product frees CPO from backlog. Head of Design. First platform PM when engineering > 40.','The Product Trio: PM (what and why) + Designer (how users experience it) + Tech Lead (how to build it). All three in discovery together, not waterfall.','Stream-aligned teams: full-stack (PM + Design + 3-7 engineers), long-lived, can deploy independently. If a team is waiting on another team > 20% of sprints, something is wrong with the org structure.','PM:Engineer ratios: Seed 1:5 → Series A 1:8 → Series B 1:10 → Series C 1:12. Ratio is not a target — great PMs can carry more if the org is healthy.'],
+      highlight:'The most common product org mistake: PMs become project managers tracking handoffs instead of driving product decisions. If your PMs spend > 50% of time in coordination rather than discovery, you have an org problem — not a PM quality problem.',
+      framework:{title:'Product Org by Stage',headers:['Stage','Structure','First Hire Priority'],rows:[['Seed (< 20 eng)','Founder PM','Generalist PM with customer instinct'],['Series A (20-60 eng)','2-4 PMs, flat','PM who owns full product area'],['Series B (60-150 eng)','Head of Product + 4-8 PMs','Head of Design'],['Series C (150-400 eng)','PM Leads + Directors','Head of Data + Product Ops'],['Growth (400+ eng)','Full specialization','Chief of Staff (Product)']]},
+      tags:[{l:'Trio in discovery',t:'indigo'},{l:'Stream-aligned',t:'gold'},{l:'PM time in discovery',t:'teal'}]
+    };}
+  },
+  metrics: {
+    kw:['metric','kpi','measure','north star','dashboard','dau','mau','retention','nps','nrr','arr','activation','مقاييس','métricas','métrique','kennzahlen'],
+    respond: function() { return {
+      sections:[{title:'📊 Product Metrics Framework',content:'North Star first. Everything else is either a leading indicator or a guardrail.'}],
+      metrics:[{val:'North Star',lbl:'One metric that captures value',target:'Not revenue — user value'},{val:'D30 retention',lbl:'Core health signal',target:'Most important single metric'},{val:'Activation rate',lbl:'% reaching aha moment in 7 days',target:'> 25-40% for B2B SaaS'},{val:'NRR > 110%',lbl:'Net Revenue Retention',target:'Growth even without new customers'}],
+      bullets:['North Star Metric: the one metric that best captures the value the product delivers to users (not revenue). Examples: Slack = messages sent in active channels, Airbnb = nights booked, HubSpot = leads captured from forms.','Input metrics (leading): activation rate, feature adoption, time-to-value, invite rate. These predict retention.','Outcome metrics (lagging): D30/D90 retention, NPS, NRR, LTV. These confirm whether inputs are working.','Guardrail metrics: things you do not want to break while optimizing the north star. Example: improving activation rate without increasing support tickets.','DAU/MAU ratio: > 20% for a habitual B2B product. > 40% for a daily habit product. Low ratio = product is useful but not habit-forming.','Product health dashboard (weekly CPO review): activation rate, D30 retention by cohort, NPS from retained users, feature adoption rate on new releases, time-to-value.'],
+      highlight:'The metric trap: optimizing for a metric that does not capture real user value. If your north star metric goes up but retention goes down, your north star is wrong. Always cross-check against retention.',
+      framework:{title:'Product Metrics Hierarchy',headers:['Level','Metric','Why It Matters'],rows:[['North Star','Value delivered to users (not revenue)','Everything else is in service of this'],['Leading indicators','Activation rate, feature adoption, invite rate','Predict future retention'],['Health metrics','D30/D90 retention, NPS retained users','Confirm product-market fit'],['Business metrics','NRR, LTV, payback period','Unit economics of the product'],['Guardrails','Support tickets, error rate, load time','Do not sacrifice these to optimize others']]},
+      tags:[{l:'North star first',t:'indigo'},{l:'Leading vs lagging',t:'gold'},{l:'Retention = truth',t:'teal'}]
+    };}
+  },
+  default: {
+    respond: function() { return {
+      sections:[{title:'🎨 CPO Advisor',content:'Let me address that from a product leadership perspective:'}],
+      bullets:['The CPO job: ensure the product creates enough value for enough customers to build a sustainable business.','Start with the customer job, not the feature request. Features are solutions. Jobs are the problems. Build for the job.','Every product decision is a resource allocation decision. Say yes to the roadmap item, and you have said no to everything else.','Product strategy is a set of bets. Make them explicit. Track the outcomes. Kill the bets that are not working.','The product trio (PM + Designer + Tech Lead) in discovery together is the single biggest structural improvement most product orgs can make.'],
+      highlight:"The CPO test: can every engineer on every product team articulate (1) who their user is, (2) what job the user is hiring the product to do, and (3) how their current sprint connects to that job? If not, product strategy has not reached execution.",
+      tags:[{l:'Job not feature',t:'indigo'},{l:'Bets not plans',t:'gold'},{l:'Trio in discovery',t:'teal'}]
+    };}
+  }
+};
+
+var currentLang = 'en';
+var isThinking = false;
+
+function initLangBar() {
+  var bar = document.getElementById('lang-bar');
+  var codes = ['en','ar','es','fr','de','it','pt','ru','zh','ja','ko'];
+  var names = {en:'EN',ar:'AR',es:'ES',fr:'FR',de:'DE',it:'IT',pt:'PT',ru:'RU',zh:'中文',ja:'日本語',ko:'한국어'};
+  bar.innerHTML = codes.map(function(c){
+    return '<button class="lang-btn'+(c==='en'?' active':'')+'" onclick="setLang(\''+c+'\',this)">'+names[c]+'</button>';
+  }).join('');
+}
+
+function setLang(code, btn) {
+  currentLang = code;
+  var L = LANGS[code];
+  if (!L) return;
+  document.documentElement.dir = L.dir;
+  document.documentElement.lang = code;
+  document.getElementById('advisor-subtitle').textContent = L.subtitle;
+  document.getElementById('back-btn').textContent = L.back;
+  document.getElementById('quick-label').textContent = L.quick_label;
+  document.getElementById('user-input').placeholder = L.placeholder;
+  document.getElementById('send-btn').textContent = L.send;
+  buildQuickGrid(L.quick);
+  var wm = document.getElementById('welcome-msg');
+  if (wm) {
+    wm.innerHTML = '<div class="section-title">'+L.welcome_title+'</div>'
+      +'<div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">'+L.welcome_body+'</div>'
+      +'<div class="highlight">'+L.welcome_hl+'</div>';
+  }
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  if (btn) btn.classList.add('active');
+}
+
+function buildQuickGrid(questions) {
+  document.getElementById('quick-grid').innerHTML = questions.map(function(q){
+    return '<button class="quick-btn" onclick="askQuestion(this.innerText)">'+q+'</button>';
+  }).join('');
+}
+
+function findMatch(q) {
+  var lower = q.toLowerCase();
+  var best = null, bestScore = 0;
+  for (var key in CPO_KNOWLEDGE) {
+    if (key === 'default') continue;
+    var score = (CPO_KNOWLEDGE[key].kw||[]).filter(function(kw){return lower.includes(kw);}).length;
+    if (score > bestScore) { bestScore = score; best = CPO_KNOWLEDGE[key]; }
+  }
+  return best || CPO_KNOWLEDGE.default;
+}
+
+function renderResponse(res) {
+  var html = '';
+  if (res.sections) res.sections.forEach(function(s){
+    html += '<div class="section-title">'+s.title+'</div>';
+    if (s.content) html += '<div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">'+s.content+'</div>';
+  });
+  if (res.metrics) {
+    html += '<div class="metrics-row">';
+    res.metrics.forEach(function(m){html += '<div class="metric-card"><div class="metric-val">'+m.val+'</div><div class="metric-lbl">'+m.lbl+'</div><div class="metric-target">'+m.target+'</div></div>';});
+    html += '</div>';
+  }
+  if (res.bullets && res.bullets.length) {
+    html += '<ul class="bullet-list">';
+    res.bullets.forEach(function(b){html += '<li>'+b+'</li>';});
+    html += '</ul>';
+  }
+  if (res.highlight) html += '<div class="highlight">'+res.highlight+'</div>';
+  if (res.framework) {
+    html += '<div style="font-size:11px;font-weight:700;color:var(--ink2);margin:10px 0 6px;">'+res.framework.title+'</div>';
+    html += '<table class="framework-table"><thead><tr>';
+    res.framework.headers.forEach(function(h){html += '<th>'+h+'</th>';});
+    html += '</tr></thead><tbody>';
+    res.framework.rows.forEach(function(row){
+      html += '<tr>';row.forEach(function(cell){html += '<td>'+cell+'</td>';});html += '</tr>';
+    });
+    html += '</tbody></table>';
+  }
+  if (res.tags && res.tags.length) {
+    html += '<div class="tags">';
+    res.tags.forEach(function(t){html += '<span class="tag '+t.t+'">'+t.l+'</span>';});
+    html += '</div>';
+  }
+  return html;
+}
+
+function addMessage(role, html) {
+  var chat = document.getElementById('chat');
+  var div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = '<div class="msg-avatar">'+(role==='advisor'?'🎨':'👤')+'</div><div><div class="msg-bubble">'+html+'</div></div>';
+  chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+}
+
+function showThinking() {
+  var chat = document.getElementById('chat');
+  var div = document.createElement('div');
+  div.className = 'msg advisor'; div.id = 'thinking-msg';
+  div.innerHTML = '<div class="msg-avatar">🎨</div><div><div class="msg-bubble"><div class="thinking"><span></span><span></span><span></span></div></div></div>';
+  chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+}
+function hideThinking() { var el = document.getElementById('thinking-msg'); if (el) el.remove(); }
+
+async function sendMessage() {
+  var input = document.getElementById('user-input');
+  var btn = document.getElementById('send-btn');
+  var q = input.value.trim();
+  if (!q || isThinking) return;
+  addMessage('user', q);
+  input.value = '';
+  isThinking = true; btn.disabled = true;
+  showThinking();
+  await new Promise(function(r){setTimeout(r, 500 + Math.random()*400);});
+  hideThinking();
+  var topic = findMatch(q);
+  var res = topic.respond();
+  var html = renderResponse(res);
+  if (currentLang !== 'en') { try { html = await translateText(html, currentLang); } catch(e) {} }
+  addMessage('advisor', html);
+  isThinking = false; btn.disabled = false;
+  input.focus();
+}
+
+function askQuestion(q) { document.getElementById('user-input').value = q; sendMessage(); }
+
+initLangBar();
+buildQuickGrid(LANGS.en.quick);
+</script>
+</body>
+</html>

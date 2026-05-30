@@ -186,6 +186,49 @@ function showVoiceBanner(){
   }
 }
 
+
+var _ADVISORS = [
+  {id:'ceo',icon:'👑',name:'CEO Advisor',color:'rgba(124,58,237,.15)',tagline:'Strategy · Vision · Board · Culture',benefit:'Best for: company direction, investor relations, pivots, culture, long-term strategy.',scenario:'Deciding enterprise vs SMB? CEO Advisor → "Should we go enterprise or stay SMB?" → framework with decision criteria.'},
+  {id:'cfo',icon:'💰',name:'CFO Advisor',color:'rgba(6,182,212,.15)',tagline:'Burn · Runway · Unit Economics · Fundraising',benefit:'Best for: financial modeling, fundraising timing, burn rate, LTV:CAC, board financials.',scenario:'9 months runway? CFO Advisor → "Our runway is 9 months, should we raise now?" → scenarios with timeline and decision triggers.'},
+  {id:'cro',icon:'📈',name:'CRO Advisor',color:'rgba(132,204,22,.15)',tagline:'NRR · Pipeline · Pricing · Sales Model · Forecasting',benefit:'Best for: NRR improvement, pipeline coverage, pricing strategy, sales process, quota setting.',scenario:'Win rate dropping? CRO Advisor → "Our win rate is declining" → 5-root-cause diagnostic with specific interventions per scenario.'},
+  {id:'ciso',icon:'🛡️',name:'CISO Advisor',color:'rgba(239,68,68,.15)',tagline:'Risk · Compliance · Zero Trust · Incident Response',benefit:'Best for: SOC 2 roadmap, security incidents, risk quantification, board security reports.',scenario:'Enterprise deal needs SOC 2? CISO Advisor → "We need SOC 2, where do we start?" → 6-month roadmap with costs.'},
+  {id:'chro',icon:'👥',name:'CHRO Advisor',color:'rgba(249,115,22,.15)',tagline:'Hiring · Compensation · Org Design · Retention',benefit:'Best for: comp bands, hiring plans, performance management, org structure, attrition.',scenario:'Engineers leaving? CHRO Advisor → "We are losing engineers" → retention diagnostic with specific interventions.'},
+  {id:'cmo',icon:'📢',name:'CMO Advisor',color:'rgba(236,72,153,.15)',tagline:'Brand · Growth Model · Budget · Channel Mix',benefit:'Best for: positioning, PLG vs SLG, CAC optimization, marketing budget, team structure.',scenario:'CAC rising? CMO Advisor → "Our CAC is rising" → 5-root-cause diagnostic with fixes per scenario.'},
+  {id:'coo',icon:'🔄',name:'COO Advisor',color:'rgba(6,182,212,.12)',tagline:'OKRs · Process · Scaling · Cadence · Execution',benefit:'Best for: OKR setup, process bottlenecks, scaling readiness, meeting cadence, efficiency.',scenario:'Scaling 15 to 40 people? COO Advisor → "What will break?" → stage-specific scaling playbook.'},
+  {id:'cpo',icon:'🎨',name:'CPO Advisor',color:'rgba(99,102,241,.15)',tagline:'PMF · Roadmap · Prioritization · Product Org',benefit:'Best for: PMF measurement, roadmap prioritization, churn diagnosis, product team structure.',scenario:'High churn? CPO Advisor → "Our churn is high" → root cause diagnostic with retention curve analysis.'},
+  {id:'cto',icon:'⚙️',name:'CTO Advisor',color:'rgba(16,185,129,.15)',tagline:'Architecture · Tech Debt · DORA · Build vs Buy',benefit:'Best for: tech debt assessment, DORA metrics, architecture decisions, engineering team scaling.',scenario:'Engineering velocity dropping? CTO Advisor → "Our deployment frequency is declining" → DORA health check with root causes.'},
+  {id:'chief-of-staff',icon:'🎯',name:'Chief of Staff',color:'rgba(245,158,11,.12)',tagline:'Routes · Coordinates · Synthesizes · Board Meetings',benefit:'Best for: complex cross-functional decisions, unsure which advisor, multi-role synthesis.',scenario:'Raise bridge or cut to profitability? Chief of Staff → convenes CFO + CEO + COO → one recommendation with your decision point.'}
+];
+
+function openAdvisors() {
+  var grid = document.getElementById('advisor-preview-grid');
+  if (!grid) return;
+  grid.innerHTML = _ADVISORS.map(function(a) {
+    var url = a.id + '-advisor.html';
+    if (a.id === 'chief-of-staff') url = 'chief-of-staff.html';
+    return '<div style="border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:14px;cursor:pointer;transition:background .15s;" '
+      + 'onmouseenter="this.style.background=\"' + a.color + '\"" '
+      + 'onmouseleave="this.style.background=\"transparent\"">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+        + '<span style="font-size:20px;">' + a.icon + '</span>'
+        + '<div>'
+          + '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;">' + a.name + '</div>'
+          + '<div style="font-size:10px;color:var(--ink3);">' + a.tagline + '</div>'
+        + '</div>'
+      + '</div>'
+      + '<div style="font-size:11px;color:var(--ink2);margin-bottom:8px;line-height:1.5;">' + a.benefit + '</div>'
+      + '<div style="background:rgba(255,255,255,.04);border-radius:6px;padding:8px;margin-bottom:10px;">'
+        + '<div style="font-size:10px;font-weight:700;color:var(--gold);margin-bottom:4px;">💡 Example Scenario</div>'
+        + '<div style="font-size:11px;color:var(--ink3);line-height:1.5;">' + a.scenario + '</div>'
+      + '</div>'
+      + '<a href="' + url + '" target="_blank" onclick="cm(\'m-advisors\')" '
+        + 'style="display:inline-flex;align-items:center;gap:5px;background:var(--grad);border:none;border-radius:7px;padding:7px 12px;color:#fff;font-size:11px;font-weight:700;text-decoration:none;font-family:Syne,sans-serif;">'
+        + 'Open ' + a.icon + '</a>'
+    + '</div>';
+  }).join('');
+  om('m-advisors');
+}
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <style>
@@ -636,6 +679,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
         </div>
       </div>
       <div class="topbar-r">
+        <button onclick="openAdvisors()" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(124,58,237,.1));border:1px solid rgba(245,158,11,.3);color:var(--gold);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">🧠 AI Advisors</button>
         <div class="search-wrap">
           <input type="text" class="search-inp" id="gsearch" placeholder="🔍 Search..." oninput="globalSearch(this.value)">
           <div class="search-drop" id="search-drop"></div>
@@ -3978,6 +4022,59 @@ function generateReport(){
     +(showN&&amNotes?'<h2>Account Manager Notes</h2><div style="background:#f8f7ff;border-left:3px solid #7c3aed;padding:12px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.6;">'+amNotes+'</div>':'')
     +'<div class="footer">Intersect Venture Builder — Confidential</div>'
     +'</body></html>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},500);
   toast('✅ Report generated','success');
 }
@@ -5492,8 +5589,8 @@ async function loadAttendance(){
   // Load actual attendees from ix_workflow
   try{
     var rNames=await sbQ('ix_workflow','status=eq.attendance',{select:'created_by'});
-    if(Array.isArray(rNames)&&rNames.length){
-      var names=[...new Set(rNames.map(function(r){return r.created_by;}))].filter(Boolean);
+    if(rNames.data){
+      var names=[...new Set(rNames.data.map(function(r){return r.created_by;}))].filter(Boolean);
       if(pfSel){
         var curVal=pfSel.value;
         pfSel.innerHTML='<option value="">👥 All Team</option>'+names.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('');
@@ -5506,7 +5603,7 @@ async function loadAttendance(){
     // Load data based on view
     var attFilter='status=eq.attendance';
     var attOpts={order:'created_at.asc'};
-    if(view==='day'){attFilter+='&title=eq.'+encodeURIComponent('[ATTENDANCE] '+date);}
+    if(view==='day'){attFilter+='&context_value=eq.'+date;}
     else if(view==='month'){var monthStart=date.slice(0,7)+'-01';attFilter+='&created_at=gte.'+monthStart;}
     else{attOpts={order:'created_at.desc',limit:200};}
     if(personFilter){attFilter+='&created_by=eq.'+encodeURIComponent(personFilter);}
@@ -5517,7 +5614,7 @@ async function loadAttendance(){
 
     // Load this month for KPIs
     var monthStart2=today.slice(0,7)+'-01';
-    var rMonth=await sbQ('ix_workflow','status=eq.attendance&created_at=gte.'+monthStart2,null);
+    var rMonth=await sbQ('ix_workflow','status=eq.attendance&'+col+'=gte.'+monthStart2+'',null);
     var monthRecs=(rMonth||[]).map(function(rec){return {person_name:rec.created_by,check_in_time:rec.created_at,date:rec.context_value};});
     var todayRecs=monthRecs.filter(function(x){return x.date===today;});
 
@@ -6353,8 +6450,6 @@ openReq=function(cid,cname){
   </div>
 </div>
 
-<
-
 <!-- VOICE UNLOCK BANNER -->
 <div id="voice-unlock-banner" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:14px;padding:10px 16px;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(6,182,212,.3);cursor:pointer;animation:pulse 2s infinite;max-width:260px;" onclick="unlockVoice()">
   <span style="font-size:20px;">🔊</span>
@@ -6364,8 +6459,10 @@ openReq=function(cid,cname){
   </div>
 </div>
 <style>
+
+<style>
 @keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(6,182,212,.3);}50%{box-shadow:0 4px 30px rgba(6,182,212,.6);}}
-</style>
+
 
 <!-- NEWS SOURCE MODAL -->
 <div class="mo" id="m-news-source">
@@ -6390,5 +6487,23 @@ openReq=function(cid,cname){
     </div>
   </div>
 </div>
+
+<!-- ADVISORS PREVIEW MODAL -->
+<!-- ADVISORS PREVIEW MODAL -->
+<div class="mo" id="m-advisors" style="z-index:600;">
+  <div class="modal" style="max-width:700px;width:95%;">
+    <div class="mh">
+      <div class="mtit">🧠 AI Advisory Team</div>
+      <button class="mcl" onclick="cm('m-advisors')">✕</button>
+    </div>
+    <div class="mb" style="padding:0;">
+      <div style="padding:12px 16px;background:rgba(245,158,11,.06);border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--ink3);">Each advisor is a specialized AI with deep frameworks. Choose based on your question type.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;max-height:70vh;overflow-y:auto;" id="advisor-preview-grid"></div>
+    </div>
+  </div>
+</div>
+</style>
 </body>
 </html>
