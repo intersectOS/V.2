@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief of Staff — Intersect OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0f;--card:#13131a;--card2:#1a1a24;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.04);--ink:#e8e8f0;--ink2:#9090a8;--ink3:#5a5a72;--teal:#06b6d4;--purple:#7c3aed;--gold:#f59e0b;--green:#22c55e;--red:#ef4444;--grad:linear-gradient(135deg,#f59e0b,#7c3aed);}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(19,19,26,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.back-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--ink2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.back-btn:hover{background:rgba(255,255,255,.1);color:var(--ink);}
+.advisor-badge{display:flex;align-items:center;gap:12px;}
+.advisor-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(124,58,237,.2));border:1px solid rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.advisor-info h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+.advisor-info p{font-size:11px;color:var(--ink3);margin-top:2px;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px rgba(245,158,11,.5);animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.5;}}
+.lang-bar{display:flex;gap:6px;padding:8px 20px;background:rgba(13,13,20,.9);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.lang-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--ink3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.lang-btn:hover{background:rgba(255,255,255,.08);color:var(--ink2);}
+.lang-btn.active{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.3);color:var(--gold);}
+.context-banner{background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(124,58,237,.04));border-bottom:1px solid var(--border2);padding:10px 20px;}
+.context-inner{font-size:11px;color:var(--ink3);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.context-inner span{background:rgba(245,158,11,.12);color:var(--gold);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;}
+/* Advisor grid */
+.advisor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);}
+.advisor-chip{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-align:center;cursor:pointer;transition:all .15s;}
+.advisor-chip:hover{border-color:rgba(245,158,11,.3);background:var(--card2);}
+.advisor-chip.active{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.08);}
+.chip-icon{font-size:16px;margin-bottom:3px;}
+.chip-name{font-size:10px;font-weight:600;color:var(--ink2);}
+.chip-domain{font-size:9px;color:var(--ink3);margin-top:2px;}
+.quick-section{padding:12px 20px 0;}
+.quick-label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
+.quick-btn{background:var(--card);border:1px solid var(--border);color:var(--ink2);border-radius:10px;padding:10px 14px;font-size:12px;text-align:left;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;line-height:1.4;}
+.quick-btn:hover{background:var(--card2);border-color:rgba(245,158,11,.3);color:var(--ink);}
+.chat-area{padding:16px 20px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 380px);overflow-y:auto;}
+.msg{display:flex;gap:10px;align-items:flex-start;}
+.msg.user{flex-direction:row-reverse;}
+.msg-avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.msg.advisor .msg-avatar{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(124,58,237,.15));border:1px solid rgba(245,158,11,.2);}
+.msg.user .msg-avatar{background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);}
+.msg-bubble{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;max-width:700px;font-size:13px;line-height:1.6;}
+.msg.user .msg-bubble{background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.2);}
+.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px;}
+.routing-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--gold);font-weight:600;margin-bottom:10px;}
+.advisor-response{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin:8px 0;}
+.advisor-response-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;font-weight:700;}
+.synthesis-box{background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(124,58,237,.04));border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px;margin:10px 0;}
+.synthesis-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px;}
+.conflict-box{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:8px;padding:10px;margin:8px 0;font-size:12px;color:var(--ink2);}
+.decision-box{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:8px;padding:12px;margin:10px 0;}
+.decision-title{font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.bullet-list{margin:6px 0;padding-left:0;list-style:none;}
+.bullet-list li{padding:4px 0 4px 16px;position:relative;color:var(--ink2);font-size:12px;}
+.bullet-list li::before{content:'→';position:absolute;left:0;color:var(--gold);font-size:10px;}
+.highlight{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12px;color:var(--gold);line-height:1.5;}
+.action-list{margin:8px 0;}
+.action-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border2);font-size:12px;}
+.action-num{width:20px;height:20px;border-radius:50%;background:rgba(245,158,11,.15);color:var(--gold);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.tag{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;}
+.tag.gold{background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.2);}
+.tag.teal{background:rgba(6,182,212,.1);color:var(--teal);border:1px solid rgba(6,182,212,.2);}
+.tag.purple{background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2);}
+.tag.red{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);}
+.input-area{position:sticky;bottom:0;padding:12px 20px;background:rgba(10,10,15,.95);border-top:1px solid var(--border);backdrop-filter:blur(10px);}
+.input-row{display:flex;gap:10px;align-items:center;}
+.input-box{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 16px;color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+.input-box:focus{border-color:rgba(245,158,11,.4);}
+.send-btn{background:var(--grad);border:none;border-radius:10px;padding:11px 18px;color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+.send-btn:hover{opacity:.9;}
+.send-btn:disabled{opacity:.4;}
+.thinking{display:flex;gap:4px;align-items:center;padding:8px 0;}
+.thinking span{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:bounce .8s ease-in-out infinite;}
+.thinking span:nth-child(2){animation-delay:.15s;}
+.thinking span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,80%,100%{transform:scale(0.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+@media(max-width:600px){.quick-grid{grid-template-columns:1fr 1fr;}.advisor-grid{grid-template-columns:repeat(4,1fr);}.lang-bar{gap:4px;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" id="back-btn" onclick="history.back()">← Back</button>
+  <div class="advisor-badge">
+    <div class="advisor-icon">🎯</div>
+    <div class="advisor-info">
+      <h2>Chief of Staff</h2>
+      <p id="advisor-subtitle">Routes · Coordinates · Synthesizes · Decides</p>
+    </div>
+  </div>
+  <div class="status-dot"></div>
+</div>
+
+<div class="lang-bar" id="lang-bar"></div>
+
+<div class="context-banner">
+  <div class="context-inner">
+    🎯 Orchestration layer — routes to <span>CEO</span> <span>CFO</span> <span>CISO</span> <span>CTO</span> <span>COO</span> <span>CRO</span> <span>CPO</span> <span>CMO</span> <span>CHRO</span> and more
+  </div>
+</div>
+
+<!-- Advisor chips -->
+<div class="advisor-grid" id="advisor-grid"></div>
+
+<div class="quick-section">
+  <div class="quick-label" id="quick-label">Ask the Room</div>
+  <div class="quick-grid" id="quick-grid"></div>
+</div>
+
+<div class="chat-area" id="chat">
+  <div class="msg advisor">
+    <div class="msg-avatar">🎯</div>
+    <div><div class="msg-bubble" id="welcome-msg">
+      <div class="section-title">Welcome — Chief of Staff</div>
+      <div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">I route every question to the right advisor(s), coordinate multi-role decisions, and synthesize conflicting views into one clear recommendation with your decision point.</div>
+      <div class="highlight">Ask any question — operational or strategic. I score complexity, route to the right role(s), and when needed, convene a board meeting. You get one clear output, not 9 separate opinions.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <input class="input-box" id="user-input" placeholder="Ask anything — I will route it to the right advisor(s)..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendMessage();}">
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">Route →</button>
+  </div>
+</div>
+
+<script>
+// ── Language Data ──
+var LANGS = {
+  en:{dir:'ltr',subtitle:'Routes · Coordinates · Synthesizes · Decides',back:'← Back',quick_label:'Ask the Room',placeholder:'Ask anything — I will route it to the right advisor(s)...',send:'Route →',welcome_title:'Welcome — Chief of Staff',welcome_body:'I route every question to the right advisor(s), coordinate multi-role decisions, and synthesize conflicting views into one clear recommendation.',welcome_hl:'Ask any question — operational or strategic. I score complexity, route to the right role(s), and when needed, convene a board meeting.',quick:['🔥 Should we raise a bridge round or cut to profitability?','📊 Why are we missing revenue targets?','👥 A key leader is underperforming — what do we do?','🚀 Should we launch in a new market now?','⚖️ Build vs buy vs partner — how do we decide?','🎯 What should our top 3 priorities be next quarter?']},
+  ar:{dir:'rtl',subtitle:'توجيه · تنسيق · تركيب · قرارات',back:'رجوع',quick_label:'اسأل الفريق',placeholder:'اسأل أي شيء — سأوجهه للمستشار الصح...',send:'توجيه ←',welcome_title:'مرحباً — رئيس الموظفين',welcome_body:'أوجه كل سؤال للمستشار المناسب، أنسق القرارات متعددة الأدوار، وأجمع الآراء المتعارضة في توصية واحدة.',welcome_hl:'اسأل أي سؤال — تشغيلي أو استراتيجي. أقيم التعقيد وأوجه للدور المناسب.',quick:['🔥 هل نجمع جولة جسر أم نقطع للربحية؟','📊 لماذا نفتقد أهداف الإيرادات؟','👥 قائد رئيسي يؤدي أداءً ضعيفاً — ماذا نفعل؟','🚀 هل نطلق في سوق جديد الآن؟','⚖️ بناء أم شراء أم شراكة — كيف نقرر؟','🎯 ما هي أهم 3 أولويات للربع القادم؟']},
+  es:{dir:'ltr',subtitle:'Enrutar · Coordinar · Sintetizar · Decidir',back:'Volver',quick_label:'Preguntar al Equipo',placeholder:'Pregunta cualquier cosa — enrutaré al asesor correcto...',send:'Enrutar →',welcome_title:'Bienvenido — Jefe de Gabinete',welcome_body:'Enruto cada pregunta al asesor correcto, coordino decisiones multi-rol y sintetizo visiones conflictivas.',welcome_hl:'Haz cualquier pregunta — operativa o estratégica. Evalúo complejidad y enruto al rol correcto.',quick:['🔥 Levantar ronda bridge o reducir a rentabilidad?','📊 Por qué perdemos objetivos de ingresos?','👥 Líder clave bajo rendimiento, qué hacer?','🚀 Lanzar en nuevo mercado ahora?','⚖️ Construir vs comprar vs asociar?','🎯 Top 3 prioridades próximo trimestre?']},
+  fr:{dir:'ltr',subtitle:'Router · Coordonner · Synthétiser · Décider',back:'Retour',quick_label:'Demander à l\'Équipe',placeholder:'Posez n\'importe quelle question — je la dirigerai...',send:'Router →',welcome_title:'Bienvenue — Chef de Cabinet',welcome_body:'Je route chaque question au bon conseiller, coordonne les décisions multi-rôles et synthétise les visions conflictuelles.',welcome_hl:'Posez toute question — opérationnelle ou stratégique. J\'évalue la complexité et route vers le bon rôle.',quick:['🔥 Lever un bridge round ou réduire à la rentabilité?','📊 Pourquoi manquons-nous les objectifs?','👥 Leader sous-performant, que faire?','🚀 Lancer dans un nouveau marché maintenant?','⚖️ Construire vs acheter vs partenariat?','🎯 Top 3 priorités du prochain trimestre?']},
+  de:{dir:'ltr',subtitle:'Routen · Koordinieren · Synthetisieren · Entscheiden',back:'Zurück',quick_label:'Das Team fragen',placeholder:'Fragen Sie alles — ich leite es zum richtigen Berater...',send:'Routen →',welcome_title:'Willkommen — Chief of Staff',welcome_body:'Ich leite jede Frage zum richtigen Berater, koordiniere Mehrfachrollenentscheidungen und synthetisiere.',welcome_hl:'Stellen Sie jede Frage — operativ oder strategisch. Ich bewerte die Komplexität und leite sie weiter.',quick:['🔥 Bridge-Runde aufnehmen oder zur Rentabilität reduzieren?','📊 Warum verfehlen wir Umsatzziele?','👥 Schlüsselführungskraft leistet schlecht, was tun?','🚀 Jetzt in neuen Markt einsteigen?','⚖️ Bauen vs. kaufen vs. Partner?','🎯 Top 3 Prioritäten nächstes Quartal?']},
+  it:{dir:'ltr',subtitle:'Instradare · Coordinare · Sintetizzare · Decidere',back:'Indietro',quick_label:'Chiedere al Team',placeholder:'Chiedi qualsiasi cosa — instraderò al consulente giusto...',send:'Invia →',welcome_title:'Benvenuto — Chief of Staff',welcome_body:'Instrader ogni domanda al consulente giusto, coordino le decisioni multi-ruolo e sintetizzo le visioni contrastanti.',welcome_hl:'Fai qualsiasi domanda — operativa o strategica. Valuto la complessità e instrader verso il ruolo giusto.',quick:['🔥 Raccogliere bridge round o ridurre alla redditività?','📊 Perché mancano gli obiettivi di ricavi?','👥 Leader chiave sottoperformante, cosa fare?','🚀 Lanciare in un nuovo mercato ora?','⚖️ Costruire vs acquistare vs partnership?','🎯 Top 3 priorità prossimo trimestre?']},
+  pt:{dir:'ltr',subtitle:'Rotear · Coordenar · Sintetizar · Decidir',back:'Voltar',quick_label:'Perguntar à Equipe',placeholder:'Pergunte qualquer coisa — vou direcionar ao consultor certo...',send:'Rotear →',welcome_title:'Bem-vindo — Chief of Staff',welcome_body:'Direciono cada pergunta ao consultor certo, coordeno decisões multi-função e sintetizo visões conflitantes.',welcome_hl:'Faça qualquer pergunta — operacional ou estratégica. Avalio a complexidade e direciono para o papel certo.',quick:['🔥 Levantar bridge round ou reduzir à rentabilidade?','📊 Por que estamos perdendo metas de receita?','👥 Líder chave com baixo desempenho, o que fazer?','🚀 Lançar em novo mercado agora?','⚖️ Construir vs comprar vs parceria?','🎯 Top 3 prioridades próximo trimestre?']},
+  ru:{dir:'ltr',subtitle:'Маршрутизация · Координация · Синтез · Решения',back:'Назад',quick_label:'Спросить команду',placeholder:'Задайте любой вопрос — я направлю его нужному советнику...',send:'Направить →',welcome_title:'Добро пожаловать — Руководитель аппарата',welcome_body:'Направляю каждый вопрос нужному советнику, координирую решения и синтезирую противоречивые мнения.',welcome_hl:'Задавайте любые вопросы — операционные или стратегические.',quick:['🔥 Мост-раунд или сокращение до прибыльности?','📊 Почему не выполняются цели по выручке?','👥 Ключевой руководитель плохо работает, что делать?','🚀 Выходить на новый рынок сейчас?','⚖️ Создать vs купить vs партнерство?','🎯 Топ-3 приоритета на следующий квартал?']},
+  zh:{dir:'ltr',subtitle:'路由 · 协调 · 综合 · 决策',back:'返回',quick_label:'问团队',placeholder:'问任何问题——我会路由到正确的顾问...',send:'路由 →',welcome_title:'欢迎使用参谋长',welcome_body:'我将每个问题路由到正确的顾问，协调多角色决策，综合相互冲突的观点。',welcome_hl:'问任何问题——运营或战略性的。我评估复杂性并路由到正确的角色。',quick:['🔥 融资过桥轮还是削减到盈利？','📊 为什么错过收入目标？','👥 关键领导表现不佳，该怎么办？','🚀 现在进入新市场吗？','⚖️ 自建vs购买vs合作？','🎯 下季度前三优先事项是什么？']},
+  ja:{dir:'ltr',subtitle:'ルーティング · 調整 · 統合 · 意思決定',back:'戻る',quick_label:'チームに聞く',placeholder:'何でも質問してください — 適切なアドバイザーに転送します...',send:'転送 →',welcome_title:'チーフオブスタッフへようこそ',welcome_body:'すべての質問を適切なアドバイザーに転送し、マルチロールの意思決定を調整し、見解を統合します。',welcome_hl:'どんな質問でも — 運営的または戦略的。複雑さを評価して適切なロールに転送します。',quick:['🔥 ブリッジラウンドか収益性削減か？','📊 収益目標を達成できない理由は？','👥 キーリーダーの低パフォーマンス、どうする？','🚀 今新市場に参入すべきか？','⚖️ 構築vs購入vsパートナーシップ？','🎯 来四半期のトップ3優先事項は？']},
+  ko:{dir:'ltr',subtitle:'라우팅 · 조정 · 합성 · 의사결정',back:'뒤로',quick_label:'팀에게 묻기',placeholder:'무엇이든 질문하세요 — 올바른 어드바이저에게 라우팅합니다...',send:'라우팅 →',welcome_title:'참모장에 오신 것을 환영합니다',welcome_body:'모든 질문을 올바른 어드바이저에게 라우팅하고, 다중 역할 결정을 조정하며, 상충되는 관점을 종합합니다.',welcome_hl:'어떤 질문이든 — 운영적 또는 전략적. 복잡성을 평가하고 올바른 역할로 라우팅합니다.',quick:['🔥 브릿지 라운드 조달 또는 수익성 절감？','📊 수익 목표 미달 이유는？','👥 핵심 리더 저성과, 어떻게 해야 하나？','🚀 지금 새 시장에 진출해야 하나？','⚖️ 구축 vs 구매 vs 파트너십？','🎯 다음 분기 상위 3 우선순위는？']}
+};
+
+// ── Advisor Registry ──
+var ADVISORS = [
+  {id:'ceo',icon:'👑',name:'CEO',domain:'Strategy · Vision',color:'rgba(124,58,237,.2)'},
+  {id:'cfo',icon:'💰',name:'CFO',domain:'Finance · Runway',color:'rgba(6,182,212,.2)'},
+  {id:'ciso',icon:'🛡️',name:'CISO',domain:'Security · Risk',color:'rgba(239,68,68,.2)'},
+  {id:'cto',icon:'⚙️',name:'CTO',domain:'Tech · Architecture',color:'rgba(34,197,94,.2)'},
+  {id:'coo',icon:'🔄',name:'COO',domain:'Operations · OKRs',color:'rgba(245,158,11,.2)'},
+  {id:'cro',icon:'📈',name:'CRO',domain:'Revenue · Sales',color:'rgba(16,185,129,.2)'},
+  {id:'cpo',icon:'🎨',name:'CPO',domain:'Product · Roadmap',color:'rgba(99,102,241,.2)'},
+  {id:'cmo',icon:'📢',name:'CMO',domain:'Marketing · Brand',color:'rgba(236,72,153,.2)'},
+  {id:'chro',icon:'👥',name:'CHRO',domain:'People · Culture',color:'rgba(251,146,60,.2)'},
+];
+
+// ── Routing Matrix ──
+var ROUTING = [
+  {kw:['runway','burn','raise','round','bridge','funding','cash','dilut','valuation','revenue model','financial model','arr','mrr','term sheet'],primary:'CFO',secondary:['CEO'],score:3,topic:'Finance & Capital'},
+  {kw:['security','breach','hack','ransomware','soc 2','iso 27001','hipaa','gdpr','compliance','audit','zero trust','incident','vulnerab'],primary:'CISO',secondary:['CTO'],score:3,topic:'Security & Compliance'},
+  {kw:['hire','fire','culture','performance','team','people','conflict','comp','salary','retain','attrition','onboard','offboard'],primary:'CHRO',secondary:['COO'],score:2,topic:'People & Culture'},
+  {kw:['product','roadmap','feature','build','ship','priorit','backlog','user','ux','prd','discovery','pmf','product market fit'],primary:'CPO',secondary:['CTO'],score:2,topic:'Product'},
+  {kw:['architecture','tech debt','infrastructure','scale','engineer','devops','microservice','api','latency','system design'],primary:'CTO',secondary:['CPO'],score:2,topic:'Technology'},
+  {kw:['sales','revenue','close','deal','pipeline','quota','churn','gtm','go to market','pricing','enterprise','smb','customer'],primary:'CRO',secondary:['CPO'],score:2,topic:'Revenue & Sales'},
+  {kw:['operation','process','okr','meeting','execution','bottleneck','workflow','scale ops','efficiency','cross team'],primary:'COO',secondary:['CFO'],score:2,topic:'Operations'},
+  {kw:['marketing','brand','channel','content','seo','ads','positioning','compete','competitor','messaging','campaign'],primary:'CMO',secondary:['CRO'],score:2,topic:'Marketing & Brand'},
+  {kw:['strategy','direction','pivot','vision','board','investor','3 year','company direction','m&a','acquisition'],primary:'CEO',secondary:['CFO'],score:4,topic:'Strategic Direction'},
+];
+
+// ── Board Meeting triggers ──
+var BOARD_TRIGGERS = [
+  'bridge or cut','raise or cut','pivot','acquisition','new market','build vs buy','pricing model','product strategy','3 year plan','next year strategy',
+  'enterprise or smb','what should our priorities','top priorities','irreversible','major hire','layoff','reorg'
+];
+
+// ── Google Translate ──
+var _GKEY = 'AIzaSyAvJxUoPoQGnGvmAofivA_33mSBXxRhwyU';
+var _OR_KEY = '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';
+var _OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
+var _OR_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+var _langMap = {en:'en',ar:'ar',es:'es',fr:'fr',de:'de',it:'it',pt:'pt',ru:'ru',zh:'zh-CN',ja:'ja',ko:'ko'};
+
+async function translateText(text, targetLang) {
+  if (!targetLang || targetLang === 'en') return text;
+  try {
+    var r = await fetch('https://translation.googleapis.com/language/translate/v2?key=' + _GKEY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({q:text, source:'en', target:_langMap[targetLang]||targetLang, format:'html'})
+    });
+    var d = await r.json();
+    if (d.data && d.data.translations && d.data.translations[0]) return d.data.translations[0].translatedText;
+  } catch(e) {}
+  return text;
+}
+
+// ── State ──
+var currentLang = 'en';
+var isThinking = false;
+
+// ── Knowledge bases (simplified per role) ──
+var ROLE_KNOWLEDGE = {
+  CEO: function(q) {
+    return {role:'CEO 👑',color:'rgba(124,58,237,.15)',points:["Frame this as a strategic choice, not an operational one — what direction does it set for the next 12-24 months?","The CEO's job here is to decide what NOT to do as much as what to do.","Consider: does this align with why you started the company? Does it serve your best customers better?","Investor implication: this decision will be in your next board deck — how does it read?","Culture signal: whatever you decide, the team will read it as a signal about what matters here."]};
+  },
+  CFO: function(q) {
+    return {role:'CFO 💰',color:'rgba(6,182,212,.15)',points:["Model this in three scenarios: base (realistic), bull (+20%), bear (-20%). Never present one number.","The financial question underneath this: what does it do to runway and burn multiple?","ALE framework: quantify the cost of the wrong decision, not just the benefit of the right one.","Cash timing matters: when does this hit the P&L vs. when does it hit the bank account?","Rule: no irreversible financial commitment without 12+ months runway post-decision."]};
+  },
+  CTO: function(q) {
+    return {role:'CTO ⚙️',color:'rgba(34,197,94,.15)',points:["Technical assessment: what is the build complexity, and what is the ongoing maintenance cost?","Scalability question: will this hold at 10x current load?","Tech debt trade-off: every shortcut now costs 3x to fix later. Is the speed worth it?","Dependencies and risk: what breaks if this fails? What's the blast radius?","Engineering velocity impact: this decision will consume X sprints — what gets deprioritized?"]};
+  },
+  COO: function(q) {
+    return {role:'COO 🔄',color:'rgba(245,158,11,.15)',points:["Operational readiness: do we have the process, headcount, and tooling to execute this well?","OKR alignment: does this map to a current company objective, or are we adding scope?","Cross-team dependencies: who else needs to be involved, and are they resourced to help?","Execution risk: the biggest risk here is not strategy — it's implementation. Plan for it.","90-day plan: break this into a specific action sequence with owners and dates."]};
+  },
+  CRO: function(q) {
+    return {role:'CRO 📈',color:'rgba(16,185,129,.15)',points:["Revenue impact: what does this do to pipeline, conversion rate, and ACV in the next quarter?","ICP fit: does this serve our ideal customer better, or does it distract from them?","Sales motion: can we sell this? Does the team understand it, and can they explain it in 30 seconds?","Churn risk: could this decision cause any existing customers to reconsider?","Competitive signal: how will our top 3 competitors respond if we do this?"]};
+  },
+  CPO: function(q) {
+    return {role:'CPO 🎨',color:'rgba(99,102,241,.15)',points:["User value: what specific job is the user trying to do, and does this make it better or worse?","Roadmap trade-off: this replaces something else on the roadmap — what are we not building?","PMF signal: does this strengthen product-market fit with our core segment, or dilute it?","Discovery gap: have we validated this with users, or are we shipping on assumption?","Technical feasibility vs. user desirability: both matter. Neither alone is enough."]};
+  },
+  CHRO: function(q) {
+    return {role:'CHRO 👥',color:'rgba(251,146,60,.15)',points:["People impact: how does this affect the team — their workload, morale, and sense of purpose?","Culture signal: every major decision is a culture signal. What does this say about what we value?","Retention risk: could this decision cause any key people to disengage or leave?","Fairness test: if every employee saw this decision and the reasoning behind it, would they find it fair?","Communication: how and when do we communicate this, and who needs to hear it first?"]};
+  },
+  CMO: function(q) {
+    return {role:'CMO 📢',color:'rgba(236,72,153,.15)',points:["Market positioning: how does this change what we stand for in the market?","Message clarity: can we explain this to a prospect in one sentence? If not, it is not ready.","Channel impact: does this open or close demand generation channels?","Brand consistency: is this decision consistent with how we want to be known 3 years from now?","Competitive differentiation: does this make us more or less distinct from alternatives?"]};
+  },
+  CISO: function(q) {
+    return {role:'CISO 🛡️',color:'rgba(239,68,68,.15)',points:["Risk quantification: what is the ALE (Annual Loss Expectancy) of the worst case here?","Compliance dimension: does this create a new compliance obligation or risk?","Access and data: who gets access to what as a result of this decision?","Vendor risk: if a third party is involved, have they been assessed?","Incident readiness: if this goes wrong, do we have an IR plan for it?"]};
+  },
+};
+
+// ── Route question ──
+function routeQuestion(q) {
+  var lower = q.toLowerCase();
+  var isBoardMeeting = BOARD_TRIGGERS.some(function(t){return lower.includes(t);});
+  var matched = [];
+  var topScore = 0;
+
+  ROUTING.forEach(function(route){
+    var hits = route.kw.filter(function(kw){return lower.includes(kw);}).length;
+    if (hits > 0) {
+      matched.push({route:route, score:hits * route.score});
+      if (hits * route.score > topScore) topScore = hits * route.score;
+    }
+  });
+
+  matched.sort(function(a,b){return b.score - a.score;});
+
+  if (isBoardMeeting || topScore >= 8 || matched.length >= 3) {
+    return {type:'board', roles: matched.slice(0,3).map(function(m){return m.route.primary;}).concat(['COO']).slice(0,4)};
+  } else if (matched.length >= 2) {
+    return {type:'multi', roles:[matched[0].route.primary, matched[1].route.primary], topic: matched[0].route.topic};
+  } else if (matched.length === 1) {
+    var r = matched[0].route;
+    var roles = [r.primary];
+    if (r.secondary && r.secondary.length) roles.push(r.secondary[0]);
+    return {type:'single', roles:roles, topic: r.topic};
+  }
+  return {type:'single', roles:['CEO'], topic:'Strategic Direction'};
+}
+
+// ── Build response ──
+function buildResponse(q, routing) {
+  var html = '';
+
+  if (routing.type === 'board') {
+    html += '<div class="routing-badge">🏛️ Board Meeting — ' + routing.roles.join(' + ') + '</div>';
+    html += '<div style="font-size:11px;color:var(--ink3);margin-bottom:10px;">This question has cross-functional impact and competing priorities. Convening relevant roles:</div>';
+  } else if (routing.type === 'multi') {
+    html += '<div class="routing-badge">⚡ Multi-Role — ' + routing.roles.join(' + ') + '</div>';
+  } else {
+    html += '<div class="routing-badge">→ Routing to ' + routing.roles[0] + '</div>';
+  }
+
+  // Role responses
+  routing.roles.forEach(function(roleName) {
+    var roleKnowledge = ROLE_KNOWLEDGE[roleName];
+    if (!roleKnowledge) return;
+    var roleData = roleKnowledge(q);
+    html += '<div class="advisor-response">';
+    html += '<div class="advisor-response-header" style="color:var(--ink);">'+roleData.role+'</div>';
+    html += '<ul class="bullet-list">';
+    roleData.points.forEach(function(p){html += '<li>'+p+'</li>';});
+    html += '</ul>';
+    html += '</div>';
+  });
+
+  // Synthesis if multi-role
+  if (routing.roles.length > 1) {
+    html += '<div class="synthesis-box">';
+    html += '<div class="synthesis-title">🎯 Chief of Staff Synthesis</div>';
+
+    html += '<div style="font-size:11px;font-weight:700;color:var(--ink2);margin-bottom:5px;">What the advisors agree on:</div>';
+    html += '<ul class="bullet-list">';
+    html += '<li>This decision requires both strategic framing AND operational rigor — sequence matters.</li>';
+    html += '<li>No decision should be made without modeling the downside scenario first.</li>';
+    html += '<li>Speed of decision matters as much as quality — waiting has a cost too.</li>';
+    html += '</ul>';
+
+    html += '<div class="conflict-box"><strong>⚡ Tension to resolve:</strong> There is likely a resource or priority conflict between the roles above. The financial constraint (CFO) and the execution requirement (COO/CRO) may pull in different directions. Name the trade-off explicitly before deciding.</div>';
+
+    html += '<div style="font-size:11px;font-weight:700;color:var(--ink2);margin:8px 0 5px;">Recommended actions:</div>';
+    html += '<div class="action-list">';
+    var actions = [
+      'Model three scenarios (base/bull/bear) before committing any resources — Owner: CFO — This week',
+      'Define the success metric for this decision — what does "right" look like in 90 days? — Owner: COO',
+      'Identify the one thing that, if it fails, makes this whole decision wrong — Owner: CEO',
+      'Get one external data point (customer, advisor, comparable company) before finalizing — Owner: CRO/CPO'
+    ];
+    actions.forEach(function(a, i){
+      html += '<div class="action-item"><div class="action-num">'+(i+1)+'</div><div>'+a+'</div></div>';
+    });
+    html += '</div>';
+
+    html += '<div class="decision-box"><div class="decision-title">Your Decision Point</div>';
+    html += '<div style="font-size:12px;color:var(--ink2);">The advisors have framed the dimensions. The one thing that needs your call: <strong>what is your risk tolerance on this, and what is the cost of being wrong?</strong> Choose the path where you can live with the downside — not just the one with the best upside.</div></div>';
+
+    html += '</div>'; // synthesis-box
+  }
+
+  var tags = routing.roles.map(function(r){return {l:r,t:'gold'};});
+  tags.push({l:routing.type==='board'?'Board Meeting':routing.type==='multi'?'Multi-Role':'Single Role',t:'teal'});
+  html += '<div class="tags">';
+  tags.forEach(function(t){html += '<span class="tag '+t.t+'">'+t.l+'</span>';});
+  html += '</div>';
+
+  return html;
+}
+
+// ── UI Functions ──
+function initLangBar() {
+  var bar = document.getElementById('lang-bar');
+  var codes = ['en','ar','es','fr','de','it','pt','ru','zh','ja','ko'];
+  var names = {en:'EN',ar:'AR',es:'ES',fr:'FR',de:'DE',it:'IT',pt:'PT',ru:'RU',zh:'中文',ja:'日本語',ko:'한국어'};
+  bar.innerHTML = codes.map(function(c){
+    return '<button class="lang-btn'+(c==='en'?' active':'')+'" onclick="setLang(\''+c+'\',this)">'+names[c]+'</button>';
+  }).join('');
+}
+
+function setLang(code, btn) {
+  currentLang = code;
+  var L = LANGS[code];
+  if (!L) return;
+  document.documentElement.dir = L.dir;
+  document.documentElement.lang = code;
+  document.getElementById('advisor-subtitle').textContent = L.subtitle;
+  document.getElementById('back-btn').textContent = L.back;
+  document.getElementById('quick-label').textContent = L.quick_label;
+  document.getElementById('user-input').placeholder = L.placeholder;
+  document.getElementById('send-btn').textContent = L.send;
+  buildQuickGrid(L.quick);
+  var wm = document.getElementById('welcome-msg');
+  if (wm) {
+    wm.innerHTML = '<div class="section-title">'+L.welcome_title+'</div>'
+      +'<div style="color:var(--ink2);font-size:12px;margin-bottom:8px;">'+L.welcome_body+'</div>'
+      +'<div class="highlight">'+L.welcome_hl+'</div>';
+  }
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  if (btn) btn.classList.add('active');
+}
+
+function initAdvisorGrid() {
+  var grid = document.getElementById('advisor-grid');
+  grid.innerHTML = ADVISORS.map(function(a){
+    return '<div class="advisor-chip" onclick="askAbout(\''+a.id+'\')" title="Ask '+a.name+'">'
+      +'<div class="chip-icon">'+a.icon+'</div>'
+      +'<div class="chip-name">'+a.name+'</div>'
+      +'<div class="chip-domain">'+a.domain+'</div>'
+    +'</div>';
+  }).join('');
+}
+
+function askAbout(roleId) {
+  var role = ADVISORS.find(function(a){return a.id===roleId;});
+  if (!role) return;
+  document.getElementById('user-input').value = 'What should I ask the '+role.name+'?';
+  document.getElementById('user-input').focus();
+}
+
+function buildQuickGrid(questions) {
+  var grid = document.getElementById('quick-grid');
+  grid.innerHTML = questions.map(function(q){
+    return '<button class="quick-btn" onclick="askQuestion(this.innerText)">'+q+'</button>';
+  }).join('');
+}
+
+function addMessage(role, html) {
+  var chat = document.getElementById('chat');
+  var div = document.createElement('div');
+  div.className = 'msg ' + role;
+  var avatar = role === 'advisor' ? '🎯' : '👤';
+  div.innerHTML = '<div class="msg-avatar">'+avatar+'</div><div><div class="msg-bubble">'+html+'</div></div>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showThinking() {
+  var chat = document.getElementById('chat');
+  var div = document.createElement('div');
+  div.className = 'msg advisor'; div.id = 'thinking-msg';
+  div.innerHTML = '<div class="msg-avatar">🎯</div><div><div class="msg-bubble"><div class="thinking"><span></span><span></span><span></span></div></div></div>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+function hideThinking() {
+  var el = document.getElementById('thinking-msg');
+  if (el) el.remove();
+}
+
+var _ch_cos = [];
+
+async function _ai_cos(q) {
+  _ch_cos.push({role:'user',content:q});
+  try {
+    var msgs=[{role:'system',content:'You are the Chief of Staff AI advisor. You route questions to the right C-suite advisor, synthesize multi-role decisions, and coordinate board meetings for complex decisions. For any question: first identify which C-suite roles it involves (CEO/CFO/CTO/CPO/CMO/COO/CRO/CISO/CHRO), then provide synthesized guidance from all relevant perspectives. Style: bottom line first, explicit conflicts surfaced, one decision point. Respond in the same language the user writes in.'}].concat(_ch_cos);
+    var r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer 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'},body:JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free',messages:msgs,max_tokens:1000,temperature:0.7})});
+    var d=await r.json();
+    if(d.error)return'❌ '+d.error.message;
+    var rep=d.choices[0].message.content;
+    _ch_cos.push({role:'assistant',content:rep});
+    if(_ch_cos.length>20)_ch_cos=_ch_cos.slice(-20);
+    return rep;
+  }catch(e){return'❌ '+e.message;}
+}
+
+function _fmt_cos(text){
+  text=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  text=text.replace(/^### (.+)$/gm,'<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:700;color:var(--gold);margin:8px 0 4px;">$1</div>');
+  text=text.replace(/^## (.+)$/gm,'<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;margin:10px 0 5px;">$1</div>');
+  text=text.replace(/^- (.+)$/gm,'<div style="padding:3px 0 3px 14px;position:relative;font-size:12px;color:var(--ink2);"><span style="position:absolute;left:0;color:var(--gold);">→</span>$1</div>');
+  text=text.replace(/^\d+\. (.+)$/gm,'<div style="padding:3px 0 3px 14px;position:relative;font-size:12px;color:var(--ink2);"><span style="position:absolute;left:0;">•</span>$1</div>');
+  text=text.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  return'<div style="font-size:13px;line-height:1.7;">'+text+'</div>';
+}
+
+async function sendMessage() {
+  var input=document.getElementById('user-input');
+  var btn=document.getElementById('send-btn');
+  var q=input.value.trim();
+  if(!q||isThinking)return;
+  addMessage('user',q);
+  input.value='';
+  isThinking=true;btn.disabled=true;
+  showThinking();
+  var reply=await _ai_cos(q);
+  hideThinking();
+  addMessage('advisor',_fmt_cos(reply));
+  isThinking=false;btn.disabled=false;
+  input.focus();
+}
+
+function askQuestion(q) {
+  document.getElementById('user-input').value = q;
+  sendMessage();
+}
+
+// ── Init ──
+initLangBar();
+initAdvisorGrid();
+buildQuickGrid(LANGS.en.quick);
+</script>
+</body>
+</html>
