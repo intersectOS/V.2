@@ -163,7 +163,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <script>
 var SB='https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/';
 var SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
-var GK='WORKER_HANDLES_AUTH';
+var GK='';
 var OR_URL='https://hidden-lab-b8e2.sulaiman-c0c.workers.dev';
 var OR_MODEL='meta-llama/llama-3.3-70b-instruct:free';
 
@@ -267,7 +267,7 @@ async function callGemini(q){
   try{
     var res=await fetch(OR_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GK},
+      headers:{'Content-Type':'application/json'+GK},
       body:JSON.stringify({model:OR_MODEL,messages:msgs,max_tokens:500,temperature:0.8})
     });
     var d=await res.json();
