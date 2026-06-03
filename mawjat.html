@@ -163,7 +163,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <script>
 var SB='https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/';
 var SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
-var GK='AQ.Ab8RN6J8UMu5FvqXGngJMKZcJaozFOJFxoBMPaUZqKhJAQ0FGg';
+var GK='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';
+var OR_URL='https://openrouter.ai/api/v1/chat/completions';
+var OR_MODEL='google/gemini-2.0-flash-exp:free';
 
 var SECTORS={energy:{ar:'طاقة',icon:'⚡'},finance:{ar:'مالي',icon:'💰'},realestate:{ar:'عقارات',icon:'🏢'},logistics:{ar:'لوجستي',icon:'🚛'},tech:{ar:'تقنية',icon:'💻'},industrial:{ar:'صناعي',icon:'🏭'},health:{ar:'صحة',icon:'🏥'},education:{ar:'تعليمي',icon:'🎓'},entertainment:{ar:'ترفيه',icon:'🎬'},government:{ar:'حكومي',icon:'🏛️'},retail:{ar:'تجزئة',icon:'🛒'},general:{ar:'عام',icon:'🌐'}};
 
@@ -255,18 +257,23 @@ async function callGemini(q){
   if(!me)return'يرجى تسجيل الدخول';
   var ctx=allNews.slice(0,8).map(function(n,i){return(i+1)+'. ['+n.news_type.toUpperCase()+'] '+n.title+'\n'+n.content;}).join('\n\n');
   var secs=(me.plan==='mawjat_plus'?Object.keys(SECTORS):(me.sectors||[])).map(function(s){return SECTORS[s]?SECTORS[s].ar:s;}).join('، ');
-  var sys='أنت مستشار ذكي اسمه موجات متخصص في استخبارات السوق السعودي. قطاعات العميل: '+secs+'. '
-    +'أسلوبك ودود ومباشر كأنك صاحب يحكي لصاحبه. استخدم "حسب مصادرنا" بدل ذكر المصدر. '
-    +'تحدث بنفس لغة العميل في سؤاله — إذا سأل بالعربي رد بالعربي، إنجليزي بالإنجليزي، أي لغة ثانية كذلك. لا تختلق معلومات — اعتمد فقط على الأخبار التالية. '
+  var sys='أنت مستشار ذكي اسمه موجات متخصص في السوق السعودي. قطاعات العميل: '+secs+'. '
+    +'أسلوبك ودود ومباشر كأنك صاحب يحكي لصاحبه. استخدم حسب مصادرنا بدل ذكر المصدر. '
+    +'تحدث بنفس لغة العميل في سؤاله. لا تختلق معلومات — اعتمد فقط على الأخبار التالية. '
     +'إذا ما عندك معلومة قل: ما وصلنا شي عن هذا بعد.\n\nالأخبار:\n'+(ctx||'لا توجد أخبار حالياً.');
-  hist.push({role:'user',parts:[{text:q}]});
+  var msgs=[{role:'system',content:sys}];
+  hist.forEach(function(h){msgs.push({role:h.role==='model'?'assistant':'user',content:h.parts[0].text});});
+  msgs.push({role:'user',content:q});
   try{
-    var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GK,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-       body:JSON.stringify({system_instruction:{parts:[{text:sys}]},contents:hist,generationConfig:{temperature:0.8,maxOutputTokens:500}})});
+    var res=await fetch(OR_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GK},
+      body:JSON.stringify({model:OR_MODEL,messages:msgs,max_tokens:500,temperature:0.8})
+    });
     var d=await res.json();
     if(d.error)return'❌ '+d.error.message;
-    var rep=d.candidates[0].content.parts[0].text;
+    var rep=d.choices[0].message.content;
+    hist.push({role:'user',parts:[{text:q}]});
     hist.push({role:'model',parts:[{text:rep}]});
     if(hist.length>20)hist=hist.slice(-20);
     return rep;
