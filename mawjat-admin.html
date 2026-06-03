@@ -377,12 +377,35 @@ async function addClient(){
   var secs=getSelectedSecs('nc-sectors');
   if(!name||!user||!pass){toast('يرجى ملء الحقول المطلوبة',false);return;}
   try{
-    var r=await sbPost('mawjat_clients',{display_name:name,username:user,password_hash:pass,plan:plan,sectors:secs,is_active:true});
-    if(r.error){toast('خطأ: '+r.error.message,false);return;}
-    toast('✅ تم إضافة العميل بنجاح');
-    document.getElementById('nc-name').value='';document.getElementById('nc-user').value='';document.getElementById('nc-pass').value='';
+    var payload={display_name:name,username:user,password_hash:pass,plan:plan,sectors:secs,is_active:true};
+    var res=await fetch(SB+'mawjat_clients',{
+      method:'POST',
+      headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok){
+      var err=await res.json().catch(function(){return {};});
+      toast('خطأ: '+(err.message||err.details||res.status),false);
+      return;
+    }
+    // Verify the save worked
+    var verify=await fetch(SB+'mawjat_clients?username=eq.'+encodeURIComponent(user),{
+      headers:{'apikey':SK,'Authorization':'Bearer '+SK}
+    });
+    var vdata=await verify.json();
+    if(!Array.isArray(vdata)||!vdata.length){
+      toast('❌ لم يُحفظ — تحقق من Supabase',false);
+      return;
+    }
+    toast('✅ تم إضافة العميل: '+user);
+    document.getElementById('nc-name').value='';
+    document.getElementById('nc-user').value='';
+    document.getElementById('nc-pass').value='';
     document.querySelectorAll('#nc-sectors .sec-toggle').forEach(function(e){e.classList.remove('on');});
-  }catch(e){toast('خطأ في الحفظ',false);}
+    setTimeout(function(){
+      showTab('clients', document.querySelectorAll('.tab')[1]);
+    }, 800);
+  }catch(e){toast('خطأ في الحفظ: '+e.message,false);}
 }
 
 async function addNews(){
@@ -394,12 +417,29 @@ async function addNews(){
   var secs=getSelectedSecs('nn-sectors');
   if(!title||!content){toast('العنوان والمحتوى مطلوبان',false);return;}
   try{
-    var r=await sbPost('mawjat_news',{title:title,content:content,news_type:type,plan_access:access,source:source||null,sectors:secs,is_active:true});
-    if(r.error){toast('خطأ: '+r.error.message,false);return;}
+    var res2=await fetch(SB+'mawjat_news',{
+      method:'POST',
+      headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({title:title,content:content,news_type:type,plan_access:access,source:source||null,sectors:secs,is_active:true})
+    });
+    if(!res2.ok){
+      var err2=await res2.json().catch(function(){return {};});
+      toast('خطأ: '+(err2.message||err2.details||res2.status),false);
+      return;
+    }
+    var vtitle=document.getElementById('nn-title').value.trim();
+    var vnews=await fetch(SB+'mawjat_news?title=eq.'+encodeURIComponent(vtitle)+'&order=created_at.desc&limit=1',{
+      headers:{'apikey':SK,'Authorization':'Bearer '+SK}
+    });
+    var vndata=await vnews.json();
+    if(!Array.isArray(vndata)||!vndata.length){
+      toast('❌ لم يُحفظ — تحقق من Supabase',false);return;
+    }
     toast('✅ تم نشر الخبر بنجاح');
     document.getElementById('nn-title').value='';document.getElementById('nn-content').value='';document.getElementById('nn-source').value='';
     document.querySelectorAll('#nn-sectors .sec-toggle').forEach(function(e){e.classList.remove('on');});
-  }catch(e){toast('خطأ في الحفظ',false);}
+    setTimeout(function(){showTab('news',document.querySelectorAll('.tab')[2]);},800);
+  }catch(e){toast('خطأ في الحفظ: '+e.message,false);}
 }
 
 async function toggleClient(id,active){
