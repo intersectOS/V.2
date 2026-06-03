@@ -854,30 +854,18 @@ var _GKEY_AI = 'sk-or-v1-8525c094f5a54744516b4172eae9318fce3e7b54312692f7fe980b2
 var _convHistory = [];
 
 async function askGemini(question) {
-  _convHistory.push({role:'user', parts:[{text:question}]});
+  _convHistory.push({role:'user', content:question});
   try {
-    var res = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/REPLACED?key=' + _GKEY_AI,
-      {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          system_instruction:{parts:[{text:`You are a world-class CEO Advisor for growth-stage companies (Seed to Series C). You think in frameworks, not opinions. You give direct, actionable guidance.
-
-Your expertise: company strategy, fundraising, investor relations, culture, board management, pivots, decision-making frameworks (reversible vs irreversible decisions), hiring executives, long-term vision.
-
-Style: bottom line first, specific numbers and frameworks, challenge assumptions directly, max 4-5 bullet points, end with one clear recommended action.
-
-Respond in the same language the user writes in (Arabic, English, etc).`}]},
-          contents: _convHistory,
-          generationConfig:{temperature:0.7, maxOutputTokens:1024}
-        })
-      }
-    );
+    var msgs = [{role:'system', content:'You are a world-class CEO Advisor for growth-stage companies (Seed to Series C). You think in frameworks, not opinions. You give direct, actionable guidance. Your expertise: company strategy, fundraising, investor relations, culture, board management, pivots, decision-making frameworks, hiring executives, long-term vision. Style: bottom line first, specific numbers and frameworks, challenge assumptions directly, max 4-5 bullet points, end with one clear recommended action. Respond in the same language the user writes in.'}].concat(_convHistory);
+    var res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer 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'},
+      body: JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free', messages:msgs, max_tokens:1024, temperature:0.7})
+    });
     var d = await res.json();
     if (d.error) return '❌ ' + d.error.message;
-    var reply = d.candidates[0].content.parts[0].text;
-    _convHistory.push({role:'model', parts:[{text:reply}]});
+    var reply = d.choices[0].message.content;
+    _convHistory.push({role:'assistant', content:reply});
     if (_convHistory.length > 20) _convHistory = _convHistory.slice(-20);
     return reply;
   } catch(e) { return '❌ Error: ' + e.message; }
