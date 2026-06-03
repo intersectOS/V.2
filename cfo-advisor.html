@@ -218,7 +218,7 @@ var CFO_KNOWLEDGE = {
 var _GKEY = 'AIzaSyAvJxUoPoQGnGvmAofivA_33mSBXxRhwyU';
 var _OR_KEY = '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';
 var _OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
-var _OR_MODEL = 'google/gemini-2.0-flash-exp:free';
+var _OR_MODEL = 'google/gemini-2.0-flash-001';
 var _langMap = {en:'en',ar:'ar',es:'es',fr:'fr',de:'de',it:'it',pt:'pt',ru:'ru',zh:'zh-CN',ja:'ja',ko:'ko'};
 
 async function translateText(text, targetLang) {
@@ -375,7 +375,7 @@ async function callAI_cfo(question) {
     var res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer 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'},
-      body:JSON.stringify({model:'google/gemini-2.0-flash-exp:free',messages:msgs,max_tokens:800,temperature:0.7})
+      body:JSON.stringify({model:'google/gemini-2.0-flash-001',messages:msgs,max_tokens:800,temperature:0.7})
     });
     var d = await res.json();
     if(d.error) return '❌ '+d.error.message;
