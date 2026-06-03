@@ -216,6 +216,9 @@ var CFO_KNOWLEDGE = {
 
 // ── Google Translate ──
 var _GKEY = 'AIzaSyAvJxUoPoQGnGvmAofivA_33mSBXxRhwyU';
+var _OR_KEY = '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';
+var _OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
+var _OR_MODEL = 'google/gemini-2.0-flash-exp:free';
 var _langMap = {en:'en',ar:'ar',es:'es',fr:'fr',de:'de',it:'it',pt:'pt',ru:'ru',zh:'zh-CN',ja:'ja',ko:'ko'};
 
 async function translateText(text, targetLang) {
@@ -361,6 +364,39 @@ function hideThinking() {
 }
 
 // ── Send ──
+// ── Conversation history ──
+var _convHist_cfo = [];
+
+async function callAI_cfo(question) {
+  _convHist_cfo.push({role:'user', content:question});
+  try {
+    var msgs = [{role:'system', content:'You are a world-class CFO Advisor for growth-stage companies. Expert in: burn rate, runway, unit economics (LTV:CAC, payback period), fundraising strategy, financial modeling, board financial reporting. Style: direct, numbers-first, use specific formulas and benchmarks. Respond in the same language the user writes in.'}];
+    _convHist_cfo.forEach(function(h){msgs.push(h);});
+    var res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer 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'},
+      body:JSON.stringify({model:'google/gemini-2.0-flash-exp:free',messages:msgs,max_tokens:800,temperature:0.7})
+    });
+    var d = await res.json();
+    if(d.error) return '❌ '+d.error.message;
+    var reply = d.choices[0].message.content;
+    _convHist_cfo.push({role:'assistant', content:reply});
+    if(_convHist_cfo.length > 20) _convHist_cfo = _convHist_cfo.slice(-20);
+    return reply;
+  } catch(e) { return '❌ Error: '+e.message; }
+}
+
+function formatAIReply(text) {
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/^### (.+)$/gm, '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:700;margin:10px 0 4px;opacity:.8;">$1</div>');
+  text = text.replace(/^## (.+)$/gm, '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;margin:10px 0 5px;">$1</div>');
+  text = text.replace(/^- (.+)$/gm, '<div style="padding:3px 0 3px 16px;position:relative;font-size:12px;color:var(--ink2);"><span style="position:absolute;left:0;opacity:.6;">→</span>$1</div>');
+  text = text.replace(/^\d+\. (.+)$/gm, '<div style="padding:3px 0 3px 16px;position:relative;font-size:12px;color:var(--ink2);"><span style="position:absolute;left:0;opacity:.6;">•</span>$1</div>');
+  text = text.replace(/\n\n/g, '<br><br>');
+  text = text.replace(/\n/g, '<br>');
+  return '<div style="font-size:13px;line-height:1.7;">'+text+'</div>';
+}
+
 async function sendMessage() {
   var input = document.getElementById('user-input');
   var btn = document.getElementById('send-btn');
@@ -371,17 +407,9 @@ async function sendMessage() {
   isThinking = true;
   btn.disabled = true;
   showThinking();
-  await new Promise(function(r){setTimeout(r, 500 + Math.random()*400);});
+  var reply = await callAI_cfo(q);
   hideThinking();
-  var topic = findMatch(q);
-  var res = topic.respond();
-  var html = renderResponse(res);
-  if (currentLang !== 'en') {
-    try {
-      html = await translateText(html, currentLang);
-    } catch(e) {}
-  }
-  addMessage('advisor', html, true);
+  addMessage('advisor', formatAIReply(reply));
   isThinking = false;
   btn.disabled = false;
   input.focus();
