@@ -850,16 +850,16 @@ window.addEventListener('DOMContentLoaded', function(){ initLangBar(); });
 
 
 // ── Gemini AI ──
-var _GKEY_AI = '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';
+var _GKEY_AI = '';
 var _convHistory = [];
 
 async function askGemini(question) {
   _convHistory.push({role:'user', content:question});
   try {
     var msgs = [{role:'system', content:'You are a world-class CEO Advisor for growth-stage companies (Seed to Series C). You think in frameworks, not opinions. You give direct, actionable guidance. Your expertise: company strategy, fundraising, investor relations, culture, board management, pivots, decision-making frameworks, hiring executives, long-term vision. Style: bottom line first, specific numbers and frameworks, challenge assumptions directly, max 4-5 bullet points, end with one clear recommended action. Respond in the same language the user writes in.'}].concat(_convHistory);
-    var res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    var res = await fetch('https://hidden-lab-b8e2.sulaiman-c0c.workers.dev', {
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer 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'},
+      headers:{'Content-Type':'application/json','Content-Type':'application/json'},
       body: JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free', messages:msgs, max_tokens:1024, temperature:0.7})
     });
     var d = await res.json();
