@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>موجات — لوحة الإدارة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#04080f;--card:#0d1625;--card2:#111d2e;--border:rgba(56,189,248,.1);--ink:#e2eeff;--ink2:#7ca3c8;--ink3:#3a5a7a;--sky:#38bdf8;--amber:#f59e0b;--green:#10b981;--red:#ef4444;--purple:#8b5cf6;}
+body{background:var(--bg);color:var(--ink);font-family:'Tajawal',sans-serif;min-height:100vh;}
+.header{background:rgba(4,8,15,.95);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:100;}
+.header-inner{height:52px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-size:18px;font-weight:900;}
+.logo span{color:var(--sky);}
+.admin-badge{font-size:10px;background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:3px 8px;}
+.back-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--ink2);border-radius:7px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:'Tajawal',sans-serif;text-decoration:none;}
+.main{max-width:1100px;margin:0 auto;padding:24px 20px;}
+.tabs{display:flex;gap:6px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:14px;}
+.tab{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+.tab.on{background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.25);color:var(--sky);}
+.tab:not(.on){color:var(--ink3);}
+.tab:not(.on):hover{color:var(--ink2);}
+.tp{display:none;}.tp.on{display:block;}
+.section-title{font-size:15px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.card-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:12px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px;}
+.card-body{padding:16px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;color:var(--ink2);margin-bottom:5px;font-weight:600;}
+.field input,.field textarea,.field select{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--ink);font-family:'Tajawal',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(56,189,248,.4);}
+.field textarea{resize:vertical;min-height:90px;}
+.field select option{background:var(--card2);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.btn-primary{background:linear-gradient(135deg,var(--sky),rgba(56,189,248,.7));border:none;border-radius:9px;padding:10px 20px;color:#000;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;}
+.btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:'Tajawal',sans-serif;}
+.btn-edit{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.15);color:var(--sky);border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:'Tajawal',sans-serif;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;z-index:999;display:none;font-family:'Tajawal',sans-serif;}
+.sectors-grid{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;}
+.sec-toggle{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card2);color:var(--ink3);cursor:pointer;transition:all .15s;}
+.sec-toggle.on{background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.3);color:var(--sky);}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--card2);padding:9px 12px;text-align:right;font-size:11px;color:var(--ink2);font-weight:700;border-bottom:1px solid var(--border);}
+td{padding:10px 12px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.plan-pill{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;}
+.pp-mawjat{background:rgba(56,189,248,.1);color:var(--sky);}
+.pp-plus{background:rgba(245,158,11,.1);color:var(--amber);}
+.active-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.ad-green{background:var(--green);}
+.ad-red{background:var(--red);}
+.nbadge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;}
+.nb-news{background:rgba(56,189,248,.1);color:var(--sky);}
+.nb-rumor{background:rgba(245,158,11,.1);color:var(--amber);}
+.nb-analysis{background:rgba(139,92,246,.1);color:var(--purple);}
+.nb-alert{background:rgba(239,68,68,.1);color:var(--red);}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.stat-val{font-size:24px;font-weight:900;color:var(--sky);}
+.stat-lbl{font-size:10px;color:var(--ink3);margin-top:3px;}
+@media(max-width:600px){.row2,.row3{grid-template-columns:1fr;}.stats-row{grid-template-columns:1fr 1fr;}}
+
+.lang-bar{display:flex;gap:5px;padding:7px 24px;background:rgba(4,8,15,.8);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.lang-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--ink3);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .15s;}
+.lang-btn:hover{background:rgba(255,255,255,.08);color:var(--ink2);}
+.lang-btn.active{background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.3);color:var(--sky);}
+
+
+.admin-login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:0;}
+.admin-login-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:340px;}
+.admin-login-card h2{font-size:17px;font-weight:800;margin-bottom:4px;}
+.admin-login-card p{font-size:12px;color:var(--ink3);margin-bottom:20px;}
+.al-field{margin-bottom:14px;}
+.al-field label{display:block;font-size:12px;color:var(--ink2);margin-bottom:5px;font-weight:600;}
+.al-field input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--ink);font-family:'Tajawal',sans-serif;font-size:14px;outline:none;}
+.al-field input:focus{border-color:rgba(56,189,248,.4);}
+.al-btn{width:100%;background:linear-gradient(135deg,var(--sky),rgba(56,189,248,.7));border:none;border-radius:9px;padding:12px;color:#000;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;}
+.al-btn:disabled{opacity:.5;}
+.al-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px;font-size:12px;color:#f87171;margin-top:10px;display:none;}
+
+</style>
+</head>
+<body>
+
+<!-- ADMIN LOGIN -->
+<div class="admin-login" id="admin-login">
+  <div class="admin-login-card">
+    <h2>🌊 موجات — Admin</h2>
+    <p>أدخل كلمة سر الإدارة للمتابعة</p>
+    <div class="al-field">
+      <label>كلمة السر</label>
+      <input type="password" id="al-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkAdminPass()">
+    </div>
+    <button class="al-btn" id="al-btn" onclick="checkAdminPass()">دخول ←</button>
+    <div class="al-error" id="al-error">كلمة السر غير صحيحة</div>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-inner">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="logo"><img src="mawjat-logo.png.PNG" onerror="this.src='mawjat-logo.png'" alt="Mawjat" style="height:26px;object-fit:contain;filter:brightness(0) invert(1);"></div>
+      <div class="admin-badge">Admin</div>
+    </div>
+    <a href="index.html" class="back-btn">← الداشبورد</a>
+  </div>
+</div>
+
+<div class="lang-bar" id="admin-lang-bar"></div>
+<div class="main">
+  <div class="tabs">
+    <div class="tab on" onclick="showTab('overview',this)">📊 نظرة عامة</div>
+    <div class="tab" onclick="showTab('clients',this)">👥 العملاء</div>
+    <div class="tab" onclick="showTab('news',this)">📰 الأخبار والتقارير</div>
+    <div class="tab" onclick="showTab('add-client',this)">➕ عميل جديد</div>
+    <div class="tab" onclick="showTab('add-news',this)">✏️ إضافة خبر</div>
+    <div class="tab" onclick="showTab('sectors',this)">🗂️ القطاعات</div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="tp on" id="tp-overview">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="st-clients">—</div><div class="stat-lbl">إجمالي العملاء</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-active">—</div><div class="stat-lbl">عملاء نشطون</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-plus">—</div><div class="stat-lbl">موجات Plus</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-news">—</div><div class="stat-lbl">أخبار منشورة</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">آخر الأخبار المضافة</div></div>
+      <div class="card-body" id="ov-news"><div style="color:var(--ink3);font-size:13px;">جاري التحميل...</div></div>
+    </div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div class="tp" id="tp-clients">
+    <div class="section-title">
+      قائمة العملاء
+      <button class="btn-primary" onclick="showTab('add-client',document.querySelectorAll('.tab')[3])">➕ عميل جديد</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>الاسم</th><th>يوزر</th><th>الخطة</th><th>القطاعات</th><th>الحالة</th><th>آخر دخول</th><th>إجراء</th></tr></thead>
+        <tbody id="clients-table"><tr><td colspan="7" style="text-align:center;color:var(--ink3);">جاري التحميل...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- NEWS -->
+  <div class="tp" id="tp-news">
+    <div class="section-title">
+      الأخبار والتقارير
+      <button class="btn-primary" onclick="showTab('add-news',document.querySelectorAll('.tab')[4])">✏️ خبر جديد</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>العنوان</th><th>النوع</th><th>القطاعات</th><th>الوصول</th><th>التاريخ</th><th>إجراء</th></tr></thead>
+        <tbody id="news-table"><tr><td colspan="6" style="text-align:center;color:var(--ink3);">جاري التحميل...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ADD CLIENT -->
+  <div class="tp" id="tp-add-client">
+    <div class="section-title">إضافة عميل جديد</div>
+    <div class="card">
+      <div class="card-body">
+        <div class="row2">
+          <div class="field"><label>الاسم الكامل *</label><input type="text" id="nc-name" placeholder="اسم العميل"></div>
+          <div class="field"><label>اسم الشركة</label><input type="text" id="nc-company" placeholder="اسم الشركة"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>اسم المستخدم *</label><input type="text" id="nc-user" placeholder="username (لا مسافات)"></div>
+          <div class="field"><label>كلمة المرور *</label><input type="text" id="nc-pass" placeholder="كلمة المرور"></div>
+        </div>
+        <div class="field">
+          <label>الخطة *</label>
+          <select id="nc-plan">
+            <option value="mawjat">🌊 موجات — قطاع واحد</option>
+            <option value="mawjat_plus">⚡ موجات Plus — جميع القطاعات</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>القطاعات (اختر واحد أو أكثر)</label>
+          <div class="sectors-grid" id="nc-sectors">
+            <div class="sec-toggle" data-id="energy" onclick="toggleSec(this)">⚡ طاقة</div>
+            <div class="sec-toggle" data-id="finance" onclick="toggleSec(this)">💰 مالي</div>
+            <div class="sec-toggle" data-id="realestate" onclick="toggleSec(this)">🏢 عقارات</div>
+            <div class="sec-toggle" data-id="logistics" onclick="toggleSec(this)">🚛 لوجستي</div>
+            <div class="sec-toggle" data-id="tech" onclick="toggleSec(this)">💻 تقنية</div>
+            <div class="sec-toggle" data-id="industrial" onclick="toggleSec(this)">🏭 صناعي</div>
+            <div class="sec-toggle" data-id="health" onclick="toggleSec(this)">🏥 صحة</div>
+            <div class="sec-toggle" data-id="education" onclick="toggleSec(this)">🎓 تعليمي</div>
+            <div class="sec-toggle" data-id="entertainment" onclick="toggleSec(this)">🎬 ترفيه</div>
+            <div class="sec-toggle" data-id="government" onclick="toggleSec(this)">🏛️ حكومي</div>
+            <div class="sec-toggle" data-id="retail" onclick="toggleSec(this)">🛒 تجزئة</div>
+            <div class="sec-toggle" data-id="general" onclick="toggleSec(this)">🌐 عام</div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addClient()">✅ حفظ العميل</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD NEWS -->
+  <div class="tp" id="tp-add-news">
+    <div class="section-title">إضافة خبر / تقرير / إشاعة</div>
+    <div class="card">
+      <div class="card-body">
+        <div class="field"><label>العنوان *</label><input type="text" id="nn-title" placeholder="عنوان الخبر..."></div>
+        <div class="field"><label>المحتوى الكامل *</label><textarea id="nn-content" placeholder="اكتب تفاصيل الخبر هنا... Gemini سيستخدم هذا لإجابة العملاء"></textarea></div>
+        <div class="row3">
+          <div class="field">
+            <label>النوع *</label>
+            <select id="nn-type">
+              <option value="news">📰 خبر</option>
+              <option value="rumor">🔥 إشاعة / سالفة</option>
+              <option value="analysis">📊 تحليل</option>
+              <option value="alert">⚠️ تنبيه عاجل</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>الوصول</label>
+            <select id="nn-access">
+              <option value="both">الكل (موجات + Plus)</option>
+              <option value="mawjat_plus">موجات Plus فقط</option>
+              <option value="mawjat">موجات فقط</option>
+            </select>
+          </div>
+          <div class="field"><label>المصدر</label><input type="text" id="nn-source" placeholder="اسم المصدر (اختياري)"></div>
+        </div>
+        <div class="field">
+          <label>القطاعات المستهدفة</label>
+          <div class="sectors-grid" id="nn-sectors">
+            <div class="sec-toggle" data-id="energy" onclick="toggleSec(this)">⚡ طاقة</div>
+            <div class="sec-toggle" data-id="finance" onclick="toggleSec(this)">💰 مالي</div>
+            <div class="sec-toggle" data-id="realestate" onclick="toggleSec(this)">🏢 عقارات</div>
+            <div class="sec-toggle" data-id="logistics" onclick="toggleSec(this)">🚛 لوجستي</div>
+            <div class="sec-toggle" data-id="tech" onclick="toggleSec(this)">💻 تقنية</div>
+            <div class="sec-toggle" data-id="industrial" onclick="toggleSec(this)">🏭 صناعي</div>
+            <div class="sec-toggle" data-id="health" onclick="toggleSec(this)">🏥 صحة</div>
+            <div class="sec-toggle" data-id="education" onclick="toggleSec(this)">🎓 تعليمي</div>
+            <div class="sec-toggle" data-id="entertainment" onclick="toggleSec(this)">🎬 ترفيه</div>
+            <div class="sec-toggle" data-id="government" onclick="toggleSec(this)">🏛️ حكومي</div>
+            <div class="sec-toggle" data-id="retail" onclick="toggleSec(this)">🛒 تجزئة</div>
+            <div class="sec-toggle" data-id="general" onclick="toggleSec(this)">🌐 عام</div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addNews()">✅ نشر الخبر</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTORS -->
+  <div class="tp" id="tp-sectors">
+    <div class="section-title">
+      إدارة القطاعات
+      <button class="btn-primary" onclick="document.getElementById('add-sec-form').style.display='block'">➕ قطاع جديد</button>
+    </div>
+
+    <!-- Add form -->
+    <div class="card" id="add-sec-form" style="display:none;margin-bottom:14px;">
+      <div class="card-hdr"><div class="card-title">إضافة قطاع جديد</div></div>
+      <div class="card-body">
+        <div class="row3">
+          <div class="field"><label>المعرّف (ID) *</label><input type="text" id="sec-id" placeholder="مثال: fintech (إنجليزي بدون مسافات)"></div>
+          <div class="field"><label>الاسم بالعربي *</label><input type="text" id="sec-ar" placeholder="مثال: فينتك"></div>
+          <div class="field"><label>الاسم بالإنجليزي *</label><input type="text" id="sec-en" placeholder="مثال: FinTech"></div>
+        </div>
+        <div class="field" style="max-width:200px;"><label>الأيقونة (إيموجي)</label><input type="text" id="sec-icon" placeholder="💡" maxlength="4"></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-primary" onclick="addSector()">✅ إضافة</button>
+          <button style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--ink2);border-radius:9px;padding:10px 16px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;" onclick="document.getElementById('add-sec-form').style.display='none'">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sectors list -->
+    <div class="card">
+      <table>
+        <thead><tr><th>الأيقونة</th><th>المعرّف</th><th>العربي</th><th>الإنجليزي</th><th>الحالة</th><th>إجراء</th></tr></thead>
+        <tbody id="sectors-table"><tr><td colspan="6" style="text-align:center;color:var(--ink3);">جاري التحميل...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var SB='https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/';
+var SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+
+var SMAP={energy:'طاقة',finance:'مالي',realestate:'عقارات',logistics:'لوجستي',tech:'تقنية',industrial:'صناعي',health:'صحة',education:'تعليمي',entertainment:'ترفيه',government:'حكومي',retail:'تجزئة',general:'عام'};
+
+function toast(msg,ok){var t=document.getElementById('toast');t.textContent=msg;t.style.background=ok===false?'#ef4444':'var(--green)';t.style.display='block';setTimeout(function(){t.style.display='none';},2800);}
+function showTab(id,el){document.querySelectorAll('.tp').forEach(function(t){t.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});document.getElementById('tp-'+id).classList.add('on');if(el)el.classList.add('on');if(id==='clients')loadClients();if(id==='news')loadNewsTable();if(id==='overview')loadOverview();}
+function toggleSec(el){el.classList.toggle('on');}
+function getSelectedSecs(containerId){return Array.from(document.querySelectorAll('#'+containerId+' .sec-toggle.on')).map(function(e){return e.dataset.id;});}
+
+async function sbGet(t,q){var r=await fetch(SB+t+'?'+q,{headers:{'apikey':SK,'Authorization':'Bearer '+SK}});return r.json();}
+async function sbPost(t,body){var r=await fetch(SB+t,{method:'POST',headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});return r.json();}
+async function sbPatch(t,id,body){var r=await fetch(SB+t+'?id=eq.'+id,{method:'PATCH',headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json'},body:JSON.stringify(body)});return r.ok;}
+async function sbDelete(t,id){var r=await fetch(SB+t+'?id=eq.'+id,{method:'DELETE',headers:{'apikey':SK,'Authorization':'Bearer '+SK}});return r.ok;}
+
+async function loadOverview(){
+  try{
+    var clients=await sbGet('mawjat_clients','select=id,is_active,plan');
+    var news=await sbGet('mawjat_news','select=id,title,news_type,created_at&is_active=eq.true&order=created_at.desc&limit=5');
+    if(Array.isArray(clients)){
+      document.getElementById('st-clients').textContent=clients.length;
+      document.getElementById('st-active').textContent=clients.filter(function(c){return c.is_active;}).length;
+      document.getElementById('st-plus').textContent=clients.filter(function(c){return c.plan==='mawjat_plus';}).length;
+    }
+    if(Array.isArray(news)){
+      document.getElementById('st-news').textContent=news.length;
+      var BMAP={news:'nb-news خبر',rumor:'nb-rumor إشاعة',analysis:'nb-analysis تحليل',alert:'nb-alert تنبيه'};
+      document.getElementById('ov-news').innerHTML=news.map(function(n){
+        var b=(BMAP[n.news_type]||'nb-news خبر').split(' ');
+        var t=new Date(n.created_at).toLocaleDateString('ar-SA',{month:'short',day:'numeric'});
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2);">'
+          +'<span class="nbadge '+b[0]+'">'+b[1]+'</span>'
+          +'<span style="flex:1;font-size:13px;">'+n.title+'</span>'
+          +'<span style="font-size:11px;color:var(--ink3);">'+t+'</span></div>';
+      }).join('');
+    }
+  }catch(e){}
+}
+
+async function loadClients(){
+  var rows=await sbGet('mawjat_clients','order=created_at.desc');
+  var SMAP2={energy:'⚡',finance:'💰',realestate:'🏢',logistics:'🚛',tech:'💻',industrial:'🏭',health:'🏥',education:'🎓',entertainment:'🎬',government:'🏛️',retail:'🛒',general:'🌐'};
+  document.getElementById('clients-table').innerHTML=Array.isArray(rows)&&rows.length?rows.map(function(c){
+    var secs=(c.sectors||[]).map(function(s){return SMAP2[s]||s;}).join(' ');
+    var ll=c.last_login?new Date(c.last_login).toLocaleDateString('ar-SA',{month:'short',day:'numeric'}):'—';
+    return '<tr>'
+      +'<td>'+c.display_name+'</td>'
+      +'<td style="font-family:monospace;font-size:11px;">'+c.username+'</td>'
+      +'<td><span class="plan-pill '+(c.plan==='mawjat_plus'?'pp-plus':'pp-mawjat')+'">'+(c.plan==='mawjat_plus'?'⚡ Plus':'🌊 موجات')+'</span></td>'
+      +'<td style="font-size:13px;">'+(c.plan==='mawjat_plus'?'الكل':secs||'—')+'</td>'
+      +'<td><span class="active-dot '+(c.is_active?'ad-green':'ad-red')+'"></span></td>'
+      +'<td style="font-size:11px;color:var(--ink3);">'+ll+'</td>'
+      +'<td style="display:flex;gap:6px;">'
+      +'<button class="btn-edit" onclick="toggleClient(\''+c.id+'\','+c.is_active+')">'+(c.is_active?'إيقاف':'تفعيل')+'</button>'
+      +'<button class="btn-danger" onclick="deleteClient(\''+c.id+'\')">حذف</button>'
+      +'</td></tr>';
+  }).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--ink3);">لا يوجد عملاء</td></tr>';
+}
+
+async function loadNewsTable(){
+  var rows=await sbGet('mawjat_news','order=created_at.desc&limit=50');
+  var BMAP={news:'nb-news خبر',rumor:'nb-rumor إشاعة',analysis:'nb-analysis تحليل',alert:'nb-alert تنبيه'};
+  document.getElementById('news-table').innerHTML=Array.isArray(rows)&&rows.length?rows.map(function(n){
+    var b=(BMAP[n.news_type]||'nb-news خبر').split(' ');
+    var secs=(n.sectors||[]).map(function(s){return SMAP[s]||s;}).join('، ')||'الكل';
+    var t=new Date(n.created_at).toLocaleDateString('ar-SA',{month:'short',day:'numeric'});
+    return '<tr>'
+      +'<td style="max-width:280px;">'+n.title+'</td>'
+      +'<td><span class="nbadge '+b[0]+'">'+b[1]+'</span></td>'
+      +'<td style="font-size:11px;color:var(--ink2);">'+secs+'</td>'
+      +'<td style="font-size:11px;color:var(--ink3);">'+(n.plan_access==='both'?'الكل':n.plan_access==='mawjat_plus'?'Plus فقط':'موجات فقط')+'</td>'
+      +'<td style="font-size:11px;color:var(--ink3);">'+t+'</td>'
+      +'<td><button class="btn-danger" onclick="deleteNews(\''+n.id+'\')">حذف</button></td>'
+      +'</tr>';
+  }).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--ink3);">لا يوجد أخبار</td></tr>';
+}
+
+async function addClient(){
+  var name=document.getElementById('nc-name').value.trim();
+  var user=document.getElementById('nc-user').value.trim().toLowerCase().replace(/\s/g,'');
+  var pass=document.getElementById('nc-pass').value.trim();
+  var plan=document.getElementById('nc-plan').value;
+  var secs=getSelectedSecs('nc-sectors');
+  if(!name||!user||!pass){toast('يرجى ملء الحقول المطلوبة',false);return;}
+  try{
+    var r=await sbPost('mawjat_clients',{display_name:name,username:user,password_hash:pass,plan:plan,sectors:secs,is_active:true});
+    if(r.error){toast('خطأ: '+r.error.message,false);return;}
+    toast('✅ تم إضافة العميل بنجاح');
+    document.getElementById('nc-name').value='';document.getElementById('nc-user').value='';document.getElementById('nc-pass').value='';
+    document.querySelectorAll('#nc-sectors .sec-toggle').forEach(function(e){e.classList.remove('on');});
+  }catch(e){toast('خطأ في الحفظ',false);}
+}
+
+async function addNews(){
+  var title=document.getElementById('nn-title').value.trim();
+  var content=document.getElementById('nn-content').value.trim();
+  var type=document.getElementById('nn-type').value;
+  var access=document.getElementById('nn-access').value;
+  var source=document.getElementById('nn-source').value.trim();
+  var secs=getSelectedSecs('nn-sectors');
+  if(!title||!content){toast('العنوان والمحتوى مطلوبان',false);return;}
+  try{
+    var r=await sbPost('mawjat_news',{title:title,content:content,news_type:type,plan_access:access,source:source||null,sectors:secs,is_active:true});
+    if(r.error){toast('خطأ: '+r.error.message,false);return;}
+    toast('✅ تم نشر الخبر بنجاح');
+    document.getElementById('nn-title').value='';document.getElementById('nn-content').value='';document.getElementById('nn-source').value='';
+    document.querySelectorAll('#nn-sectors .sec-toggle').forEach(function(e){e.classList.remove('on');});
+  }catch(e){toast('خطأ في الحفظ',false);}
+}
+
+async function toggleClient(id,active){
+  await sbPatch('mawjat_clients',id,{is_active:!active});
+  toast(active?'تم إيقاف العميل':'تم تفعيل العميل');loadClients();
+}
+async function deleteClient(id){
+  if(!confirm('هل تريد حذف هذا العميل؟'))return;
+  await sbDelete('mawjat_clients',id);toast('تم الحذف');loadClients();
+}
+async function deleteNews(id){
+  if(!confirm('هل تريد حذف هذا الخبر؟'))return;
+  await sbDelete('mawjat_news',id);toast('تم الحذف');loadNewsTable();
+}
+
+
+async function loadSectors() {
+  var rows = await sbGet('mawjat_sectors','order=id.asc');
+  document.getElementById('sectors-table').innerHTML = Array.isArray(rows) && rows.length
+    ? rows.map(function(s) {
+        return '<tr>'
+          + '<td style="font-size:20px;">' + (s.icon||'📊') + '</td>'
+          + '<td style="font-family:monospace;font-size:12px;">' + s.id + '</td>'
+          + '<td>' + s.name_ar + '</td>'
+          + '<td style="color:var(--ink2);">' + s.name_en + '</td>'
+          + '<td><span class="active-dot ' + (s.is_active?'ad-green':'ad-red') + '"></span></td>'
+          + '<td style="display:flex;gap:6px;">'
+            + '<button class="btn-edit" data-sid="' + s.id + '" data-active="' + s.is_active + '" onclick="toggleSector(this.dataset.sid,this.dataset.active===\'true\')">' + (s.is_active?'إيقاف':'تفعيل') + '</button>'
+            + '<button class="btn-danger" data-sid="' + s.id + '" onclick="deleteSector(this.dataset.sid)">حذف</button>'
+          + '</td>'
+        + '</tr>';
+      }).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--ink3);">لا توجد قطاعات</td></tr>';
+}
+
+async function addSector() {
+  var id = document.getElementById('sec-id').value.trim().toLowerCase().replace(/\s/g,'');
+  var ar = document.getElementById('sec-ar').value.trim();
+  var en = document.getElementById('sec-en').value.trim();
+  var icon = document.getElementById('sec-icon').value.trim() || '📊';
+  if (!id || !ar || !en) { toast('يرجى ملء الحقول المطلوبة', false); return; }
+  try {
+    var r = await fetch(SB + 'mawjat_sectors', {
+      method: 'POST',
+      headers: {'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'return=representation'},
+      body: JSON.stringify({id:id, name_ar:ar, name_en:en, icon:icon, is_active:true})
+    });
+    var d = await r.json();
+    if (d.error) { toast('خطأ: ' + d.error.message, false); return; }
+    toast('✅ تم إضافة القطاع');
+    document.getElementById('sec-id').value='';
+    document.getElementById('sec-ar').value='';
+    document.getElementById('sec-en').value='';
+    document.getElementById('sec-icon').value='';
+    document.getElementById('add-sec-form').style.display='none';
+    loadSectors();
+  } catch(e) { toast('خطأ في الحفظ', false); }
+}
+
+async function toggleSector(id, active) {
+  await fetch(SB+'mawjat_sectors?id=eq.'+id, {
+    method:'PATCH',
+    headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json'},
+    body: JSON.stringify({is_active: !active})
+  });
+  toast(active ? 'تم إيقاف القطاع' : 'تم تفعيل القطاع');
+  loadSectors();
+}
+
+async function deleteSector(id) {
+  if (!confirm('هل تريد حذف هذا القطاع؟ سيؤثر على العملاء المرتبطين به.')) return;
+  await fetch(SB+'mawjat_sectors?id=eq.'+id, {
+    method:'DELETE',
+    headers:{'apikey':SK,'Authorization':'Bearer '+SK}
+  });
+  toast('تم الحذف');
+  loadSectors();
+}
+
+// Update showTab to load sectors
+var _origShowTab = showTab;
+showTab = function(id, el) {
+  _origShowTab(id, el);
+  if (id === 'sectors') loadSectors();
+};
+
+
+// ── Admin 11 Languages ──
+var ADMIN_LANGS = {
+  ar:{dir:'rtl',overview:'📊 نظرة عامة',clients:'👥 العملاء',news:'📰 الأخبار والتقارير',add_client:'➕ عميل جديد',add_news:'✏️ إضافة خبر',sectors:'🗂️ القطاعات',
+    total_clients:'إجمالي العملاء',active_clients:'عملاء نشطون',plus_clients:'موجات Plus',total_news:'أخبار منشورة',
+    save_client:'✅ حفظ العميل',publish_news:'✅ نشر الخبر',add_sector:'إضافة قطاع جديد',add_sector_btn:'➕ قطاع جديد'},
+  en:{dir:'ltr',overview:'📊 Overview',clients:'👥 Clients',news:'📰 News & Reports',add_client:'➕ Add Client',add_news:'✏️ Add News',sectors:'🗂️ Sectors',
+    total_clients:'Total Clients',active_clients:'Active Clients',plus_clients:'Mawjat Plus',total_news:'Published News',
+    save_client:'✅ Save Client',publish_news:'✅ Publish News',add_sector:'Add New Sector',add_sector_btn:'➕ New Sector'},
+  fr:{dir:'ltr',overview:'📊 Aperçu',clients:'👥 Clients',news:'📰 Actualités',add_client:'➕ Nouveau Client',add_news:'✏️ Ajouter Actualité',sectors:'🗂️ Secteurs',
+    total_clients:'Total Clients',active_clients:'Clients Actifs',plus_clients:'Mawjat Plus',total_news:'Actualités Publiées',
+    save_client:'✅ Sauvegarder',publish_news:'✅ Publier',add_sector:'Ajouter Secteur',add_sector_btn:'➕ Nouveau Secteur'},
+  es:{dir:'ltr',overview:'📊 Resumen',clients:'👥 Clientes',news:'📰 Noticias',add_client:'➕ Nuevo Cliente',add_news:'✏️ Agregar Noticia',sectors:'🗂️ Sectores',
+    total_clients:'Total Clientes',active_clients:'Clientes Activos',plus_clients:'Mawjat Plus',total_news:'Noticias Publicadas',
+    save_client:'✅ Guardar',publish_news:'✅ Publicar',add_sector:'Agregar Sector',add_sector_btn:'➕ Nuevo Sector'},
+  de:{dir:'ltr',overview:'📊 Übersicht',clients:'👥 Kunden',news:'📰 Nachrichten',add_client:'➕ Neuer Kunde',add_news:'✏️ Nachricht hinzufügen',sectors:'🗂️ Sektoren',
+    total_clients:'Kunden gesamt',active_clients:'Aktive Kunden',plus_clients:'Mawjat Plus',total_news:'Veröffentlichte News',
+    save_client:'✅ Speichern',publish_news:'✅ Veröffentlichen',add_sector:'Sektor hinzufügen',add_sector_btn:'➕ Neuer Sektor'},
+  it:{dir:'ltr',overview:'📊 Panoramica',clients:'👥 Clienti',news:'📰 Notizie',add_client:'➕ Nuovo Cliente',add_news:'✏️ Aggiungi Notizia',sectors:'🗂️ Settori',
+    total_clients:'Clienti Totali',active_clients:'Clienti Attivi',plus_clients:'Mawjat Plus',total_news:'Notizie Pubblicate',
+    save_client:'✅ Salva',publish_news:'✅ Pubblica',add_sector:'Aggiungi Settore',add_sector_btn:'➕ Nuovo Settore'},
+  pt:{dir:'ltr',overview:'📊 Visão Geral',clients:'👥 Clientes',news:'📰 Notícias',add_client:'➕ Novo Cliente',add_news:'✏️ Adicionar Notícia',sectors:'🗂️ Setores',
+    total_clients:'Total Clientes',active_clients:'Clientes Ativos',plus_clients:'Mawjat Plus',total_news:'Notícias Publicadas',
+    save_client:'✅ Salvar',publish_news:'✅ Publicar',add_sector:'Adicionar Setor',add_sector_btn:'➕ Novo Setor'},
+  ru:{dir:'ltr',overview:'📊 Обзор',clients:'👥 Клиенты',news:'📰 Новости',add_client:'➕ Новый Клиент',add_news:'✏️ Добавить Новость',sectors:'🗂️ Секторы',
+    total_clients:'Всего Клиентов',active_clients:'Активные Клиенты',plus_clients:'Mawjat Plus',total_news:'Опубликованные Новости',
+    save_client:'✅ Сохранить',publish_news:'✅ Опубликовать',add_sector:'Добавить Сектор',add_sector_btn:'➕ Новый Сектор'},
+  zh:{dir:'ltr',overview:'📊 概览',clients:'👥 客户',news:'📰 新闻',add_client:'➕ 新增客户',add_news:'✏️ 添加新闻',sectors:'🗂️ 行业',
+    total_clients:'客户总数',active_clients:'活跃客户',plus_clients:'Mawjat Plus',total_news:'已发布新闻',
+    save_client:'✅ 保存',publish_news:'✅ 发布',add_sector:'添加行业',add_sector_btn:'➕ 新行业'},
+  ja:{dir:'ltr',overview:'📊 概要',clients:'👥 クライアント',news:'📰 ニュース',add_client:'➕ 新規クライアント',add_news:'✏️ ニュース追加',sectors:'🗂️ セクター',
+    total_clients:'クライアント総数',active_clients:'アクティブ',plus_clients:'Mawjat Plus',total_news:'公開済みニュース',
+    save_client:'✅ 保存',publish_news:'✅ 公開',add_sector:'セクター追加',add_sector_btn:'➕ 新しいセクター'},
+  ko:{dir:'ltr',overview:'📊 개요',clients:'👥 클라이언트',news:'📰 뉴스',add_client:'➕ 새 클라이언트',add_news:'✏️ 뉴스 추가',sectors:'🗂️ 섹터',
+    total_clients:'총 클라이언트',active_clients:'활성 클라이언트',plus_clients:'Mawjat Plus',total_news:'게시된 뉴스',
+    save_client:'✅ 저장',publish_news:'✅ 게시',add_sector:'섹터 추가',add_sector_btn:'➕ 새 섹터'}
+};
+
+var adminLang = 'ar';
+
+function initAdminLangBar() {
+  var codes = ['ar','en','fr','es','de','it','pt','ru','zh','ja','ko'];
+  var names = {ar:'AR',en:'EN',fr:'FR',es:'ES',de:'DE',it:'IT',pt:'PT',ru:'RU',zh:'中文',ja:'日本語',ko:'한국어'};
+  var bar = document.getElementById('admin-lang-bar');
+  if (!bar) return;
+  bar.innerHTML = codes.map(function(lc){
+    var isActive = (lc==='ar') ? ' active' : '';
+    return '<button class="lang-btn'+isActive+'" onclick="setAdminLang(\'' +lc+ '\',this)">'+names[lc]+'</button>';
+  }).join('');
+}
+
+function setAdminLang(code, btn) {
+  adminLang = code;
+  var L = ADMIN_LANGS[code];
+  if (!L) return;
+  document.documentElement.dir = L.dir;
+  document.documentElement.lang = code;
+  // Update tabs
+  var tabs = document.querySelectorAll('.tab');
+  var keys = ['overview','clients','news','add_client','add_news','sectors'];
+  tabs.forEach(function(t, i){ if(L[keys[i]]) t.textContent = L[keys[i]]; });
+  // Update stats labels
+  var stls = document.querySelectorAll('.stat-lbl');
+  var slkeys = ['total_clients','active_clients','plus_clients','total_news'];
+  stls.forEach(function(el,i){ if(L[slkeys[i]]) el.textContent = L[slkeys[i]]; });
+  // Update buttons
+  var sc = document.querySelector('[onclick="addClient()"]'); if(sc) sc.textContent = L.save_client;
+  var sn = document.querySelector('[onclick="addNews()"]'); if(sn) sn.textContent = L.publish_news;
+  var sa = document.querySelector('[onclick="addSector()"]'); if(sa) sa.textContent = L.add_sector;
+  var sab = document.querySelector('[onclick*="add-sec-form"]'); if(sab) sab.textContent = L.add_sector_btn;
+  // Sync active state
+  document.querySelectorAll('.lang-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+}
+
+
+// ── Admin Password ──
+var ADMIN_PASS_KEY = 'mawjat_admin_pass';
+var DEFAULT_PASS = 'mawjat2024';
+
+async function getAdminPass() {
+  try {
+    var r = await fetch(SB + 'mawjat_config?key=eq.admin_password', {
+      headers: {'apikey': SK, 'Authorization': 'Bearer ' + SK}
+    });
+    var d = await r.json();
+    if (Array.isArray(d) && d.length) return d[0].value;
+  } catch(e) {}
+  return DEFAULT_PASS;
+}
+
+async function checkAdminPass() {
+  var input = document.getElementById('al-pass');
+  var btn = document.getElementById('al-btn');
+  var err = document.getElementById('al-error');
+  var pass = input.value.trim();
+  if (!pass) return;
+  
+  btn.disabled = true;
+  btn.textContent = '...';
+  err.style.display = 'none';
+  
+  var correctPass = await getAdminPass();
+  
+  if (pass === correctPass) {
+    sessionStorage.setItem('mawjat_admin_auth', '1');
+    document.getElementById('admin-login').style.display = 'none';
+  } else {
+    err.style.display = 'block';
+    input.value = '';
+    btn.disabled = false;
+    btn.textContent = 'دخول ←';
+  }
+}
+
+function initAdminAuth() {
+  var auth = sessionStorage.getItem('mawjat_admin_auth');
+  if (auth === '1') {
+    document.getElementById('admin-login').style.display = 'none';
+  }
+  // focus password field
+  var inp = document.getElementById('al-pass');
+  if (inp && document.getElementById('admin-login').style.display !== 'none') {
+    inp.focus();
+  }
+}
+
+initAdminLangBar();
+initAdminAuth();
+loadOverview();
+</script>
+</body>
+</html>
