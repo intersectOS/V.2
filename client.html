@@ -1101,19 +1101,97 @@ function renderOvUpdates(wf){
   el.innerHTML=wf.map(function(w){return '<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(26,31,56,.3);">'+'<div style="width:8px;height:8px;border-radius:50%;background:'+(dc[w.status]||'#06b6d4')+';flex-shrink:0;margin-top:4px;"></div>'+'<div><div style="font-size:12px;font-weight:600;">'+w.title+'</div>'+(w.description?'<div style="font-size:11px;color:var(--ink2);">'+w.description.slice(0,60)+'</div>':'')+'</div></div>';}).join('')+'<div style="margin-top:8px;"><button class="btn" style="font-size:11px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);color:var(--teal);padding:5px 12px;width:100%;border-radius:7px;cursor:pointer;" onclick="showTab(\'updates\',document.querySelectorAll(\'.tab\')[2])">View All Updates →</button></div>';
 }
 
-function renderRoadmap(c){
+async function renderRoadmap(c){
   var el=document.getElementById('roadmap-body');if(!el)return;
-
-  // If client has services from ix_client_services, show per-service roadmap
-  fetch(SB_URL+'/rest/v1/ix_client_services?client_id=eq.'+c.id+'&order=created_at.asc',{
-    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-  }).then(function(r){return r.json();}).then(function(svcs){
-    if(Array.isArray(svcs)&&svcs.length){
-      renderServicesRoadmap(c, svcs);
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--ink3);">Loading roadmaps...</div>';
+  
+  try{
+    // Load from new ix_roadmaps system first
+    var rmRes=await fetch(SB_URL+'/rest/v1/ix_roadmaps?entity_type=eq.client&entity_id=eq.'+c.id+'&order=is_master.desc,created_at.asc',
+      {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+    var roadmaps=await rmRes.json();
+    
+    if(Array.isArray(roadmaps)&&roadmaps.length){
+      // New roadmap system
+      await renderNewRoadmaps(c, roadmaps, el);
     } else {
-      renderSingleRoadmap(c);
+      // Fallback to old system
+      fetch(SB_URL+'/rest/v1/ix_client_services?client_id=eq.'+c.id+'&order=created_at.asc',{
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      }).then(function(r){return r.json();}).then(function(svcs){
+        if(Array.isArray(svcs)&&svcs.length){
+          renderServicesRoadmap(c, svcs);
+        } else {
+          renderSingleRoadmap(c);
+        }
+      }).catch(function(){renderSingleRoadmap(c);});
     }
-  }).catch(function(){renderSingleRoadmap(c);});
+  }catch(e){renderSingleRoadmap(c);}
+}
+
+async function renderNewRoadmaps(c, roadmaps, el){
+  var statusColors={'pending':'var(--ink3)','in_progress':'var(--teal)','completed':'var(--green)','skipped':'var(--ink3)'};
+  var statusIcons={'pending':'○','in_progress':'◐','completed':'●','skipped':'—'};
+  
+  var html='';
+  
+  for(var i=0;i<roadmaps.length;i++){
+    var rm=roadmaps[i];
+    
+    // Load stages for this roadmap
+    var sRes=await fetch(SB_URL+'/rest/v1/ix_roadmap_stages?roadmap_id=eq.'+rm.id+'&order=stage_order.asc',
+      {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+    var stages=await sRes.json();
+    
+    var completed=Array.isArray(stages)?stages.filter(function(s){return s.status==='completed';}).length:0;
+    var total=Array.isArray(stages)?stages.length:0;
+    var pct=total>0?Math.round(completed/total*100):0;
+    
+    html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">';
+    html+='<div>';
+    html+='<div style="font-size:14px;font-weight:700;">'+(rm.is_master?'⭐ ':'')+rm.title+'</div>';
+    html+='<div style="font-size:11px;color:var(--ink3);margin-top:2px;">'+(rm.is_master?'Master Roadmap':'Sub-Roadmap')+' · '+completed+'/'+total+' stages</div>';
+    html+='</div>';
+    html+='<div style="text-align:right;">';
+    html+='<div style="font-size:18px;font-weight:800;color:var(--teal);">'+pct+'%</div>';
+    html+='<div style="font-size:10px;color:var(--ink3);">Complete</div>';
+    html+='</div>';
+    html+='</div>';
+    
+    // Progress bar
+    html+='<div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:14px;overflow:hidden;">';
+    html+='<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;transition:width .5s;"></div>';
+    html+='</div>';
+    
+    // Stages
+    if(Array.isArray(stages)&&stages.length){
+      html+='<div style="display:flex;flex-direction:column;gap:6px;">';
+      stages.forEach(function(s){
+        var color=statusColors[s.status]||'var(--ink3)';
+        var icon=statusIcons[s.status]||'○';
+        var isActive=s.status==='in_progress';
+        html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:8px;border-radius:8px;background:'+(isActive?'rgba(6,182,212,.06)':'transparent')+';border:1px solid '+(isActive?'rgba(6,182,212,.15)':'transparent')+';">';
+        html+='<div style="color:'+color+';font-size:14px;margin-top:1px;flex-shrink:0;">'+icon+'</div>';
+        html+='<div style="flex:1;">';
+        html+='<div style="font-size:12px;font-weight:'+(isActive?'700':'500')+';color:'+(s.status==='completed'?'var(--ink3)':s.status==='in_progress'?'var(--ink)':'var(--ink2)')+';">'+(s.status==='completed'?'<s>':'')+s.title+(s.status==='completed'?'</s>':'')+'</div>';
+        if(s.description&&s.status==='in_progress'){
+          html+='<div style="font-size:11px;color:var(--ink3);margin-top:2px;">'+s.description+'</div>';
+        }
+        if(s.updated_at&&s.status==='completed'){
+          html+='<div style="font-size:10px;color:var(--ink3);margin-top:2px;">Completed '+new Date(s.updated_at).toLocaleDateString('en-SA',{month:'short',day:'numeric'})+'</div>';
+        }
+        html+='</div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    } else {
+      html+='<div style="font-size:12px;color:var(--ink3);">No stages defined yet.</div>';
+    }
+    html+='</div>';
+  }
+  
+  el.innerHTML=html;
 }
 
 function renderServicesRoadmap(c, svcs){

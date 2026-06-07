@@ -241,6 +241,98 @@ function showVoiceBanner(){
   }
 }
 
+
+// ── Roadmaps & Opportunities ──
+async function loadSpRoadmaps(){
+  try{
+    if(!partnerData||!partnerData.id) return;
+    
+    // Load roadmaps for this partner
+    var rRes=await fetch('"""+SB+"""ix_roadmaps?entity_type=eq.partner&entity_id=eq.'+partnerData.id+'&order=created_at.desc',
+      {headers:{'apikey':'"""+SK+"""','Authorization':'Bearer """+SK+"""'}});
+    var roadmaps=await rRes.json();
+    
+    var el=document.getElementById('sp-roadmaps-body');
+    if(!Array.isArray(roadmaps)||!roadmaps.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:24px;font-size:13px;">No roadmaps yet. Your account manager will set up your partnership roadmap.</div>';
+      return;
+    }
+    
+    el.innerHTML=roadmaps.map(function(rm){
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+          +'<div style="font-size:13px;font-weight:700;">'+(rm.is_master?'⭐ ':'')+(rm.title||'Roadmap')+'</div>'
+          +'<div style="font-size:10px;background:rgba(6,182,212,.1);color:var(--teal);border-radius:4px;padding:2px 8px;">'+(rm.is_master?'Master':'Sub-Roadmap')+'</div>'
+        +'</div>'
+        +'<div id="stages-'+rm.id+'" style="font-size:12px;color:var(--ink3);">Loading stages...</div>'
+        +'</div>';
+    }).join('');
+    
+    // Load stages for each roadmap
+    roadmaps.forEach(function(rm){loadRoadmapStages(rm.id);});
+  }catch(e){console.error(e);}
+}
+
+async function loadRoadmapStages(roadmapId){
+  try{
+    var sRes=await fetch('"""+SB+"""ix_roadmap_stages?roadmap_id=eq.'+roadmapId+'&order=stage_order.asc',
+      {headers:{'apikey':'"""+SK+"""','Authorization':'Bearer """+SK+"""'}});
+    var stages=await sRes.json();
+    var el=document.getElementById('stages-'+roadmapId);
+    if(!el)return;
+    if(!Array.isArray(stages)||!stages.length){
+      el.textContent='No stages yet.';return;
+    }
+    var statusColors={'pending':'var(--ink3)','in_progress':'var(--teal)','completed':'var(--green)','skipped':'var(--ink3)'};
+    var statusIcons={'pending':'○','in_progress':'◐','completed':'●','skipped':'—'};
+    el.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">'+stages.map(function(s){
+      var color=statusColors[s.status]||'var(--ink3)';
+      var icon=statusIcons[s.status]||'○';
+      return '<div style="display:flex;align-items:center;gap:5px;padding:4px 8px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid var(--border2);">'
+        +'<span style="color:'+color+';font-size:10px;">'+icon+'</span>'
+        +'<span style="font-size:11px;color:'+(s.status==='completed'?'var(--green)':s.status==='in_progress'?'var(--ink)':'var(--ink3)')+'">'+s.title+'</span>'
+        +'</div>';
+    }).join('')+'</div>';
+  }catch(e){console.error(e);}
+}
+
+async function loadSpOpportunities(){
+  try{
+    if(!partnerData||!partnerData.id) return;
+    var oRes=await fetch('"""+SB+"""ix_opportunities?partner_id=eq.'+partnerData.id+'&order=created_at.desc',
+      {headers:{'apikey':'"""+SK+"""','Authorization':'Bearer """+SK+"""'}});
+    var opps=await oRes.json();
+    var el=document.getElementById('sp-opps-body');
+    if(!Array.isArray(opps)||!opps.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:16px;font-size:13px;">No opportunities yet. Submit your first referral above!</div>';
+      return;
+    }
+    var typeIcons={opportunity:'🎯',client:'👤',project:'📁',partnership:'🤝'};
+    var statusColors={new:'var(--teal)',reviewing:'var(--gold)',in_progress:'var(--green)',on_hold:'var(--ink3)',closed_won:'var(--green)',closed_lost:'var(--red)'};
+    el.innerHTML=opps.map(function(o){
+      var t=new Date(o.created_at).toLocaleDateString('en-SA',{month:'short',day:'numeric',year:'numeric'});
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">'
+        +'<div style="font-size:20px;">'+(typeIcons[o.type]||'📁')+'</div>'
+        +'<div style="flex:1;">'
+          +'<div style="font-size:13px;font-weight:600;">'+o.title+'</div>'
+          +'<div style="font-size:11px;color:var(--ink3);margin-top:2px;">'+(o.sector||'')+(o.value_estimate?' · '+o.value_estimate:'')+'</div>'
+        +'</div>'
+        +'<div style="text-align:right;">'
+          +'<div style="font-size:11px;font-weight:700;color:'+(statusColors[o.status]||'var(--ink2)')+'">'+o.status.replace(/_/g,' ').toUpperCase()+'</div>'
+          +'<div style="font-size:10px;color:var(--ink3);margin-top:2px;">'+t+'</div>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){console.error(e);}
+}
+
+// Override showTab to load roadmaps when tab opened
+var _origSpShowTab=showTab;
+showTab=function(id,el){
+  _origSpShowTab(id,el);
+  if(id==='sp-roadmaps'){loadSpRoadmaps();loadSpOpportunities();}
+};
+
 </script>
 <style>
 :root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
@@ -336,6 +428,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
     <button class="tab" onclick="showTab('sp-companies',this)">🏢 My Referrals</button>
     <button class="tab" onclick="showTab('sp-requests',this)">📋 Requests</button>
     <button class="tab" onclick="showTab('sp-news',this)">📰 News</button>
+    <button class="tab" onclick="showTab('sp-roadmaps',this)">🗺️ Roadmaps</button>
     <button class="tab" onclick="showTab('meeting-invites',this)">📅 Meetings</button>
   </div>
 
@@ -350,7 +443,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <div class="ph"><div class="pt">➕ Refer a New Client</div></div>
       <div class="pb">
         <div style="background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:9px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--gold);">⚠️ Referrals require management approval before being added.</div>
-        <div class="fg"><label class="fl">Company Name *</label><input class="fi" id="sp-ref-name" placeholder="e.g. Aramco"></div>
+        <div class="fg"><label class="fl">Company / Opportunity Name *</label><input class="fi" id="sp-ref-name" placeholder="e.g. German Tech Company seeking Saudi partner"></div>
+        <div class="fg2">
+          <div class="fg"><label class="fl">Type</label>
+            <select class="fi" id="sp-ref-type">
+              <option value="opportunity">🎯 Opportunity</option>
+              <option value="client">👤 Potential Client</option>
+              <option value="project">📁 Project</option>
+              <option value="partnership">🤝 Partnership</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Estimated Value</label><input class="fi" id="sp-ref-value" placeholder="e.g. $500K / year"></div>
+        </div>
         <div class="fg"><label class="fl">Industry</label><input class="fi" id="sp-ref-ind" placeholder="e.g. Energy"></div>
         <div class="fg"><label class="fl">Country</label><input class="fi" id="sp-ref-country" placeholder="e.g. Saudi Arabia"></div>
         <div class="fg"><label class="fl">Contact Person</label><input class="fi" id="sp-ref-contact" placeholder="Name and phone/email"></div>
@@ -472,6 +576,27 @@ async function loadOverview(){
 async function submitReferral(){
   var name=document.getElementById('sp-ref-name').value.trim();
   if(!name){toast('Enter company name','te');return;}
+  var oppType=document.getElementById('sp-ref-type')?document.getElementById('sp-ref-type').value:'opportunity';
+  // Save to ix_opportunities (new system)
+  try{
+    var opp={
+      title:name,
+      description:(document.getElementById('sp-ref-notes').value||''),
+      type:oppType,
+      status:'new',
+      partner_id:partnerData.id,
+      value_estimate:document.getElementById('sp-ref-value')?document.getElementById('sp-ref-value').value:'',
+      sector:document.getElementById('sp-ref-ind').value||'',
+      created_by:partnerData.name
+    };
+    var oppRes=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_opportunities',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(opp)});
+    var oppData=await oppRes.json();
+    // Log to history
+    if(oppData&&oppData[0]){
+      await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_history',{method:'POST',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json'},
+        body:JSON.stringify({entity_type:'opportunity',entity_id:oppData[0].id,action:'created',new_value:name,note:'Submitted by partner: '+partnerData.name,by_user:partnerData.name})});
+    }
+  }catch(e){console.error('opp save error',e);}
   var body={
     title:'[Partner Referral] '+name+' — '+partnerData.name,
     description:'Industry: '+(document.getElementById('sp-ref-ind').value||'—')
@@ -545,5 +670,27 @@ async function loadSpNews(){
   }catch(e){}
 }
 </script>
+
+  <!-- ROADMAPS TAB -->
+  <div class="tp" id="tp-sp-roadmaps">
+    <div class="panel">
+      <div class="ph">
+        <div class="pt">🗺️ My Roadmaps</div>
+      </div>
+      <div class="pb" id="sp-roadmaps-body">
+        <div style="text-align:center;color:var(--ink3);padding:24px;font-size:13px;">Loading roadmaps...</div>
+      </div>
+    </div>
+    <!-- My Opportunities -->
+    <div class="panel" style="margin-top:12px;">
+      <div class="ph">
+        <div class="pt">📁 My Opportunities & Referrals</div>
+      </div>
+      <div class="pb" id="sp-opps-body">
+        <div style="text-align:center;color:var(--ink3);padding:24px;font-size:13px;">Loading...</div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

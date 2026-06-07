@@ -242,6 +242,56 @@ function showVoiceBanner(){
   }
 }
 
+
+async function loadEpRoadmaps(){
+  if(!memberData||!memberData.id)return;
+  var el=document.getElementById('ep-roadmaps-body');if(!el)return;
+  try{
+    // Load roadmaps assigned to this person
+    var res=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_roadmaps?entity_id=eq.'+memberData.id+'&order=is_master.desc,created_at.asc',
+      {headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}});
+    var rms=await res.json();
+    
+    if(!Array.isArray(rms)||!rms.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:24px;font-size:13px;">No roadmaps assigned yet.</div>';return;
+    }
+    
+    var html='';
+    for(var i=0;i<rms.length;i++){
+      var rm=rms[i];
+      var sRes=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_roadmap_stages?roadmap_id=eq.'+rm.id+'&order=stage_order.asc',
+        {headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}});
+      var stages=await sRes.json();
+      var completed=Array.isArray(stages)?stages.filter(function(s){return s.status==='completed';}).length:0;
+      var total=Array.isArray(stages)?stages.length:0;
+      var pct=total>0?Math.round(completed/total*100):0;
+      
+      html+='<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">';
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">';
+      html+='<div style="font-size:13px;font-weight:700;">'+(rm.is_master?'⭐ ':'')+rm.title+'</div>';
+      html+='<div style="font-size:16px;font-weight:800;color:var(--teal);">'+pct+'%</div>';
+      html+='</div>';
+      html+='<div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:10px;overflow:hidden;">';
+      html+='<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;"></div></div>';
+      if(Array.isArray(stages)&&stages.length){
+        html+='<div style="display:flex;flex-wrap:wrap;gap:5px;">';
+        var sic={'pending':'○','in_progress':'◐','completed':'●','skipped':'—'};
+        stages.forEach(function(s){
+          html+='<div style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(255,255,255,.03);border-radius:5px;border:1px solid var(--border2);">';
+          html+='<span style="color:'+(s.status==='completed'?'var(--green)':s.status==='in_progress'?'var(--teal)':'var(--ink3)')+';font-size:10px;">'+(sic[s.status]||'○')+'</span>';
+          html+='<span style="font-size:11px;color:'+(s.status==='in_progress'?'var(--ink)':'var(--ink2)')+'">'+s.title+'</span></div>';
+        });
+        html+='</div>';
+      }
+      html+='</div>';
+    }
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="color:var(--red);font-size:12px;">Error</div>';}
+}
+
+var _origShowTabEp=showTab;
+showTab=function(id,el){_origShowTabEp(id,el);if(id==='ep-roadmaps')loadEpRoadmaps();};
+
 </script>
 <style>
 :root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}
@@ -355,6 +405,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('ep-profile',this)">👤 My Profile</button>
       <button class="tab" onclick="showTab('ep-attendance',this)">📋 Attendance</button>
       <button class="tab" onclick="showTab('ep-news',this)">📰 News</button>
+      <button class="tab" onclick="showTab('ep-roadmaps',this)">🗺️ Roadmaps</button>
       <button class="tab" onclick="showTab('ep-meetings-inv',this)">📅 Meetings</button>
       <button class="tab" onclick="showTab('ep-actions',this)">📋 Action Items</button>
     </div>
@@ -887,5 +938,16 @@ function openSupportModal(tid,ttitle){
   }).catch(function(){toast('Error','te');});
 }
 </script>
+
+    <!-- ROADMAPS -->
+    <div class="tp" id="tp-ep-roadmaps">
+      <div class="panel">
+        <div class="ph"><div class="pt">🗺️ My Roadmaps & Projects</div></div>
+        <div class="pb" id="ep-roadmaps-body">
+          <div style="text-align:center;color:var(--ink3);padding:24px;">Loading...</div>
+        </div>
+      </div>
+    </div>
+
 </body>
 </html>
