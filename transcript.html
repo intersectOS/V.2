@@ -551,6 +551,7 @@ function showVoiceBanner(){
         <button class="lb" data-l="zh" onclick="setL('zh')">ZH</button>
         <button class="lb" data-l="pt" onclick="setL('pt')">PT</button>
       </div>
+      <button class="btn" onclick="document.getElementById('save-tr-modal').style.display='flex'" style="background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(99,102,241,.1));border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:7px;padding:6px 12px;font-size:11px;cursor:pointer;">💾 Save Transcript</button>
       <button class="btn bbg" onclick="exportAll('txt')">📤 All · TXT</button>
       <button onclick="toggleMeetingRoom()" style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a78bfa;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">🎙️ Meeting Room</button>
       <button class="btn bbg" onclick="exportAll('md')" style="background:linear-gradient(135deg,#7c3aed,#3b82f6);">📤 All · MD</button>
@@ -873,7 +874,7 @@ function viewTranscript(id){
   w.document.write('<html><head><title>Transcript</title><style>body{font-family:monospace;background:#030407;color:#e8ecf8;padding:30px;line-height:1.8;white-space:pre-wrap;font-size:13px;}h1{font-family:sans-serif;font-size:16px;margin-bottom:4px;}p{color:#4a5270;font-family:sans-serif;font-size:11px;margin-bottom:20px;}</style></head><body>');
   w.document.write('<h1>'+m.title+'</h1><p>'+( m.organization||'')+' · '+(m.date||'')+' · 🔒 CONFIDENTIAL</p>');
   w.document.write(m.transcript);
-  w.document.write('</body></html>');
+  w.document.write('<\/body><\/html>');
   w.document.close();
 }
 
@@ -1046,6 +1047,121 @@ window.addEventListener('DOMContentLoaded',function(){
     },1000);
   }catch(_e){}
 });
+</script>
+
+<!-- SAVE TRANSCRIPT MODAL -->
+<div id="save-tr-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0d1422;border:1px solid rgba(99,102,241,.2);border-radius:16px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;color:#e2eeff;">💾 Save Meeting Transcript</div>
+      <button onclick="document.getElementById('save-tr-modal').style.display='none'" style="background:none;border:none;color:#7ca3c8;cursor:pointer;font-size:20px;">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:11px;color:#7ca3c8;display:block;margin-bottom:4px;">Meeting Title *</label>
+        <input id="str-title" placeholder="e.g. Strategy — ACME Corp" style="width:100%;background:#111828;border:1px solid rgba(99,102,241,.15);border-radius:8px;padding:9px 12px;color:#e2eeff;font-size:13px;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#7ca3c8;display:block;margin-bottom:4px;">Date</label>
+        <input id="str-date" type="date" style="width:100%;background:#111828;border:1px solid rgba(99,102,241,.15);border-radius:8px;padding:9px 12px;color:#e2eeff;font-size:13px;outline:none;">
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;color:#7ca3c8;display:block;margin-bottom:4px;">Participants</label>
+      <input id="str-participants" placeholder="e.g. Sulaiman, Ahmed, Sarah (ACME)" style="width:100%;background:#111828;border:1px solid rgba(99,102,241,.15);border-radius:8px;padding:9px 12px;color:#e2eeff;font-size:13px;outline:none;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;color:#7ca3c8;display:block;margin-bottom:4px;">Companies Mentioned (separated by comma)</label>
+      <input id="str-companies" placeholder="e.g. ACME Corp, SEC, NEOM" style="width:100%;background:#111828;border:1px solid rgba(99,102,241,.15);border-radius:8px;padding:9px 12px;color:#e2eeff;font-size:13px;outline:none;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;color:#7ca3c8;display:block;margin-bottom:4px;">Paste Transcript *</label>
+      <textarea id="str-text" placeholder="Paste the full meeting transcript here..." style="width:100%;background:#111828;border:1px solid rgba(99,102,241,.15);border-radius:8px;padding:9px 12px;color:#e2eeff;font-size:12px;outline:none;resize:vertical;min-height:150px;line-height:1.6;"></textarea>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:11px;color:#7ca3c8;display:block;margin-bottom:4px;">Key Action Items</label>
+      <textarea id="str-actions" placeholder="Main action items from this meeting..." style="width:100%;background:#111828;border:1px solid rgba(99,102,241,.15);border-radius:8px;padding:9px 12px;color:#e2eeff;font-size:12px;outline:none;resize:vertical;min-height:70px;"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="saveTranscriptNow()" style="flex:1;background:linear-gradient(135deg,#6382ff,#a78bfa);border:none;border-radius:9px;padding:12px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">💾 Save to Memory</button>
+      <button onclick="document.getElementById('save-tr-modal').style.display='none'" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:12px 20px;color:#7ca3c8;cursor:pointer;">Cancel</button>
+    </div>
+    <div id="str-msg" style="display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:12px;text-align:center;"></div>
+  </div>
+</div>
+
+<script>
+var _STR_SB = 'https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/';
+var _STR_SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
+
+document.getElementById('str-date').value = new Date().toISOString().split('T')[0];
+
+document.getElementById('save-tr-modal').addEventListener('click', function(e){
+  if(e.target === this){ this.style.display = 'none'; }
+});
+
+async function saveTranscriptNow(){
+  var title = document.getElementById('str-title').value.trim();
+  var text = document.getElementById('str-text').value.trim();
+  var msg = document.getElementById('str-msg');
+
+  if(!title || !text){
+    msg.style.display='block';
+    msg.style.background='rgba(239,68,68,.1)';
+    msg.style.color='#f87171';
+    msg.style.border='1px solid rgba(239,68,68,.2)';
+    msg.textContent='Title and transcript are required';
+    return;
+  }
+
+  var companies = document.getElementById('str-companies').value
+    .split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+
+  try{
+    var payload = {
+      title: title,
+      meeting_date: document.getElementById('str-date').value || new Date().toISOString().split('T')[0],
+      participants: document.getElementById('str-participants').value.trim(),
+      transcript_text: text,
+      action_items: document.getElementById('str-actions').value.trim(),
+      companies_mentioned: companies,
+      created_by: 'admin'
+    };
+
+    var res = await fetch(_STR_SB + 'ix_meeting_transcripts', {
+      method: 'POST',
+      headers: {
+        'apikey': _STR_SK,
+        'Authorization': 'Bearer ' + _STR_SK,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if(!res.ok) throw new Error('Save failed: ' + res.status);
+
+    msg.style.display='block';
+    msg.style.background='rgba(52,211,153,.1)';
+    msg.style.border='1px solid rgba(52,211,153,.2)';
+    msg.style.color='#34d399';
+    msg.textContent='✅ Saved to organizational memory!';
+
+    setTimeout(function(){
+      ['str-title','str-participants','str-companies','str-text','str-actions'].forEach(function(id){
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('save-tr-modal').style.display = 'none';
+      msg.style.display = 'none';
+    }, 2000);
+
+  } catch(e){
+    msg.style.display='block';
+    msg.style.background='rgba(239,68,68,.1)';
+    msg.style.color='#f87171';
+    msg.textContent='Error: ' + e.message;
+  }
+}
 </script>
 </body>
 </html>

@@ -285,6 +285,132 @@ async function setStageStatus(status){
 // Load roadmaps on init
 setTimeout(function(){loadAllRoadmaps();},2500);
 
+
+// ── Meeting Intelligence Chat ──
+var _mcHistory = [];
+var _mcThinking = false;
+
+function openMeetingChat(){
+  var modal = document.getElementById('m-meeting-chat');
+  if(modal){
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.classList.add('on');
+    document.getElementById('mc-input').focus();
+  }
+}
+
+async function sendMeetingChat(){
+  var input = document.getElementById('mc-input');
+  var q = input.value.trim();
+  if(!q || _mcThinking) return;
+  
+  input.value = '';
+  _mcThinking = true;
+  document.getElementById('mc-send-btn').disabled = true;
+  
+  // Add user message
+  addMcMsg('user', q);
+  
+  // Show thinking
+  var msgs = document.getElementById('mc-messages');
+  var thinkDiv = document.createElement('div');
+  thinkDiv.id = 'mc-thinking';
+  thinkDiv.style.cssText = 'display:flex;gap:8px;align-items:flex-start;';
+  thinkDiv.innerHTML = '<div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(99,102,241,.05));border:1px solid rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🧠</div><div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;"><div style="display:flex;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--teal);animation:bounce .8s ease-in-out infinite;display:inline-block;"></span><span style="width:6px;height:6px;border-radius:50%;background:var(--teal);animation:bounce .8s .15s ease-in-out infinite;display:inline-block;"></span><span style="width:6px;height:6px;border-radius:50%;background:var(--teal);animation:bounce .8s .3s ease-in-out infinite;display:inline-block;"></span></div></div>';
+  msgs.appendChild(thinkDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+  
+  try{
+    // Load relevant transcripts from DB
+    var transcripts = await loadTranscriptsForChat(q);
+    
+    // Build context
+    var context = transcripts.length > 0
+      ? transcripts.map(function(t, i){
+          return (i+1)+'. Meeting: '+t.title+' ('+( t.meeting_date||'no date')+')\n'
+            +'Participants: '+(t.participants||'—')+'\n'
+            +'Companies: '+(t.companies_mentioned?(Array.isArray(t.companies_mentioned)?t.companies_mentioned.join(', '):t.companies_mentioned):'—')+'\n'
+            +'Transcript summary:\n'+(t.transcript_text||'').substring(0,1500)
+            +(t.action_items?'\n\nAction Items:\n'+t.action_items:'');
+        }).join('\n\n---\n\n')
+      : 'No meeting transcripts found in the database yet.';
+    
+    var systemPrompt = 'You are the organizational memory of Intersect, a Saudi expansion and venture building firm. '
+      +'You have access to meeting transcripts and can answer questions about meetings, decisions, companies, and action items. '
+      +'Answer in the same language the user asks in (Arabic or English). '
+      +'Be specific and cite which meeting or date when relevant. '
+      +'If information is not in the transcripts, say so clearly.\n\n'
+      +'Available meeting data:\n'+context;
+    
+    // Call AI via Worker
+    _mcHistory.push({role:'user', content:q});
+    var aiMsgs = [{role:'system',content:systemPrompt}].concat(_mcHistory);
+    
+    var res = await fetch( + WORKER + , {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model: + MODEL + , messages:aiMsgs, max_tokens:800, temperature:0.3})
+    });
+    var d = await res.json();
+    var reply = d.error ? ('❌ '+d.error.message) : d.choices[0].message.content;
+    
+    _mcHistory.push({role:'assistant',content:reply});
+    if(_mcHistory.length > 16) _mcHistory = _mcHistory.slice(-16);
+    
+    // Remove thinking
+    var th = document.getElementById('mc-thinking');
+    if(th) th.remove();
+    
+    addMcMsg('ai', reply.replace(/\n/g,'<br>'));
+    
+  }catch(e){
+    var th = document.getElementById('mc-thinking');
+    if(th) th.remove();
+    addMcMsg('ai', '❌ Error: '+e.message);
+  }
+  
+  _mcThinking = false;
+  document.getElementById('mc-send-btn').disabled = false;
+  document.getElementById('mc-input').focus();
+}
+
+function addMcMsg(role, text){
+  var msgs = document.getElementById('mc-messages');
+  var div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:8px;align-items:flex-start;'+(role==='user'?'flex-direction:row-reverse;':'');
+  var avatar = role==='user' 
+    ? '<div style="width:30px;height:30px;border-radius:8px;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👤</div>'
+    : '<div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(99,102,241,.05));border:1px solid rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🧠</div>';
+  var bubble = '<div style="background:'+(role==='user'?'rgba(124,58,237,.1)':'var(--card2)')+';border:1px solid '+(role==='user'?'rgba(124,58,237,.2)':'var(--border)')+';border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.7;max-width:520px;">'+text+'</div>';
+  div.innerHTML = avatar + bubble;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function loadTranscriptsForChat(query){
+  try{
+    // Load recent transcripts (max 5 most relevant)
+    var res = await fetch(_SB+'ix_meeting_transcripts?order=meeting_date.desc&limit=5',
+      {headers:{'apikey':_H,'Authorization':'Bearer '+_H}});
+    var all = await res.json();
+    if(!Array.isArray(all)) return [];
+    
+    // Simple relevance: check if query words appear in title/companies
+    var qLower = query.toLowerCase();
+    var relevant = all.filter(function(t){
+      var searchIn = (t.title||'').toLowerCase()+' '
+        +(t.participants||'').toLowerCase()+' '
+        +(Array.isArray(t.companies_mentioned)?t.companies_mentioned.join(' '):'').toLowerCase()+' '
+        +(t.action_items||'').toLowerCase();
+      return qLower.split(' ').some(function(w){ return w.length > 2 && searchIn.includes(w); });
+    });
+    
+    return relevant.length > 0 ? relevant : all.slice(0,3);
+  }catch(e){ return []; }
+}
+
 </script>
 <style>
 :root{
@@ -736,6 +862,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
       <div class="topbar-r">
         <button onclick="openAdvisors()" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(124,58,237,.1));border:1px solid rgba(245,158,11,.3);color:var(--gold);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">🧠 AI Advisors</button>
         <a href="mawjat-admin.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(56,189,248,.15),rgba(56,189,248,.05));border:1px solid rgba(56,189,248,.3);color:#38bdf8;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;text-decoration:none;font-family:'Syne',sans-serif;">🌊 موجات Admin</a>
+        <button onclick="openMeetingChat()" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(99,102,241,.05));border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">🧠 Meeting Memory</button>
         <div class="search-wrap">
           <input type="text" class="search-inp" id="gsearch" placeholder="🔍 Search..." oninput="globalSearch(this.value)">
           <div class="search-drop" id="search-drop"></div>
@@ -1504,6 +1631,39 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
             <div style="color:var(--ink3);font-size:12px;text-align:center;padding:16px;">Click refresh to load history</div>
           </div>
         </div>
+
+
+<!-- MEETING INTELLIGENCE MODAL -->
+<div class="mo" id="m-meeting-chat" style="z-index:600;">
+  <div class="modal" style="max-width:680px;width:95%;max-height:85vh;display:flex;flex-direction:column;">
+    <div class="mh">
+      <div class="mtit">🧠 Meeting Intelligence</div>
+      <button class="mcl" onclick="document.getElementById('m-meeting-chat').style.display='none'">✕</button>
+    </div>
+    <div style="padding:10px 16px;border-bottom:1px solid var(--border2);font-size:11px;color:var(--ink3);">
+      Ask about any meeting, company, decision, or action item from your saved transcripts.
+    </div>
+    <div id="mc-messages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:300px;max-height:400px;">
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(99,102,241,.05));border:1px solid rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🧠</div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.6;max-width:520px;">
+          مرحباً! أنا ذاكرة Intersect. اسألني عن أي اجتماع، شركة، قرار، أو action item من الاجتماعات المحفوظة.
+          <br><br>
+          مثال: "وش قلنا عن شركة X؟" أو "وش القرارات من اجتماع الأسبوع الماضي؟"
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;">
+      <input id="mc-input" placeholder="اسأل عن أي اجتماع أو شركة أو قرار..." 
+        style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font-family:inherit;font-size:13px;outline:none;"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendMeetingChat()">
+      <button onclick="sendMeetingChat()" id="mc-send-btn"
+        style="background:linear-gradient(135deg,#6382ff,#a78bfa);border:none;border-radius:8px;padding:9px 16px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">
+        إرسال
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════ MODALS ═══════════ -->
 
