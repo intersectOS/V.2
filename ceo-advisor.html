@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO Advisor — Intersect OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#030407; --base:#07080f; --surface:#0c0e18; --card:#0f1220; --card2:#141728;
+  --border:#1a1f38; --border2:#232a45;
+  --ink:#e8ecf8; --ink2:#8892b0; --ink3:#4a5270;
+  --purple:#7c3aed; --purple-light:#a78bfa; --blue:#3b82f6;
+  --grad:linear-gradient(135deg,#7c3aed,#3b82f6);
+  --teal:#06b6d4; --green:#22c55e; --red:#ef4444; --gold:#f59e0b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Syne','DM Sans',sans-serif;
+  background: var(--void);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--base);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.back-btn {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--ink2);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .2s;
+  font-weight: 600;
+}
+.back-btn:hover { border-color: var(--purple); color: var(--purple-light); }
+
+.advisor-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.advisor-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(124,58,237,.3), rgba(59,130,246,.2));
+  border: 1px solid rgba(124,58,237,.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.advisor-info h2 {
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.advisor-info p {
+  font-size: 11px;
+  color: var(--ink3);
+  font-weight: 400;
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+/* ── QUICK QUESTIONS ── */
+.quick-section {
+  padding: 20px 24px 0;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.quick-label {
+  font-size: 11px;
+  color: var(--ink3);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.quick-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--ink2);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all .2s;
+  line-height: 1.4;
+}
+.quick-btn:hover {
+  border-color: rgba(124,58,237,.4);
+  color: var(--ink);
+  background: rgba(124,58,237,.07);
+  transform: translateY(-1px);
+}
+
+/* ── CHAT AREA ── */
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── MESSAGES ── */
+.msg {
+  display: flex;
+  gap: 12px;
+  animation: fadeUp .3s ease;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.msg.user { flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.msg.advisor .msg-avatar {
+  background: linear-gradient(135deg, rgba(124,58,237,.3), rgba(59,130,246,.2));
+  border: 1px solid rgba(124,58,237,.3);
+}
+.msg.user .msg-avatar {
+  background: var(--card2);
+  border: 1px solid var(--border2);
+}
+
+.msg-bubble {
+  max-width: 72%;
+  padding: 13px 16px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.7;
+  font-weight: 400;
+}
+.msg.advisor .msg-bubble {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top-left-radius: 4px;
+  color: var(--ink);
+}
+.msg.user .msg-bubble {
+  background: linear-gradient(135deg, rgba(124,58,237,.25), rgba(59,130,246,.15));
+  border: 1px solid rgba(124,58,237,.3);
+  border-top-right-radius: 4px;
+  color: var(--ink);
+}
+
+/* Formatted advisor response */
+.msg-bubble .section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--purple-light);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 12px 0 6px;
+}
+.msg-bubble .section-title:first-child { margin-top: 0; }
+
+.msg-bubble ul {
+  padding-left: 16px;
+  color: var(--ink2);
+}
+.msg-bubble ul li { margin-bottom: 5px; }
+
+.msg-bubble .highlight {
+  background: rgba(124,58,237,.12);
+  border-left: 2px solid var(--purple-light);
+  padding: 8px 12px;
+  border-radius: 0 8px 8px 0;
+  margin: 10px 0;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.msg-bubble .tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  margin-right: 4px;
+  margin-top: 4px;
+}
+.tag-green { background: rgba(34,197,94,.1); color: var(--green); }
+.tag-red   { background: rgba(239,68,68,.1);  color: var(--red); }
+.tag-gold  { background: rgba(245,158,11,.1); color: var(--gold); }
+.tag-teal  { background: rgba(6,182,212,.1);  color: var(--teal); }
+
+.msg-time {
+  font-size: 10px;
+  color: var(--ink3);
+  margin-top: 5px;
+  padding: 0 4px;
+}
+.msg.user .msg-time { text-align: right; }
+
+/* Typing indicator */
+.typing-dots span {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ink3);
+  margin: 0 2px;
+  animation: blink 1.2s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: .2s; }
+.typing-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+
+/* ── INPUT BAR ── */
+.input-bar {
+  background: var(--base);
+  border-top: 1px solid var(--border);
+  padding: 16px 24px;
+  position: sticky;
+  bottom: 0;
+}
+
+.input-wrap {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.input-box {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  resize: none;
+  min-height: 46px;
+  max-height: 120px;
+  transition: border-color .2s;
+  line-height: 1.5;
+}
+.input-box:focus {
+  outline: none;
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(124,58,237,.1);
+}
+.input-box::placeholder { color: var(--ink3); }
+
+.send-btn {
+  background: var(--grad);
+  border: none;
+  border-radius: 10px;
+  width: 46px; height: 46px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.send-btn:hover { transform: scale(1.05); opacity: .9; }
+.send-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+/* ── FRAMEWORK CARDS ── */
+.framework-card {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 10px;
+}
+.framework-card .fw-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.framework-card table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.framework-card th {
+  color: var(--ink3);
+  font-weight: 700;
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.framework-card td {
+  color: var(--ink2);
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(26,31,56,.5);
+}
+
+/* ── CONTEXT BANNER ── */
+.context-banner {
+  max-width: 800px;
+  margin: 12px auto 0;
+  width: 100%;
+  padding: 0 24px;
+}
+.context-inner {
+  background: rgba(124,58,237,.07);
+  border: 1px solid rgba(124,58,237,.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--ink3);
+}
+.context-inner span { color: var(--purple-light); font-weight: 600; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+
+.lang-bar{display:flex;gap:6px;padding:8px 20px;background:rgba(13,13,20,.9);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.lang-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--ink3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.lang-btn:hover{background:rgba(255,255,255,.08);color:var(--ink2);}
+.lang-btn.active{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.3);color:#a78bfa;}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <button class="back-btn" id="back-btn" onclick="history.back()">← Back</button>
+  <div class="advisor-badge">
+    <div class="advisor-icon">👑</div>
+    <div class="advisor-info">
+      <h2>CEO Advisor</h2>
+      <p id="advisor-subtitle">Strategic leadership · Vision · Board · Culture</p>
+    </div>
+  </div>
+  <div class="status-dot"></div>
+</div>
+
+<div class="lang-bar" id="lang-bar"></div>
+
+<!-- CONTEXT BANNER -->
+<div class="context-banner">
+  <div class="context-inner">
+    💡 This advisor uses frameworks from <span>executive_decision_framework</span>, <span>board_governance</span>, and <span>leadership_culture</span> — no API needed.
+  </div>
+</div>
+
+<!-- QUICK QUESTIONS -->
+<div class="quick-section">
+  <div class="quick-label" id="quick-label">Quick Questions</div>
+  <div class="quick-grid">
+    <button class="quick-btn" onclick="askQuestion(this.innerText)">🎯 How do I set strategy for next quarter?</button>
+    <button class="quick-btn" onclick="askQuestion(this.innerText)">📊 How do I prepare for a board meeting?</button>
+    <button class="quick-btn" onclick="askQuestion(this.innerText)">💰 Should I raise funding now?</button>
+    <button class="quick-btn" onclick="askQuestion(this.innerText)">👥 How do I build a strong culture?</button>
+    <button class="quick-btn" onclick="askQuestion(this.innerText)">⚠️ We have a team conflict, how to handle it?</button>
+    <button class="quick-btn" onclick="askQuestion(this.innerText)">🚀 How do I know if we have product-market fit?</button>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="chat-area" id="chat">
+  <!-- welcome built by JS -->
+  <!-- Welcome message -->
+  <div class="msg advisor">
+    <div class="msg-avatar">👑</div>
+    <div>
+      <div class="msg-bubble">
+        <div class="section-title">Welcome</div>
+        I'm your CEO Advisor. I think in frameworks, not opinions — and I'll give you direct, actionable guidance based on where your company is right now.
+        <div class="highlight">
+          Ask me anything about strategy, fundraising, board management, team culture, or any tough decision you're facing.
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:var(--ink3);">
+          Use the quick questions above — or type your own below.
+        </div>
+      </div>
+      <div class="msg-time">CEO Advisor · Ready</div>
+    </div>
+  </div>
+</div>
+
+<!-- INPUT BAR -->
+<div class="input-bar">
+  <div class="input-wrap">
+    <textarea
+      class="input-box"
+      id="userInput"
+      placeholder="Ask your CEO Advisor..."
+      rows="1"
+      onkeydown="handleKey(event)"
+      oninput="autoResize(this)"
+    ></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+// ── Knowledge Base from the SKILL.md files ──
+const CEO_KNOWLEDGE = {
+  strategy: {
+    keywords: ['strategy','strategic','direction','vision','plan','quarter','annual','okr','goal','priority'],
+    respond: (q) => {
+      const stage = detectStage(q);
+      return {
+        sections: [
+          { title: 'Strategic Planning Cycle', content: `Based on your stage (${stage}), here's your planning rhythm:` },
+        ],
+        bullets: stage === 'seed'
+          ? ['3-month: Survive & validate — what do customers actually want?','6-month: Find repeatable acquisition channel','12-month: Hit PMF signal (NPS > 40, retention > 80%)']
+          : ['Quarterly OKR setting with C-suite (COO drives execution)','Monthly strategy health check — are you still on track?','Annual 3-year vision refresh + 1-year strategic plan'],
+        highlight: "Key question to answer first: Can every person in this company explain our strategy in one sentence?",
+        framework: {
+          title: 'Strategic Options Matrix',
+          headers: ['Option', 'Upside', 'Downside', 'Reversible?'],
+          rows: [
+            ['Focus on core', 'Predictable', 'Slow growth', '✅ Yes'],
+            ['New market', 'High growth', 'Distraction risk', '⚠️ Partial'],
+            ['New product', 'Diversified revenue', 'Execution risk', '❌ Hard'],
+          ]
+        },
+        tags: [{ label: 'Tree of Thought', type: 'teal' }, { label: 'Explore 3 paths', type: 'gold' }]
+      };
+    }
+  },
+  board: {
+    keywords: ['board','investor','meeting','fundrais','raise','deck','presentation','director'],
+    respond: (q) => ({
+      sections: [{ title: 'Board Meeting Framework', content: 'Here\'s how to run a board meeting that builds trust instead of burning it:' }],
+      bullets: [
+        'T-4 weeks: Draft agenda, confirm pre-reads',
+        'T-2 weeks: Materials to review committee',
+        'T-1 week: Board package distributed + pre-calls',
+        'Day-of: Start with executive session (independent directors)'
+      ],
+      highlight: "Board Presentation Order: Executive Summary → Performance Review → Market & Competition → Strategic Initiatives → Risk & Mitigation → Ask of the Board",
+      framework: {
+        title: 'CEO Report Essentials (3-5 pages)',
+        headers: ['Section', 'What to Include'],
+        rows: [
+          ['Executive Summary', 'Key achievements, critical issues, decisions needed'],
+          ['Performance', 'Financial KPIs, strategic progress'],
+          ['Challenges', 'Honest — with mitigation plan'],
+          ['Asks', 'Specific decisions or intros you need'],
+        ]
+      },
+      tags: [{ label: 'Never surprise the board', type: 'red' }, { label: 'Bad news early', type: 'gold' }]
+    })
+  },
+  funding: {
+    keywords: ['fund','raise','capital','runway','investment','round','series','seed','valuation','money','cash'],
+    respond: (q) => ({
+      sections: [{ title: 'Fundraising Readiness Check', content: 'Before deciding to raise, answer these honestly:' }],
+      bullets: [
+        'Runway check: Do you have < 12 months of runway? If yes → start NOW',
+        'Know your numbers cold: MRR, growth rate, CAC, LTV, burn multiple',
+        'Burn multiple: < 1.5x = efficient, > 2x = fix before raising',
+        'Timing: Raise from strength, not desperation — 18+ months runway is ideal'
+      ],
+      highlight: "Burn Multiple = Net Burn ÷ Net New ARR. If it's above 2x, investors will ask why. Have your answer ready.",
+      framework: {
+        title: 'Capital Allocation Priorities',
+        headers: ['Priority', 'Allocation', 'What it covers'],
+        rows: [
+          ['Essential', '40-50%', 'Operations, compliance, security'],
+          ['Strategic', '30-40%', 'Growth, competitive advantage'],
+          ['Efficiency', '10-15%', 'Cost reduction, productivity'],
+          ['Experimental', '5-10%', 'Innovation, new bets'],
+        ]
+      },
+      tags: [{ label: 'Raise from strength', type: 'green' }, { label: 'Know your numbers', type: 'teal' }]
+    })
+  },
+  culture: {
+    keywords: ['culture','team','people','hire','fire','employee','engagement','value','leadership','morale'],
+    respond: (q) => ({
+      sections: [{ title: 'Culture Reality Check', content: "Culture is what people do when you're not in the room. Here's how to diagnose and improve it:" }],
+      bullets: [
+        'Start with employee survey on 8 dimensions: Purpose, Leadership, Management, Environment, Growth, Recognition, Wellbeing, Belonging',
+        'Find the gap: current vs desired culture on 4 axes (Innovation↔Stability, Competition↔Collaboration, Customer↔Operations, Short↔Long term)',
+        'Phase 1 (1-2mo): Assess. Phase 2 (2-3mo): Design. Phase 3 (4-12mo): Implement. Phase 4 (12mo+): Embed'
+      ],
+      highlight: "Quick diagnostic: Are key people leaving and you didn't see it coming? Is your team executing differently when you're not watching? These are culture failures.",
+      framework: {
+        title: 'Talent Review — 9-Box Quick Guide',
+        headers: ['Box', 'Performance', 'Potential', 'Action'],
+        rows: [
+          ['Stars', 'High', 'High', 'Stretch assignments, fast-track'],
+          ['High Performers', 'High', 'Medium', 'Retention focus, leadership opps'],
+          ['High Potentials', 'Medium', 'High', 'Intensive coaching, skill-build'],
+          ['Underperformers', 'Low', 'Low', 'PIP or exit conversation'],
+        ]
+      },
+      tags: [{ label: 'Model it first', type: 'purple' }, { label: 'Enforce consistently', type: 'gold' }]
+    })
+  },
+  decision: {
+    keywords: ['decide','decision','should i','choice','dilemma','option','help me think','what do you think','advice','how do i'],
+    respond: (q) => ({
+      sections: [{ title: 'DECIDE Framework', content: "Let me walk you through the structured way to think about this:" }],
+      bullets: [
+        'D — Define: What exactly is the decision? (not the symptom)',
+        'E — Establish criteria: What does a good outcome look like?',
+        'C — Consider: Generate at least 3 alternatives, including "do nothing"',
+        'I — Identify: Which option wins on risk-adjusted basis?',
+        'D — Develop: What\'s the implementation plan for that choice?',
+        'E — Evaluate: How will you know if it\'s working? (set a review date)'
+      ],
+      highlight: "CEO key question before any major decision: What's the one thing that, if it goes wrong, kills us? Start your decision-making from that risk.",
+      framework: {
+        title: 'Red Flags Check',
+        headers: ['Signal', 'Risk Level'],
+        rows: [
+          ['You\'re the bottleneck for 3+ decisions/week', '🔴 High'],
+          ['Board surprises you with questions', '🔴 High'],
+          ['Calendar is 80%+ meetings, no strategic blocks', '🟡 Medium'],
+          ['Team can\'t explain strategy without you', '🟡 Medium'],
+          ['You\'re avoiding a hard conversation', '🔴 High'],
+        ]
+      },
+      tags: [{ label: 'Tree of Thought', type: 'teal' }, { label: '3 paths minimum', type: 'gold' }]
+    })
+  },
+  pmf: {
+    keywords: ['pmf','product market fit','traction','customers','retention','growth','nps','churn'],
+    respond: () => ({
+      sections: [{ title: 'PMF Diagnostic', content: 'Product-Market Fit is not a feeling — it\'s a signal in the data:' }],
+      bullets: [
+        'NPS > 40: Are customers genuinely disappointed if you disappeared?',
+        'Retention > 80% at 30 days (consumer) or 90% at 12 months (B2B)',
+        'Organic word-of-mouth: Are customers referring without being asked?',
+        'Usage frequency: Are they using it the way you intended?'
+      ],
+      highlight: "Sean Ellis test: Ask customers 'How would you feel if you could no longer use this product?' If > 40% say 'Very disappointed' — you have PMF.",
+      framework: {
+        title: 'Stage-Adaptive Metrics',
+        headers: ['Stage', 'Focus Metric', 'Target'],
+        rows: [
+          ['Pre-PMF', 'Retention D30', '> 40%'],
+          ['PMF Search', 'NPS', '> 40'],
+          ['Post-PMF', 'Organic growth %', '> 30% of new users'],
+          ['Scale', 'Burn multiple', '< 1.5x'],
+        ]
+      },
+      tags: [{ label: 'Data over feelings', type: 'teal' }, { label: 'NPS > 40', type: 'green' }]
+    })
+  }
+};
+
+function detectStage(q) {
+  if (/seed|early|pre.?revenue|mvp|validate/i.test(q)) return 'seed';
+  if (/series.?a|growth|scale/i.test(q)) return 'series-a';
+  return 'growth stage';
+}
+
+function matchIntent(q) {
+  const lower = q.toLowerCase();
+  for (const [key, data] of Object.entries(CEO_KNOWLEDGE)) {
+    if (data.keywords.some(kw => lower.includes(kw))) return data.respond(q);
+  }
+  return null;
+}
+
+function buildGenericResponse(q) {
+  return {
+    sections: [{ title: 'CEO Perspective', content: "Here's how I'd think about this as a CEO:" }],
+    bullets: [
+      'Start with the real problem — not the symptom on the surface',
+      'Identify who is affected and what they need from you',
+      'What\'s the one decision that unlocks everything else here?',
+      'What information are you missing before you can decide?'
+    ],
+    highlight: "CEO mindset check: Am I spending time on the highest-leverage activity right now? Is this a me-decision or can I delegate it?",
+    tags: [{ label: 'Think first', type: 'gold' }, { label: 'Then act', type: 'green' }]
+  };
+}
+
+function renderResponse(resp) {
+  let html = '';
+  if (resp.sections) {
+    resp.sections.forEach(s => {
+      html += `<div class="section-title">${s.title}</div>`;
+      html += `<div style="color:var(--ink2);margin-bottom:8px;">${s.content}</div>`;
+    });
+  }
+  if (resp.bullets) {
+    html += `<ul>`;
+    resp.bullets.forEach(b => { html += `<li style="margin-bottom:6px;">${b}</li>`; });
+    html += `</ul>`;
+  }
+  if (resp.highlight) {
+    html += `<div class="highlight">${resp.highlight}</div>`;
+  }
+  if (resp.framework) {
+    html += `<div class="framework-card">
+      <div class="fw-title">📊 ${resp.framework.title}</div>
+      <table>
+        <thead><tr>${resp.framework.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${resp.framework.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }
+  if (resp.tags) {
+    html += `<div style="margin-top:10px;">`;
+    resp.tags.forEach(t => {
+      const cls = t.type === 'green' ? 'tag-green' : t.type === 'red' ? 'tag-red' : t.type === 'gold' ? 'tag-gold' : 'tag-teal';
+      html += `<span class="tag ${cls}">${t.label}</span>`;
+    });
+    html += `</div>`;
+  }
+  return html;
+}
+
+function getTime() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+function addUserMsg(text) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg user';
+  div.innerHTML = `
+    <div class="msg-avatar">👤</div>
+    <div>
+      <div class="msg-bubble">${text}</div>
+      <div class="msg-time">${getTime()}</div>
+    </div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function addTyping() {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg advisor';
+  div.id = 'typing-msg';
+  div.innerHTML = `
+    <div class="msg-avatar">👑</div>
+    <div>
+      <div class="msg-bubble">
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-msg');
+  if (t) t.remove();
+}
+
+function addAdvisorMsg(html) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg advisor';
+  div.innerHTML = `
+    <div class="msg-avatar">👑</div>
+    <div>
+      <div class="msg-bubble">${html}</div>
+      <div class="msg-time">CEO Advisor · ${getTime()}</div>
+    </div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  addUserMsg(text);
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+
+  addTyping();
+
+  removeTyping();
+  var reply = await askGemini(text);
+  addAdvisorMsg(formatGeminiResponse(reply));
+  document.getElementById('sendBtn').disabled = false;
+}
+
+function askQuestion(text) {
+  document.getElementById('userInput').value = text;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── Language System ──
+var LANGS = {
+  en:{dir:'ltr',subtitle:'Strategic leadership - Vision - Board - Culture',back:'Back',quick_label:'Quick Questions',placeholder:'Ask about strategy, fundraising, team, decisions...',send:'Send',welcome_title:'Welcome to CEO Advisor',welcome_body:'I think in frameworks, not opinions. Direct, actionable guidance based on where your company is right now.',welcome_hl:'Ask me anything about strategy, fundraising, board management, team culture, or any tough decision.',quick:['Strategy for next quarter?','How to prepare for board meeting?','Should I raise funding now?','How to build strong culture?','Team conflict, how to handle?','Do we have product-market fit?']},
+  ar:{dir:'rtl',subtitle:'القيادة الاستراتيجية - الرؤية - مجلس الإدارة - الثقافة',back:'رجوع',quick_label:'أسئلة سريعة',placeholder:'اسأل عن الاستراتيجية، التمويل، الفريق...',send:'إرسال',welcome_title:'مرحباً بك في مستشار الرئيس التنفيذي',welcome_body:'أفكر بالأطر لا بالآراء. إرشادات مباشرة وقابلة للتنفيذ.',welcome_hl:'اسألني عن الاستراتيجية، التمويل، مجلس الإدارة، ثقافة الفريق، أو أي قرار صعب.',quick:['استراتيجية الربع القادم؟','كيف أستعد لاجتماع مجلس الإدارة؟','هل أجمع التمويل الآن؟','كيف أبني ثقافة قوية؟','صراع في الفريق، كيف أتعامل؟','هل لدينا product-market fit؟']},
+  es:{dir:'ltr',subtitle:'Liderazgo estratégico - Visión - Board - Cultura',back:'Volver',quick_label:'Preguntas Rápidas',placeholder:'Pregunta sobre estrategia, financiamiento, equipo...',send:'Enviar',welcome_title:'Bienvenido al Asesor CEO',welcome_body:'Pienso en marcos, no en opiniones. Orientación directa y accionable.',welcome_hl:'Pregúntame sobre estrategia, fundraising, board, cultura o cualquier decisión difícil.',quick:['Estrategia próximo trimestre?','Preparar reunión board?','Levantar fondos ahora?','Construir cultura sólida?','Conflicto en equipo?','Tenemos product-market fit?']},
+  fr:{dir:'ltr',subtitle:'Leadership stratégique - Vision - Board - Culture',back:'Retour',quick_label:'Questions Rapides',placeholder:'Posez des questions sur la stratégie, le financement...',send:'Envoyer',welcome_title:'Bienvenue au Conseiller CEO',welcome_body:'Je pense en cadres, pas en opinions. Conseils directs et actionnables.',welcome_hl:'Posez-moi des questions sur la stratégie, le financement, le board ou toute décision difficile.',quick:['Stratégie prochain trimestre?','Préparer réunion board?','Lever des fonds maintenant?','Construire une culture solide?','Conflit dans équipe?','Avons-nous le product-market fit?']},
+  de:{dir:'ltr',subtitle:'Strategische Führung - Vision - Board - Kultur',back:'Zurück',quick_label:'Schnelle Fragen',placeholder:'Fragen zu Strategie, Finanzierung, Team...',send:'Senden',welcome_title:'Willkommen beim CEO-Berater',welcome_body:'Ich denke in Frameworks, nicht in Meinungen. Direkte, umsetzbare Ratschläge.',welcome_hl:'Fragen Sie mich zu Strategie, Fundraising, Board, Teamkultur oder schwierigen Entscheidungen.',quick:['Strategie nächstes Quartal?','Board-Meeting vorbereiten?','Kapital aufnehmen jetzt?','Starke Unternehmenskultur?','Teamkonflikt lösen?','Haben wir Product-Market Fit?']},
+  it:{dir:'ltr',subtitle:'Leadership strategica - Visione - Board - Cultura',back:'Indietro',quick_label:'Domande Rapide',placeholder:'Chiedi di strategia, finanziamento, team...',send:'Invia',welcome_title:'Benvenuto al Consulente CEO',welcome_body:'Penso in framework, non in opinioni. Guida diretta e pratica.',welcome_hl:'Chiedimi di strategia, fundraising, board, cultura del team o qualsiasi decisione difficile.',quick:['Strategia prossimo trimestre?','Preparare riunione board?','Raccogliere fondi ora?','Costruire cultura solida?','Conflitto nel team?','Abbiamo il product-market fit?']},
+  pt:{dir:'ltr',subtitle:'Liderança estratégica - Visão - Board - Cultura',back:'Voltar',quick_label:'Perguntas Rápidas',placeholder:'Pergunte sobre estratégia, captação, equipe...',send:'Enviar',welcome_title:'Bem-vindo ao Consultor CEO',welcome_body:'Penso em frameworks, não em opiniões. Orientação direta e acionável.',welcome_hl:'Pergunte-me sobre estratégia, fundraising, board, cultura da equipe ou qualquer decisão difícil.',quick:['Estratégia próximo trimestre?','Preparar reunião board?','Captar recursos agora?','Construir cultura forte?','Conflito no time?','Temos product-market fit?']},
+  ru:{dir:'ltr',subtitle:'Стратегическое лидерство - Видение - Совет - Культура',back:'Назад',quick_label:'Быстрые Вопросы',placeholder:'Спросите о стратегии, финансировании, команде...',send:'Отправить',welcome_title:'Добро пожаловать к советнику CEO',welcome_body:'Я думаю фреймворками. Прямые, практичные советы.',welcome_hl:'Спросите о стратегии, fundraising, совете директоров, культуре команды или сложных решениях.',quick:['Стратегия на следующий квартал?','Подготовка к заседанию совета?','Привлечение финансирования?','Сильная корпоративная культура?','Конфликт в команде?','Есть ли product-market fit?']},
+  zh:{dir:'ltr',subtitle:'战略领导力 - 愿景 - 董事会 - 文化',back:'返回',quick_label:'快速问题',placeholder:'询问战略、融资、团队、决策...',send:'发送',welcome_title:'欢迎使用CEO顾问',welcome_body:'我用框架思考，而非观点。直接、可操作的指导。',welcome_hl:'向我咨询战略、融资、董事会管理、团队文化或任何艰难决策。',quick:['下季度战略设定?','准备董事会会议?','现在应该融资吗?','如何建立强大的文化?','团队有冲突怎么办?','我们有产品市场契合吗?']},
+  ja:{dir:'ltr',subtitle:'戦略的リーダーシップ - ビジョン - ボード - カルチャー',back:'戻る',quick_label:'クイック質問',placeholder:'戦略、資金調達、チームについて質問...',send:'送信',welcome_title:'CEOアドバイザーへようこそ',welcome_body:'意見ではなくフレームワークで考えます。直接的で実行可能なガイダンス。',welcome_hl:'戦略、資金調達、ボード管理、チームカルチャー、または難しい意思決定について質問してください。',quick:['次四半期の戦略?','ボードミーティング準備?','資金調達すべきか?','強いカルチャーの作り方?','チームの対立解決?','プロダクトマーケットフィット確認?']},
+  ko:{dir:'ltr',subtitle:'전략적 리더십 - 비전 - 이사회 - 문화',back:'뒤로',quick_label:'빠른 질문',placeholder:'전략, 펀드레이징, 팀, 의사결정에 대해 질문...',send:'전송',welcome_title:'CEO 어드바이저에 오신 것을 환영합니다',welcome_body:'의견이 아닌 프레임워크로 생각합니다. 직접적이고 실행 가능한 지침.',welcome_hl:'전략, 펀드레이징, 이사회 관리, 팀 문화 또는 어려운 결정에 대해 질문하세요.',quick:['다음 분기 전략?','이사회 회의 준비?','지금 자금 조달?','강한 문화 구축?','팀 갈등 해결?','제품-시장 적합성?']}
+};
+
+// ── Google Translate ──
+var _GKEY = 'AIzaSyAvJxUoPoQGnGvmAofivA_33mSBXxRhwyU';
+var _langMap = {en:'en',ar:'ar',es:'es',fr:'fr',de:'de',it:'it',pt:'pt',ru:'ru',zh:'zh-CN',ja:'ja',ko:'ko'};
+
+async function translateText(text, targetLang) {
+  if (targetLang === 'en') return text;
+  try {
+    var r = await fetch('https://translation.googleapis.com/language/translate/v2?key=' + _GKEY, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({q: text, source: 'en', target: _langMap[targetLang] || targetLang, format: 'html'})
+    });
+    var d = await r.json();
+    if (d.data && d.data.translations && d.data.translations[0]) {
+      return d.data.translations[0].translatedText;
+    }
+    return text;
+  } catch(e) { return text; }
+}
+
+var currentLang = 'en';
+
+function initLangBar() {
+  var bar = document.getElementById('lang-bar');
+  var codes = ['en','ar','es','fr','de','it','pt','ru','zh','ja','ko'];
+  var names = {en:'EN',ar:'AR',es:'ES',fr:'FR',de:'DE',it:'IT',pt:'PT',ru:'RU',zh:'中文',ja:'日本語',ko:'한국어'};
+  bar.innerHTML = codes.map(function(c){
+    return '<button class="lang-btn'+(c==='en'?' active':'')+'" onclick="setLang(\'' +c+ '\',this)">'+names[c]+'</button>';
+  }).join('');
+}
+
+function setLang(code, btn) {
+  currentLang = code;
+  var L = LANGS[code];
+  if (!L) return;
+  document.documentElement.dir = L.dir;
+  document.documentElement.lang = code;
+  var sub = document.getElementById('advisor-subtitle');
+  if (sub) sub.textContent = L.subtitle;
+  var backBtn = document.getElementById('back-btn');
+  if (backBtn) backBtn.textContent = L.back;
+  var ql = document.getElementById('quick-label');
+  if (ql) ql.textContent = L.quick_label;
+  var inp = document.querySelector('.input-box');
+  if (inp) inp.placeholder = L.placeholder;
+  var sendBtn = document.querySelector('.send-btn');
+  if (sendBtn) sendBtn.textContent = L.send;
+  // Update quick buttons
+  document.querySelectorAll('.quick-btn').forEach(function(b, i){
+    if (L.quick[i]) { b.textContent = L.quick[i]; b.onclick = function(){ askQuestion(L.quick[i]); }; }
+  });
+  // Update welcome message
+  var wm = document.querySelector('.msg.advisor .msg-bubble');
+  if (wm) {
+    wm.innerHTML = '<div class="section-title">'+L.welcome_title+'</div>'
+      +'<div class="msg-body">'+L.welcome_body+'</div>'
+      +'<div class="highlight">'+L.welcome_hl+'</div>';
+  }
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  if (btn) btn.classList.add('active');
+}
+
+// Init on load
+window.addEventListener('DOMContentLoaded', function(){ initLangBar(); });
+
+
+// ── Gemini AI ──
+var _GKEY_AI = '';
+var _convHistory = [];
+
+async function askGemini(question) {
+  _convHistory.push({role:'user', content:question});
+  try {
+    var msgs = [{role:'system', content:'You are a world-class CEO Advisor for growth-stage companies (Seed to Series C). You think in frameworks, not opinions. You give direct, actionable guidance. Your expertise: company strategy, fundraising, investor relations, culture, board management, pivots, decision-making frameworks, hiring executives, long-term vision. Style: bottom line first, specific numbers and frameworks, challenge assumptions directly, max 4-5 bullet points, end with one clear recommended action. Respond in the same language the user writes in.'}].concat(_convHistory);
+    var res = await fetch('https://hidden-lab-b8e2.sulaiman-c0c.workers.dev', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Content-Type':'application/json'},
+      body: JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free', messages:msgs, max_tokens:1024, temperature:0.7})
+    });
+    var d = await res.json();
+    if (d.error) return '❌ ' + d.error.message;
+    var reply = d.choices[0].message.content;
+    _convHistory.push({role:'assistant', content:reply});
+    if (_convHistory.length > 20) _convHistory = _convHistory.slice(-20);
+    return reply;
+  } catch(e) { return '❌ Error: ' + e.message; }
+}
+
+function formatGeminiResponse(text) {
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/^### (.+)$/gm, '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:700;color:var(--purple);margin:8px 0 4px;">$1</div>');
+  text = text.replace(/^## (.+)$/gm, '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;color:var(--ink);margin:8px 0 4px;">$1</div>');
+  text = text.replace(/^- (.+)$/gm, '<div style="padding:4px 0 4px 16px;position:relative;color:var(--ink2);font-size:12px;"><span style="position:absolute;left:0;color:var(--purple);">→</span>$1</div>');
+  text = text.replace(/^\d+\. (.+)$/gm, '<div style="padding:4px 0 4px 16px;position:relative;color:var(--ink2);font-size:12px;"><span style="position:absolute;left:0;color:var(--purple);">•</span>$1</div>');
+  text = text.replace(/\n\n/g, '<br><br>');
+  text = text.replace(/\n/g, '<br>');
+  return '<div style="font-size:12px;line-height:1.7;">' + text + '</div>';
+}
+
+</script>
+</body>
+</html>
