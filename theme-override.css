@@ -1,0 +1,202 @@
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDE - Convert Dark Admin Dashboard to Light Theme
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Override Dark Theme Colors with Light Theme */
+  --void: #f8fafc;              /* Was: #030407 - Now light background */
+  --base: #f1f5f9;              /* Was: #07080f - Now lighter gray */
+  --surface: #ffffff;           /* Was: #0c0e18 - Now white */
+  --card: #ffffff;              /* Was: #0f1220 - Now white cards */
+  --card2: #f1f5f9;             /* Was: #141728 - Now light gray */
+  --border: #e2e8f0;            /* Was: #1a1f38 - Now light border */
+  --border2: #cbd5e1;           /* Was: #232a45 - Now lighter border */
+
+  /* Text Colors - Inverted for light theme */
+  --ink: #0f172a;               /* Was: #e8ecf8 - Now dark text */
+  --ink2: #475569;              /* Was: #8892b0 - Now medium gray */
+  --ink3: #94a3b8;              /* Was: #4a5270 - Now light gray */
+
+  /* Accent Colors - Keep the same */
+  --purple: #7c3aed;            /* Purple accent stays */
+  --purple-light: #a78bfa;      /* Light purple stays */
+  --blue: #3b82f6;              /* Blue stays */
+  --teal: #06b6d4;              /* Teal stays */
+  --green: #22c55e;             /* Green stays */
+  --red: #ef4444;               /* Red stays */
+  --orange: #f97316;            /* Orange stays */
+  --gold: #f59e0b;              /* Gold stays */
+}
+
+/* Fix text visibility on light background */
+body {
+  background-color: var(--void) !important;
+  color: var(--ink) !important;
+}
+
+.sidebar {
+  background: var(--base) !important;
+  color: var(--ink) !important;
+}
+
+.main {
+  background: var(--void) !important;
+}
+
+.card, [class*="card"] {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-color: var(--border) !important;
+}
+
+.topbar {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+/* Header text colors */
+.ptitle, .st {
+  color: var(--ink) !important;
+}
+
+.psub {
+  color: var(--ink3) !important;
+}
+
+/* Modal styling */
+.modal {
+  background: var(--card) !important;
+  border-color: var(--border2) !important;
+}
+
+/* Input fields */
+.fi, .fs, .fta {
+  background: var(--surface) !important;
+  border-color: var(--border2) !important;
+  color: var(--ink) !important;
+}
+
+.fi:focus, .fs:focus, .fta:focus {
+  border-color: var(--purple) !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important;
+}
+
+/* Buttons */
+.btn {
+  color: var(--ink) !important;
+}
+
+.bg {
+  background: linear-gradient(135deg, #7c3aed, #3b82f6) !important;
+  color: #fff !important;
+}
+
+.bo {
+  border-color: var(--border2) !important;
+  color: var(--ink2) !important;
+}
+
+/* Tables */
+.tbl {
+  color: var(--ink) !important;
+}
+
+.tbl th {
+  background: linear-gradient(135deg, #7c3aed, #3b82f6) !important;
+  color: #fff !important;
+  border-color: var(--border) !important;
+}
+
+.tbl td {
+  border-color: var(--border) !important;
+  color: var(--ink2) !important;
+}
+
+/* Panel headers */
+.ph {
+  border-bottom-color: var(--border) !important;
+}
+
+/* Notifications */
+.notif-panel {
+  background: var(--base) !important;
+  border-color: var(--border) !important;
+}
+
+.notif-item {
+  color: var(--ink2) !important;
+}
+
+/* Sidebar navigation */
+.ni {
+  color: var(--ink2) !important;
+  border-color: transparent !important;
+}
+
+.ni:hover {
+  background: var(--card2) !important;
+  color: var(--ink) !important;
+}
+
+.ni.on {
+  background: rgba(124, 58, 237, 0.1) !important;
+  color: var(--purple) !important;
+  border-color: rgba(124, 58, 237, 0.2) !important;
+}
+
+/* Forms */
+.fg {
+  color: var(--ink) !important;
+}
+
+.fl {
+  color: var(--ink2) !important;
+}
+
+/* Toast notifications */
+.toast {
+  background: var(--card2) !important;
+  border-color: var(--border2) !important;
+  color: var(--ink) !important;
+}
+
+/* Search input */
+.search-inp {
+  background: var(--card2) !important;
+  border-color: var(--border2) !important;
+  color: var(--ink) !important;
+}
+
+.search-inp:focus {
+  border-color: var(--purple) !important;
+  background: var(--surface) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar-track {
+  background: var(--base) !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border2) !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink3) !important;
+}
+
+/* Links */
+a {
+  color: var(--purple) !important;
+}
+
+a:hover {
+  color: var(--purple-light) !important;
+}
+
+/* Ensures proper contrast */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+  }
+}
