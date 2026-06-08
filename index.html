@@ -334,7 +334,7 @@ async function sendMeetingChat(){
           return (i+1)+'. Meeting: '+t.title+' ('+( t.meeting_date||'no date')+')\n'
             +'Participants: '+(t.participants||'—')+'\n'
             +'Companies: '+(t.companies_mentioned?(Array.isArray(t.companies_mentioned)?t.companies_mentioned.join(', '):t.companies_mentioned):'—')+'\n'
-            +'Transcript summary:\n'+(t.transcript_text||'').substring(0,1500)
+            +'Full Transcript:\n'+(t.transcript_text||'').substring(0,15000)
             +(t.action_items?'\n\nAction Items:\n'+t.action_items:'');
         }).join('\n\n---\n\n')
       : 'No meeting transcripts found in the database yet.';
@@ -353,7 +353,7 @@ async function sendMeetingChat(){
     var res = await fetch('https://hidden-lab-b8e2.sulaiman-c0c.workers.dev', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free', messages:aiMsgs, max_tokens:800, temperature:0.3})
+      body: JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free', messages:aiMsgs, max_tokens:1200, temperature:0.3})
     });
     var d = await res.json();
     var reply = d.error ? ('❌ '+d.error.message) : d.choices[0].message.content;
@@ -394,7 +394,7 @@ function addMcMsg(role, text){
 async function loadTranscriptsForChat(query){
   try{
     // Load recent transcripts (max 5 most relevant)
-    var res = await fetch(_SB+'ix_meeting_transcripts?order=meeting_date.desc&limit=5',
+    var res = await fetch(_SB+'ix_meeting_transcripts?order=meeting_date.desc&limit=10',
       {headers:{'apikey':_H,'Authorization':'Bearer '+_H}});
     var all = await res.json();
     if(!Array.isArray(all)) return [];
@@ -409,7 +409,7 @@ async function loadTranscriptsForChat(query){
       return qLower.split(' ').some(function(w){ return w.length > 2 && searchIn.includes(w); });
     });
     
-    return relevant.length > 0 ? relevant : all.slice(0,3);
+    return relevant.length > 0 ? relevant : all;
   }catch(e){ return []; }
 }
 
@@ -486,8 +486,8 @@ async function rejectBooking(id){
   --sidebar:255px;
 }
 [lang=ar]{font-family:'Cairo',sans-serif!important;direction:rtl;}
-[lang=ar] .sidebar{right:0;left:auto;border-right:none;border-left:1px solid var(--border);}
-[lang=ar] .main{margin-right:var(--sidebar);margin-left:0;}
+[lang=ar] .sidebar{left:0;right:auto;border-left:none;border-right:1px solid var(--border);}
+[lang=ar] .main{margin-left:var(--sidebar);margin-right:0;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--ink);min-height:100vh;overflow-x:hidden;}
 ::-webkit-scrollbar{width:4px;height:4px;}
