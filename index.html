@@ -328,9 +328,19 @@ async function sendMeetingChat(){
   msgs.scrollTop = msgs.scrollHeight;
   
   try{
+    // Remove thinking
+    var th = document.getElementById('mc-thinking');
+    if(th) th.remove();
+
     // Load relevant transcripts from DB
-    var transcripts = await loadTranscriptsForChat(q);
-    
+    var transcripts = [];
+    try {
+      var transcripts = await loadTranscriptsForChat(q);
+    } catch(loadErr) {
+      console.warn('Could not load transcripts:', loadErr);
+      transcripts = [];
+    }
+
     // Build context
     var context = transcripts.length > 0
       ? transcripts.map(function(t, i){
@@ -340,40 +350,61 @@ async function sendMeetingChat(){
             +'Full Transcript:\n'+(t.transcript_text||'').substring(0,15000)
             +(t.action_items?'\n\nAction Items:\n'+t.action_items:'');
         }).join('\n\n---\n\n')
-      : 'No meeting transcripts found in the database yet.';
-    
-    var systemPrompt = 'You are the organizational memory of Intersect, a Saudi expansion and venture building firm. '
-      +'You have access to meeting transcripts and can answer questions about meetings, decisions, companies, and action items. '
-      +'Answer in the same language the user asks in (Arabic or English). '
-      +'Be specific and cite which meeting or date when relevant. '
-      +'If information is not in the transcripts, say so clearly.\n\n'
-      +'Available meeting data:\n'+context;
-    
-    // Call AI via Worker
+      : 'لا توجد تسجيلات اجتماعات محفوظة حالياً.\nNo meeting transcripts found in the database yet.';
+
+    // Try AI endpoint
     _mcHistory.push({role:'user', content:q});
-    var aiMsgs = [{role:'system',content:systemPrompt}].concat(_mcHistory);
-    
-    var res = await fetch('https://hidden-lab-b8e2.sulaiman-c0c.workers.dev', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free', messages:aiMsgs, max_tokens:1200, temperature:0.3})
-    });
-    var d = await res.json();
-    var reply = d.error ? ('❌ '+d.error.message) : d.choices[0].message.content;
-    
-    _mcHistory.push({role:'assistant',content:reply});
-    if(_mcHistory.length > 16) _mcHistory = _mcHistory.slice(-16);
-    
-    // Remove thinking
-    var th = document.getElementById('mc-thinking');
-    if(th) th.remove();
-    
-    addMcMsg('ai', reply.replace(/\n/g,'<br>'));
-    
+
+    try {
+      var systemPrompt = 'You are the organizational memory of Intersect, a Saudi expansion and venture building firm. '
+        +'You have access to meeting transcripts and can answer questions about meetings, decisions, companies, and action items. '
+        +'Answer in the same language the user asks in (Arabic or English). '
+        +'Be specific and cite which meeting or date when relevant. '
+        +'If information is not in the transcripts, say so clearly.\n\n'
+        +'Available meeting data:\n'+context;
+
+      var aiMsgs = [{role:'system',content:systemPrompt}].concat(_mcHistory);
+
+      var res = await fetch('https://hidden-lab-b8e2.sulaiman-c0c.workers.dev', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free', messages:aiMsgs, max_tokens:1200, temperature:0.3}),
+        timeout: 10000
+      });
+
+      if (!res.ok) throw new Error('API returned status: '+res.status);
+      var d = await res.json();
+      var reply = d.error ? ('خطأ: '+d.error.message) : (d.choices && d.choices[0] ? d.choices[0].message.content : 'لم أستطع الحصول على رد.');
+
+      _mcHistory.push({role:'assistant',content:reply});
+      if(_mcHistory.length > 16) _mcHistory = _mcHistory.slice(-16);
+
+      addMcMsg('ai', reply.replace(/\n/g,'<br>'));
+
+    } catch(aiErr) {
+      console.error('AI API error:', aiErr);
+      // Fallback: Show helpful message
+      var fallbackMsg = '<strong>⚠️ تحذير: خدمة الذكاء الاصطناعي غير متوفرة حالياً</strong><br><br>'
+        + '<strong>السبب المحتمل:</strong><br>'
+        + '• خدمة API خارجية معطلة<br>'
+        + '• مشكلة في الاتصال بالشبكة<br>'
+        + '• جدار الحماية قد يحجب الاتصال<br><br>'
+        + '<strong>الحل:</strong><br>'
+        + '1️⃣ تأكد من اتصالك بالإنترنت<br>'
+        + '2️⃣ جرب المحادثة مرة أخرى بعد دقيقة<br>'
+        + '3️⃣ إذا استمرت المشكلة، قم بتفعيل خدمة AI الخاصة بك<br><br>'
+        + '<small>ℹ️ أثناء انتظار الإصلاح، يمكنك تصفح اجتماعاتك المحفوظة يدوياً</small>';
+
+      _mcHistory.push({role:'assistant',content:fallbackMsg});
+      addMcMsg('ai', fallbackMsg);
+    }
+
   }catch(e){
     var th = document.getElementById('mc-thinking');
     if(th) th.remove();
-    addMcMsg('ai', '❌ Error: '+e.message);
+    var errMsg = '❌ خطأ: ' + (e.message || 'حدث خطأ غير متوقع');
+    addMcMsg('ai', errMsg + '<br><br><small>تحقق من Console (F12) للتفاصيل</small>');
+    console.error('Chat error:', e);
   }
   
   _mcThinking = false;
@@ -397,11 +428,15 @@ function addMcMsg(role, text){
 async function loadTranscriptsForChat(query){
   try{
     // Load recent transcripts (max 5 most relevant)
-    var res = await fetch(_SB+'ix_meeting_transcripts?order=meeting_date.desc&limit=10',
-      {headers:{'apikey':_H,'Authorization':'Bearer '+_H}});
-    var all = await res.json();
-    if(!Array.isArray(all)) return [];
-    
+    const result = await sbFetch('ix_meeting_transcripts?order=meeting_date.desc&limit=10');
+
+    if (!result.success || !Array.isArray(result.data)) {
+      console.warn('No transcripts available');
+      return [];
+    }
+
+    const all = result.data;
+
     // Simple relevance: check if query words appear in title/companies
     var qLower = query.toLowerCase();
     var relevant = all.filter(function(t){
@@ -411,9 +446,12 @@ async function loadTranscriptsForChat(query){
         +(t.action_items||'').toLowerCase();
       return qLower.split(' ').some(function(w){ return w.length > 2 && searchIn.includes(w); });
     });
-    
+
     return relevant.length > 0 ? relevant : all;
-  }catch(e){ return []; }
+  }catch(e){
+    console.error('loadTranscriptsForChat error:', e);
+    return [];
+  }
 }
 
 
@@ -3487,9 +3525,33 @@ async function sbPatch(table,filter,body){
     return Array.isArray(d)?d:d;
   }catch(e){return null;}
 }
-var _SB='https://zmiywdpfdvllsxalklrv.supabase.co';
+var _SB='https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/';
 var _KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs';
-var _H={'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'};
+var _H={'apikey':_KEY,'Authorization':'Bearer '+_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+
+// Safe Supabase fetch wrapper
+async function sbFetch(endpoint, opts={}) {
+  try {
+    const url = _SB + endpoint;
+    const response = await fetch(url, {
+      ...opts,
+      headers: {
+        ..._H,
+        ...opts.headers
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Status ' + response.status);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch(e) {
+    console.error('Supabase error:', e);
+    return { success: false, error: e.message };
+  }
+}
 
 async function sbQ(table,filter,opts){
   opts=opts||{};
