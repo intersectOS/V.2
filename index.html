@@ -4,11 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Intersect PartnerOS</title>
+
+<!-- 📋 Design System & Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="system-style.css">
 
 <!-- 🔒 Security & Config Files -->
 <script src="config.js"></script>
 <script src="utils.js"></script>
+<script src="init.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <script>
 
@@ -674,7 +678,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 .svc-oth{background:rgba(74,82,112,.15);color:var(--ink3);border:1px solid rgba(74,82,112,.2);}
 
 /* CLIENT CARDS */
-.client-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.client-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:12px;}
 .client-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;transition:all .2s;cursor:pointer;position:relative;}
 .client-card:hover{border-color:var(--purple);transform:translateY(-2px);}
 .client-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
@@ -686,7 +690,7 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 .client-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);}
 
 /* PEOPLE GRID */
-.people-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;}
+.people-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:11px;}
 .person-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:14px;transition:all .2s;}
 .person-card:hover{border-color:var(--purple);}
 .person-avatar{width:44px;height:44px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff;margin-bottom:10px;overflow:hidden;flex-shrink:0;}
@@ -762,6 +766,9 @@ body{font-family:'Syne','DM Sans',sans-serif;background:var(--void);color:var(--
 .toast.success{border-color:rgba(34,197,94,.3);color:var(--green);}
 .toast.error{border-color:rgba(239,68,68,.3);color:var(--red);}
 
+/* PROJECT GRID */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:12px;}
+
 /* SECTION HEADER */
 .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;flex-wrap:wrap;gap:8px;}
 .st{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
@@ -820,7 +827,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
   .page{padding:10px!important;}
   .topbar{padding:10px 12px!important;}
   .kpis{gap:6px!important;}
-  .client-grid,.people-grid{grid-template-columns:1fr!important;}
+  .client-grid,.people-grid,.proj-grid{grid-template-columns:1fr!important;}
   .filter-row{flex-wrap:wrap;gap:6px;}
   .filter-row select,.filter-row input{width:100%!important;}
   #feed-filter-search{width:100%!important;}
@@ -902,7 +909,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 <!-- LOGIN -->
 <div id="login">
   <div class="lcard">
-    <img class="llogo" src="logo.png.PNG" alt="Intersect">
+    <img class="llogo" src="logo.png.PNG" alt="Intersect PartnerOS Logo">
     <div class="lbrand">INTERSECT PartnerOS</div>
     <div class="lsub" id="lsub">Executive Command Center</div>
     <input type="password" class="linput" id="lpass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
@@ -1364,7 +1371,7 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
     <!-- PROJECTS -->
     <div class="page" id="page-projects">
       <div class="sh"><div class="st" data-i="n_proj">Projects</div><button class="btn bg" onclick="openProjModal()">+ New</button></div>
-      <div id="proj-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;"></div>
+      <div id="proj-grid" class="proj-grid"></div>
     </div>
 
     <!-- TASKS -->
