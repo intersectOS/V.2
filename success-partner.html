@@ -333,6 +333,32 @@ showTab=function(id,el){
   if(id==='sp-roadmaps'){loadSpRoadmaps();loadSpOpportunities();}
 };
 
+
+async function loadMeetingInvites(targetId){
+  var el=document.getElementById(targetId||'meeting-invites-list');
+  if(!el)return;
+  try{
+    var r=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_meetings?order=date.desc&limit=15',
+      {headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}});
+    var meetings=await r.json();
+    if(!Array.isArray(meetings)||!meetings.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;font-size:12px;">No meetings yet</div>';return;
+    }
+    var now=new Date().toISOString().split('T')[0];
+    el.innerHTML=meetings.slice(0,8).map(function(m){
+      var d=m.date?new Date(m.date).toLocaleDateString('en-SA',{weekday:'short',month:'short',day:'numeric'}):'TBD';
+      var up=m.date&&m.date>=now;
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+          +'<div style="font-size:13px;font-weight:600;">'+(m.title||'Meeting')+'</div>'
+          +'<span style="font-size:10px;padding:2px 8px;border-radius:4px;background:'+(up?'rgba(6,182,212,.1)':'rgba(255,255,255,.05)')+';color:'+(up?'var(--teal)':'var(--ink3)')+'">'+(up?'Upcoming':'Past')+'</span>'
+        +'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);margin-top:4px;">📅 '+d+(m.time?' · '+m.time:'')+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);font-size:12px;padding:12px;">Error</div>';}
+}
+
 </script>
 <style>
 :root{--void:#030407;--card:#0f1220;--card2:#141728;--border:#1a1f38;--ink:#e8ecf8;--ink2:#8892b0;--ink3:#4a5270;--gold:#f59e0b;--teal:#06b6d4;--green:#22c55e;--red:#ef4444;--purple:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#3b82f6);}

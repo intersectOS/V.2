@@ -348,10 +348,10 @@ async function sendMeetingChat(){
     _mcHistory.push({role:'user', content:q});
     var aiMsgs = [{role:'system',content:systemPrompt}].concat(_mcHistory);
     
-    var res = await fetch( + WORKER + , {
+    var res = await fetch('https://hidden-lab-b8e2.sulaiman-c0c.workers.dev', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model: + MODEL + , messages:aiMsgs, max_tokens:800, temperature:0.3})
+      body: JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free', messages:aiMsgs, max_tokens:800, temperature:0.3})
     });
     var d = await res.json();
     var reply = d.error ? ('❌ '+d.error.message) : d.choices[0].message.content;
@@ -409,6 +409,65 @@ async function loadTranscriptsForChat(query){
     
     return relevant.length > 0 ? relevant : all.slice(0,3);
   }catch(e){ return []; }
+}
+
+
+// ── Expert Bookings Management ──
+async function loadBookings(){
+  try{
+    var res=await fetch(_SB+'ix_bookings?order=created_at.desc&limit=30',
+      {headers:{'apikey':_H,'Authorization':'Bearer '+_H}});
+    var bookings=await res.json();
+    var el=document.getElementById('admin-bookings-list');
+    if(!Array.isArray(bookings)||!bookings.length){
+      el.innerHTML='<div style="color:var(--ink3);font-size:12px;text-align:center;padding:16px;">No bookings yet.</div>';return;
+    }
+    var statusColors={pending_admin:'var(--gold)',admin_approved:'#818cf8',pending_expert:'#818cf8',confirmed:'var(--green)',rejected:'var(--red)',completed:'var(--ink3)'};
+    var statusLabels={pending_admin:'⏳ Pending Admin',admin_approved:'✓ Admin OK → Expert',pending_expert:'⏳ Pending Expert',confirmed:'✅ Confirmed',rejected:'❌ Rejected',completed:'✔ Completed'};
+    el.innerHTML=bookings.map(function(b){
+      var t=new Date(b.created_at).toLocaleDateString('en-SA',{month:'short',day:'numeric'});
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+          +'<div style="flex:1;">'
+            +'<div style="font-size:13px;font-weight:600;">'+b.client_name+' → '+b.expert_name+'</div>'
+            +'<div style="font-size:11px;color:var(--ink3);margin-top:2px;">'+b.duration_value+' '+b.duration_type+' · <span style="color:var(--gold);font-weight:700;">$'+(b.total_cost||0).toLocaleString()+'</span> · '+t+'</div>'
+            +(b.purpose?'<div style="font-size:11px;color:var(--ink2);margin-top:4px;">'+b.purpose.slice(0,100)+'</div>':'')
+          +'</div>'
+          +'<span style="font-size:10px;font-weight:700;color:'+(statusColors[b.status]||'var(--ink2)')+';white-space:nowrap;margin-left:8px;">'+(statusLabels[b.status]||b.status)+'</span>'
+        +'</div>'
+        +(b.status==='pending_admin'?
+          '<div style="display:flex;gap:6px;">'
+          +'<button onclick="approveBooking(\''+b.id+'\',\''+b.expert_name+'\')" style="flex:1;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;border-radius:6px;padding:6px;font-size:11px;cursor:pointer;">✓ Approve → Expert</button>'
+          +'<button onclick="rejectBooking(\''+b.id+'\')" style="flex:1;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red);border-radius:6px;padding:6px;font-size:11px;cursor:pointer;">✕ Reject</button>'
+          +'</div>'
+        :'')
+      +'</div>';
+    }).join('');
+  }catch(e){console.error(e);}
+}
+
+async function approveBooking(id,expertName){
+  try{
+    await fetch(_SB+'ix_bookings?id=eq.'+id,{method:'PATCH',
+      headers:{'apikey':_H,'Authorization':'Bearer '+_H,'Content-Type':'application/json'},
+      body:JSON.stringify({status:'pending_expert',updated_at:new Date().toISOString()})});
+    await fetch(_SB+'ix_history',{method:'POST',
+      headers:{'apikey':_H,'Authorization':'Bearer '+_H,'Content-Type':'application/json'},
+      body:JSON.stringify({entity_type:'booking',entity_id:id,action:'admin_approved',
+        note:'Approved by admin, sent to '+expertName,by_user:'admin'})});
+    toast('✅ Approved — sent to expert');
+    loadBookings();
+  }catch(e){toast('Error','te');}
+}
+
+async function rejectBooking(id){
+  try{
+    await fetch(_SB+'ix_bookings?id=eq.'+id,{method:'PATCH',
+      headers:{'apikey':_H,'Authorization':'Bearer '+_H,'Content-Type':'application/json'},
+      body:JSON.stringify({status:'rejected',updated_at:new Date().toISOString()})});
+    toast('Booking rejected');
+    loadBookings();
+  }catch(e){toast('Error','te');}
 }
 
 </script>
@@ -757,6 +816,8 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
 .ticker-sep{color:rgba(6,182,212,.4);margin:0 8px;font-size:10px;}
 @keyframes tickerMove{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 
+
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.4;}40%{transform:translateY(-5px);opacity:1;}}
 </style>
 </head>
 <body>
@@ -1536,7 +1597,19 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
         </div>
 
 
-        <!-- OPPORTUNITIES FROM PARTNERS -->
+        
+        <!-- EXPERT BOOKINGS -->
+        <div class="panel" style="margin-top:14px;">
+          <div class="ph">
+            <div class="ptit">📅 Expert Bookings</div>
+            <button class="btn bg bsm" onclick="loadBookings()" style="font-size:10px;">↻ Refresh</button>
+          </div>
+          <div class="pb" id="admin-bookings-list">
+            <div style="color:var(--ink3);font-size:12px;text-align:center;padding:16px;">Click refresh to load bookings</div>
+          </div>
+        </div>
+
+<!-- OPPORTUNITIES FROM PARTNERS -->
         <div class="panel" style="margin-top:14px;">
           <div class="ph">
             <div class="ptit">🎯 Partner Opportunities</div>
@@ -1818,19 +1891,35 @@ aside{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:v
   <div class="fgrid"><div class="fg"><label class="fl">WhatsApp</label><input class="fi" id="pp-wa"></div><div class="fg"><label class="fl">CV Link (Drive)</label><input class="fi" id="pp-cv" type="url" dir="ltr"></div></div>
   <div class="fgrid"><div class="fg"><label class="fl">Photo Link (Drive)</label><input class="fi" id="pp-photo" type="url" dir="ltr"></div><div class="fg" style="display:flex;align-items:center;padding-top:14px;"><label class="toggle"><input type="checkbox" id="pp-show-photo" checked><span class="toggle-slider"></span></label><span style="font-size:12px;margin-left:8px;">Show photo publicly</span></div></div>
   <div style="border:1px solid var(--border2);border-radius:8px;padding:12px;margin-bottom:11px;">
-    <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:9px;">💰 Internal Cost (never shown to clients)</div>
-    <div class="fgrid"><div class="fg"><label class="fl">Hourly Cost (SAR)</label><input class="fi" id="pp-rh" type="number"></div><div class="fg"><label class="fl">Monthly Cost (SAR)</label><input class="fi" id="pp-rm" type="number"></div></div>
-    <div class="fg"><label class="fl">Yearly Cost (SAR)</label><input class="fi" id="pp-ry" type="number" style="width:50%;"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:9px;">💰 Internal Cost (never shown to clients) — USD</div>
+    <div class="fgrid"><div class="fg"><label class="fl">Hourly Cost ($)</label><input class="fi" id="pp-rh" type="number"></div><div class="fg"><label class="fl">Daily Cost ($)</label><input class="fi" id="pp-rd" type="number"></div></div>
+    <div class="fgrid"><div class="fg"><label class="fl">Monthly Cost ($)</label><input class="fi" id="pp-rm" type="number"></div><div class="fg"><label class="fl">Yearly Cost ($)</label><input class="fi" id="pp-ry" type="number"></div></div>
   </div>
   <div style="border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:12px;margin-bottom:11px;background:rgba(245,158,11,.04);">
-    <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:9px;">💵 Client-Facing Price (shown in marketplace)</div>
-    <div class="fgrid"><div class="fg"><label class="fl">Per Hour (SAR)</label><input class="fi" id="pp-ph" type="number" placeholder="Price client pays"></div><div class="fg"><label class="fl">Per Month (SAR)</label><input class="fi" id="pp-pm" type="number" placeholder="Price client pays"></div></div>
-    <div class="fg"><label class="fl">Per Year (SAR)</label><input class="fi" id="pp-py" type="number" placeholder="Price client pays" style="width:50%;"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:9px;">💵 Client-Facing Price (shown in marketplace) — USD</div>
+    <div class="fgrid"><div class="fg"><label class="fl">Per Hour ($)</label><input class="fi" id="pp-ph" type="number" placeholder="Price client pays"></div><div class="fg"><label class="fl">Per Day / 8hrs ($)</label><input class="fi" id="pp-pd" type="number" placeholder="Full day rate"></div></div>
+    <div class="fgrid"><div class="fg"><label class="fl">Per Month ($)</label><input class="fi" id="pp-pm" type="number" placeholder="Price client pays"></div><div class="fg"><label class="fl">Per Year ($)</label><input class="fi" id="pp-py" type="number" placeholder="Price client pays"></div></div>
+    <div style="font-size:10px;color:var(--ink3);margin-top:6px;">⚡ Auto-rule: bookings over 4 hours are charged as a full day (8 hrs).</div>
   </div>
   <div style="background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.15);border-radius:9px;padding:12px;margin-bottom:11px;">
     <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:9px;">🔐 Portal Login Credentials</div>
     <div class="fgrid"><div class="fg"><label class="fl">Username *</label><input class="fi" id="pp-username" placeholder="e.g. john.smith" dir="ltr"></div><div class="fg"><label class="fl">Password *</label><input class="fi" id="pp-pass" type="text" placeholder="e.g. John@2026" dir="ltr"></div></div>
     <div style="font-size:11px;color:var(--ink3);">Share these credentials with the person to access their portal.</div>
+  </div>
+  <div style="background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.15);border-radius:9px;padding:12px;margin-bottom:11px;">
+    <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:9px;">🎯 Marketplace Classification</div>
+    <div class="fgrid">
+      <div class="fg"><label class="fl">Type</label>
+        <select class="fi" id="pp-sme-type">
+          <option value="">— Select —</option>
+          <option value="Subject Matter Expert">Subject Matter Expert (SME)</option>
+          <option value="Consultant">Consultant</option>
+          <option value="Lawyer">Lawyer</option>
+          <option value="Advisor">Advisor</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Specialty</label><input class="fi" id="pp-specialty" placeholder="e.g. خبير ذكاء اصطناعي / Legal Advisor"></div>
+    </div>
   </div>
   <div class="fgrid"><div class="fg"><label class="fl">Access Code (auto)</label><input class="fi" id="pp-code" dir="ltr" placeholder="Auto-generated"></div><div class="fg" style="display:flex;align-items:center;padding-top:14px;"><label class="toggle"><input type="checkbox" id="pp-marketplace"><span class="toggle-slider"></span></label><span style="font-size:12px;margin-left:8px;">Show in Expert Marketplace</span></div></div>
   <div class="mfoot"><button class="btn bo" onclick="cm('m-person')">Cancel</button><button class="btn bg" onclick="savePerson()">💾 Save to Directory</button></div>
@@ -4067,11 +4156,15 @@ async function savePerson(){
     photo_url:document.getElementById('pp-photo').value.trim(),
     show_photo:showPhoto?showPhoto.checked:true,
     rate_hourly:parseFloat(document.getElementById('pp-rh').value)||null,
+    rate_daily:parseFloat(document.getElementById('pp-rd')?document.getElementById('pp-rd').value:'')||null,
     rate_monthly:parseFloat(document.getElementById('pp-rm').value)||null,
     rate_yearly:parseFloat(document.getElementById('pp-ry').value)||null,
     rate_hourly_price:document.getElementById('pp-ph')&&document.getElementById('pp-ph').value?document.getElementById('pp-ph').value:null,
+    rate_daily_price:document.getElementById('pp-pd')&&document.getElementById('pp-pd').value?document.getElementById('pp-pd').value:null,
     rate_monthly_price:document.getElementById('pp-pm')&&document.getElementById('pp-pm').value?document.getElementById('pp-pm').value:null,
     rate_yearly_price:document.getElementById('pp-py')&&document.getElementById('pp-py').value?document.getElementById('pp-py').value:null,
+    sme_type:document.getElementById('pp-sme-type')?document.getElementById('pp-sme-type').value:null,
+    specialty:document.getElementById('pp-specialty')?document.getElementById('pp-specialty').value.trim():null,
     availability:document.getElementById('pp-avail').value,
     access_code:code,
     show_in_marketplace:marketplace?marketplace.checked:false,
@@ -4080,6 +4173,7 @@ async function savePerson(){
   };
   // Remove null price fields to avoid schema errors
   if(!p.rate_hourly_price)delete p.rate_hourly_price;
+  if(!p.rate_daily_price)delete p.rate_daily_price;
   if(!p.rate_monthly_price)delete p.rate_monthly_price;
   if(!p.rate_yearly_price)delete p.rate_yearly_price;
   if(editId){

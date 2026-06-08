@@ -768,16 +768,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
     <div class="mti">🌟 Request Expert</div>
     <div id="req-exp-name" style="font-size:14px;font-weight:700;color:var(--teal);margin-bottom:14px;"></div>
     <input type="hidden" id="req-eid"><input type="hidden" id="req-ename">
-    <div class="fg"><label class="fl">Service Type</label>
+    <div class="fg"><label class="fl">Booking Type</label>
       <select class="fs" id="req-svc" onchange="updateRate()">
-        <option value="hourly">Per Hour</option>
-        <option value="monthly">Per Month</option>
-        <option value="yearly">Per Year</option>
+        <option value="hourly">Hourly</option>
+        <option value="daily">Daily (8 hrs)</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
       </select>
     </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:12px;text-align:center;">
-      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">Rate</div>
-      <div id="req-rate" style="font-family:Syne;font-size:22px;font-weight:800;color:var(--gold);">—</div>
+    <div class="fg" id="req-qty-wrap"><label class="fl" id="req-qty-label">Number of Hours</label><input class="fi" type="number" id="req-qty" value="1" min="1" oninput="updateRate()"></div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:11px;color:var(--ink3);">Unit Rate</span>
+        <span id="req-rate" style="font-size:14px;font-weight:600;color:var(--ink2);">—</span>
+      </div>
+      <div id="req-rule-note" style="font-size:10px;color:var(--gold);margin-bottom:8px;display:none;">⚡ Over 4 hours — charged as 1 full day (8 hrs)</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:8px;">
+        <span style="font-size:12px;color:var(--ink2);font-weight:600;">Estimated Total</span>
+        <span id="req-total" style="font-family:Syne;font-size:22px;font-weight:800;color:var(--gold);">—</span>
+      </div>
     </div>
     <div class="fg"><label class="fl">Preferred Date</label><input class="fi" type="date" id="req-date"></div>
     <div class="fg"><label class="fl">Message / Requirements *</label><textarea class="fta" id="req-msg" placeholder="Describe what you need from this expert..."></textarea></div>
@@ -1300,17 +1309,19 @@ function renderExperts(experts){
   el.innerHTML=experts.map(function(e){
     var init=(e.name||'EX').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     var specs=e.specializations?e.specializations.split(',').slice(0,4):[];
-    var rh=e.rate_hourly_price,rm=e.rate_monthly_price,ry=e.rate_yearly_price;
+    var rh=e.rate_hourly_price,rd=e.rate_daily_price,rm=e.rate_monthly_price,ry=e.rate_yearly_price;
+    var smeType=e.sme_type||'';var specialty=e.specialty||'';
     return '<div class="ec">'
       +'<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">'
         +'<div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;overflow:hidden;flex-shrink:0;">'+init+'</div>'
-        +'<div style="flex:1;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">'+e.name+'</div>'
+        +'<div style="flex:1;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">'+e.name+(smeType?' <span style="font-size:9px;background:rgba(124,58,237,.15);color:#a78bfa;padding:1px 6px;border-radius:4px;font-weight:600;">'+smeType+'</span>':'')+'</div>'
+        +(specialty?'<div style="font-size:11px;color:var(--teal);font-weight:600;margin-bottom:2px;">'+specialty+'</div>':'')
         +'<div style="font-size:11px;color:var(--ink3);">'+(e.nationality||'')+(e.languages?' · '+e.languages:'')+'</div>'
         +(e.bio?'<div style="font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.4;">'+e.bio.slice(0,80)+'...</div>':'')
         +'</div></div>'
       +(specs.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">'+specs.map(function(s){return '<span style="font-size:10px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);padding:2px 8px;border-radius:5px;color:var(--teal);">'+s.trim()+'</span>';}).join('')+'</div>':'')
-      +'<div class="rg"><div class="rb"><div class="rv">'+(rh?rh+' USD':'—')+'</div><div class="rl">Per Hour</div></div><div class="rb"><div class="rv">'+(rm?rm+' USD':'—')+'</div><div class="rl">Per Month</div></div><div class="rb"><div class="rv">'+(ry?ry+' USD':'—')+'</div><div class="rl">Per Year</div></div></div>'
-      +'<button data-eid="'+e.id+'" data-ename="'+e.name+'" data-rh="'+(rh||'')+'" data-rm="'+(rm||'')+'" data-ry="'+(ry||'')+'" onclick="openReqModal(this.dataset.eid,this.dataset.ename,this.dataset.rh,this.dataset.rm,this.dataset.ry)" style="width:100%;background:var(--grad);border:none;border-radius:8px;padding:10px;color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;">📤 Request This Expert</button>'
+      +'<div class="rg"><div class="rb"><div class="rv">'+(rh?'$'+rh:'—')+'</div><div class="rl">Per Hour</div></div><div class="rb"><div class="rv">'+(rd?'$'+rd:'—')+'</div><div class="rl">Per Day</div></div><div class="rb"><div class="rv">'+(rm?'$'+rm:'—')+'</div><div class="rl">Per Month</div></div></div>'
+      +'<button data-eid="'+e.id+'" data-ename="'+e.name+'" data-rh="'+(rh||'')+'" data-rd="'+(rd||'')+'" data-rm="'+(rm||'')+'" data-ry="'+(ry||'')+'" onclick="openReqModal(this.dataset.eid,this.dataset.ename,this.dataset.rh,this.dataset.rd,this.dataset.rm,this.dataset.ry)" style="width:100%;background:var(--grad);border:none;border-radius:8px;padding:10px;color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;">📅 Book This Expert</button>'
     +'</div>';
   }).join('');
 }
@@ -1404,21 +1415,66 @@ async function submitTicket(){
   }catch(e){toast('Error submitting','te');}
 }
 
-function openReqModal(id,name,rh,rm,ry){
-  currentRates={hourly:rh,monthly:rm,yearly:ry};
+function openReqModal(id,name,rh,rd,rm,ry){
+  currentRates={hourly:parseFloat(rh)||0,daily:parseFloat(rd)||0,monthly:parseFloat(rm)||0,yearly:parseFloat(ry)||0};
   document.getElementById('req-eid').value=id;
   document.getElementById('req-ename').value=name;
   document.getElementById('req-exp-name').textContent=name;
   document.getElementById('req-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('req-qty').value=1;
+  document.getElementById('req-svc').value='hourly';
   updateRate();openModal('m-req');
 }
-function updateRate(){var svc=document.getElementById('req-svc').value;var rate=svc==='hourly'?currentRates.hourly:svc==='monthly'?currentRates.monthly:currentRates.yearly;document.getElementById('req-rate').textContent=rate?(rate+' USD'):'On Request';}
+function updateRate(){
+  var svc=document.getElementById('req-svc').value;
+  var qty=parseFloat(document.getElementById('req-qty').value)||1;
+  var qtyLabel=document.getElementById('req-qty-label');
+  var ruleNote=document.getElementById('req-rule-note');
+  ruleNote.style.display='none';
+  
+  // Update quantity label
+  qtyLabel.textContent = svc==='hourly'?'Number of Hours':svc==='daily'?'Number of Days':svc==='monthly'?'Number of Months':'Number of Years';
+  
+  var unitRate = currentRates[svc]||0;
+  var total = 0;
+  
+  if(svc==='hourly'){
+    // 4hr rule: if hours > 4, charge as full day
+    if(qty > 4 && currentRates.daily > 0){
+      total = Math.ceil(qty/8) * currentRates.daily; // full days
+      ruleNote.style.display='block';
+      ruleNote.textContent='⚡ '+qty+' hrs → '+Math.ceil(qty/8)+' full day(s) × $'+currentRates.daily;
+    } else {
+      total = qty * unitRate;
+    }
+  } else {
+    total = qty * unitRate;
+  }
+  
+  document.getElementById('req-rate').textContent = unitRate?('$'+unitRate+' / '+(svc==='hourly'?'hr':svc==='daily'?'day':svc==='monthly'?'mo':'yr')):'On Request';
+  document.getElementById('req-total').textContent = total>0?('$'+total.toLocaleString()):'On Request';
+}
 
 async function submitReq(){
   var msg=document.getElementById('req-msg').value.trim();
   if(!msg){toast('Please describe your requirements','te');return;}
   var notes=document.getElementById('req-notes').value.trim();
-  var body={expert_id:document.getElementById('req-eid').value,expert_name:document.getElementById('req-ename').value,client_id:clientData?clientData.id:null,client_name:clientData?clientData.name:null,service_type:document.getElementById('req-svc').value,requested_date:document.getElementById('req-date').value,message:msg+(notes?'\n\nNotes: '+notes:''),status:'Pending'};
+  var svc=document.getElementById('req-svc').value;
+  var qty=parseFloat(document.getElementById('req-qty').value)||1;
+  var unitRate=currentRates[svc]||0;
+  var calcHours=svc==='hourly'?qty:svc==='daily'?qty*8:0;
+  var total=0;
+  if(svc==='hourly'&&qty>4&&currentRates.daily>0){total=Math.ceil(qty/8)*currentRates.daily;}
+  else{total=qty*unitRate;}
+  // Save to ix_bookings
+  try{
+    await fetch(SB_URL+'/rest/v1/ix_bookings',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({expert_id:document.getElementById('req-eid').value,expert_name:document.getElementById('req-ename').value,
+        client_id:clientData?clientData.id:null,client_name:clientData?clientData.name:null,
+        duration_type:svc,duration_value:qty,calculated_hours:calcHours,total_cost:total,currency:'USD',
+        purpose:msg+(notes?'\n\nNotes: '+notes:''),status:'pending_admin'})});
+  }catch(e){console.error('booking save',e);}
+  var body={expert_id:document.getElementById('req-eid').value,expert_name:document.getElementById('req-ename').value,client_id:clientData?clientData.id:null,client_name:clientData?clientData.name:null,service_type:svc,requested_date:document.getElementById('req-date').value,message:msg+'\n\nBooking: '+qty+' '+svc+' = $'+total+(notes?'\nNotes: '+notes:''),status:'Pending'};
   try{
     var r=await fetch(SB_URL+'/rest/v1/ix_expert_requests',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(body)});
     if(r.ok){closeModal('m-req');document.getElementById('req-msg').value='';document.getElementById('req-notes').value='';
@@ -1749,8 +1805,8 @@ async function loadMarketplace(){
     var priceLabel=function(s){
       if(s.price_type==='free')return 'Free';
       if(s.price_type==='quotation')return 'On Request';
-      if(s.price_type==='range')return 'SAR '+(s.price_min||'?')+' – '+(s.price_max||'?');
-      return s.price?'SAR '+parseFloat(s.price).toLocaleString()+(s.unit?' / '+s.unit:''):'On Request';
+      if(s.price_type==='range')return '$'+(s.price_min||'?')+' – $'+(s.price_max||'?');
+      return s.price?'$'+parseFloat(s.price).toLocaleString()+(s.unit?' / '+s.unit:''):'On Request';
     };
     var html='';
     Object.keys(grouped).forEach(function(cat){

@@ -216,8 +216,8 @@ var CFO_KNOWLEDGE = {
 
 // ── Google Translate ──
 var _GKEY = 'AIzaSyAvJxUoPoQGnGvmAofivA_33mSBXxRhwyU';
-var _OR_KEY = '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';
-var _OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
+var _OR_KEY = '';
+var _OR_URL = 'https://hidden-lab-b8e2.sulaiman-c0c.workers.dev';
 var _OR_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
 var _langMap = {en:'en',ar:'ar',es:'es',fr:'fr',de:'de',it:'it',pt:'pt',ru:'ru',zh:'zh-CN',ja:'ja',ko:'ko'};
 
@@ -372,9 +372,9 @@ async function callAI_cfo(question) {
   try {
     var msgs = [{role:'system', content:'You are a world-class CFO Advisor for growth-stage companies. Expert in: burn rate, runway, unit economics (LTV:CAC, payback period), fundraising strategy, financial modeling, board financial reporting. Style: direct, numbers-first, use specific formulas and benchmarks. Respond in the same language the user writes in.'}];
     _convHist_cfo.forEach(function(h){msgs.push(h);});
-    var res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    var res = await fetch('https://hidden-lab-b8e2.sulaiman-c0c.workers.dev', {
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer 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'},
+      headers:{'Content-Type':'application/json','Content-Type':'application/json'},
       body:JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free',messages:msgs,max_tokens:800,temperature:0.7})
     });
     var d = await res.json();

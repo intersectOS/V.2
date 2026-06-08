@@ -290,7 +290,122 @@ async function loadEpRoadmaps(){
 }
 
 var _origShowTabEp=showTab;
-showTab=function(id,el){_origShowTabEp(id,el);if(id==='ep-roadmaps')loadEpRoadmaps();};
+showTab=function(id,el){_origShowTabEp(id,el);if(id==='ep-roadmaps')loadEpRoadmaps();if(id==='ep-bookings')loadEpBookings();};
+
+
+// ── Meeting Invites & Action Items ──
+async function loadPortalMeetings(targetId){
+  var el=document.getElementById(targetId||'ep-meeting-invites-list');
+  if(!el)return;
+  if(!memberData||!memberData.name){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;font-size:12px;">Login required</div>';return;}
+  try{
+    var now=new Date().toISOString().split('T')[0];
+    var r=await fetch(SB_URL+'/rest/v1/ix_meetings?order=date.desc&limit=20',
+      {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+    var meetings=await r.json();
+    if(!Array.isArray(meetings)||!meetings.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;font-size:12px;">No meetings scheduled yet</div>';return;
+    }
+    // Filter meetings where this member is a participant
+    var myName=(memberData.name||'').toLowerCase();
+    var mine=meetings.filter(function(m){
+      var parts=((m.participants||'')+(m.attendees||'')+(m.title||'')).toLowerCase();
+      return parts.includes(myName)||!m.participants;
+    });
+    if(!mine.length)mine=meetings.slice(0,5);
+    el.innerHTML=mine.map(function(m){
+      var d=m.date?new Date(m.date).toLocaleDateString('en-SA',{weekday:'short',month:'short',day:'numeric'}):'TBD';
+      var isUpcoming=m.date&&m.date>=now;
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+          +'<div style="font-size:13px;font-weight:600;">'+(m.title||'Meeting')+'</div>'
+          +'<span style="font-size:10px;padding:2px 8px;border-radius:4px;background:'+(isUpcoming?'rgba(6,182,212,.1)':'rgba(255,255,255,.05)')+';color:'+(isUpcoming?'var(--teal)':'var(--ink3)')+'">'+(isUpcoming?'Upcoming':'Past')+'</span>'
+        +'</div>'
+        +'<div style="font-size:11px;color:var(--ink3);margin-top:4px;">📅 '+d+(m.time?' · '+m.time:'')+(m.location?' · '+m.location:'')+'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);font-size:12px;padding:12px;">Error loading meetings</div>';}
+}
+
+async function loadMyActionItems(){
+  var el=document.getElementById('my-actions-list');
+  if(!el)return;
+  if(!memberData||!memberData.name){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;font-size:12px;">Login required</div>';return;}
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/ix_actions?order=created_at.desc&limit=50',
+      {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+    var actions=await r.json();
+    var myName=(memberData.name||'').toLowerCase();
+    var mine=Array.isArray(actions)?actions.filter(function(a){
+      return ((a.person||a.assignee||'')+'').toLowerCase().includes(myName);
+    }):[];
+    if(!mine.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;font-size:12px;">No action items assigned to you yet</div>';return;
+    }
+    el.innerHTML=mine.map(function(a){
+      var done=a.status==='completed'||a.done;
+      return '<div style="display:flex;align-items:flex-start;gap:10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:7px;">'
+        +'<div style="font-size:14px;">'+(done?'✅':'⬜')+'</div>'
+        +'<div style="flex:1;">'
+          +'<div style="font-size:12px;'+(done?'text-decoration:line-through;color:var(--ink3);':'')+'">'+(a.action||a.title||'Action')+'</div>'
+          +(a.meeting_title?'<div style="font-size:10px;color:var(--ink3);margin-top:2px;">From: '+a.meeting_title+'</div>':'')
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);font-size:12px;padding:12px;">Error loading actions</div>';}
+}
+
+
+async function loadEpBookings(){
+  var el=document.getElementById('ep-bookings-body');
+  if(!el)return;
+  if(!memberData||!memberData.name){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;">Login required</div>';return;}
+  try{
+    var res=await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_bookings?expert_name=eq.'+encodeURIComponent(memberData.name)+'&order=created_at.desc',
+      {headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs'}});
+    var bookings=await res.json();
+    if(!Array.isArray(bookings)||!bookings.length){
+      el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:20px;font-size:13px;">No booking requests yet</div>';return;
+    }
+    var sl={pending_admin:'⏳ Awaiting Admin',pending_expert:'⏳ Your Approval Needed',confirmed:'✅ Confirmed',rejected:'❌ Rejected',completed:'✔ Completed'};
+    var sc={pending_admin:'var(--ink3)',pending_expert:'var(--gold)',confirmed:'var(--green)',rejected:'var(--red)',completed:'var(--ink3)'};
+    el.innerHTML=bookings.map(function(b){
+      var t=new Date(b.created_at).toLocaleDateString('en-SA',{month:'short',day:'numeric'});
+      return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:9px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+          +'<div style="flex:1;"><div style="font-size:13px;font-weight:700;">'+b.client_name+'</div>'
+          +'<div style="font-size:11px;color:var(--ink3);margin-top:2px;">'+b.duration_value+' '+b.duration_type+' · <span style="color:var(--gold);font-weight:700;">$'+(b.total_cost||0).toLocaleString()+'</span> · '+t+'</div></div>'
+          +'<span style="font-size:10px;font-weight:700;color:'+(sc[b.status]||'var(--ink2)')+';white-space:nowrap;">'+(sl[b.status]||b.status)+'</span>'
+        +'</div>'
+        +(b.purpose?'<div style="font-size:12px;color:var(--ink2);margin-bottom:8px;padding:8px;background:rgba(255,255,255,.02);border-radius:6px;">'+b.purpose+'</div>':'')
+        +(b.status==='pending_expert'?
+          '<div style="display:flex;gap:6px;">'
+          +'<button onclick="acceptBooking(\\''+b.id+'\\')" style="flex:1;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;border-radius:6px;padding:7px;font-size:12px;cursor:pointer;">✓ Accept</button>'
+          +'<button onclick="declineBooking(\\''+b.id+'\\')" style="flex:1;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red);border-radius:6px;padding:7px;font-size:12px;cursor:pointer;">✕ Decline</button>'
+          +'</div>'
+        :'')
+      +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--red);font-size:12px;">Error loading bookings</div>';}
+}
+
+async function acceptBooking(id){
+  try{
+    await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_bookings?id=eq.'+id,{method:'PATCH',
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json'},
+      body:JSON.stringify({status:'confirmed',updated_at:new Date().toISOString()})});
+    alert('✅ Booking confirmed!');loadEpBookings();
+  }catch(e){alert('Error');}
+}
+
+async function declineBooking(id){
+  try{
+    await fetch('https://zmiywdpfdvllsxalklrv.supabase.co/rest/v1/ix_bookings?id=eq.'+id,{method:'PATCH',
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptaXl3ZHBmZHZsbHN4YWxrbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc4NDYsImV4cCI6MjA5NDU5Mzg0Nn0.l9DYJ8DeBGXmxNC4qYjKvuVzSlLDWLr7FERQEMY2kAs','Content-Type':'application/json'},
+      body:JSON.stringify({status:'rejected',updated_at:new Date().toISOString()})});
+    loadEpBookings();
+  }catch(e){alert('Error');}
+}
 
 </script>
 <style>
@@ -406,6 +521,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       <button class="tab" onclick="showTab('ep-attendance',this)">📋 Attendance</button>
       <button class="tab" onclick="showTab('ep-news',this)">📰 News</button>
       <button class="tab" onclick="showTab('ep-roadmaps',this)">🗺️ Roadmaps</button>
+      <button class="tab" onclick="showTab('ep-bookings',this)">📅 Bookings</button>
       <button class="tab" onclick="showTab('ep-meetings-inv',this)">📅 Meetings</button>
       <button class="tab" onclick="showTab('ep-actions',this)">📋 Action Items</button>
     </div>
@@ -945,6 +1061,17 @@ function openSupportModal(tid,ttitle){
         <div class="ph"><div class="pt">🗺️ My Roadmaps & Projects</div></div>
         <div class="pb" id="ep-roadmaps-body">
           <div style="text-align:center;color:var(--ink3);padding:24px;">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- BOOKINGS -->
+    <div class="tp" id="tp-ep-bookings">
+      <div class="panel">
+        <div class="ph"><div class="pt">📅 My Booking Requests</div><button class="btn bbo bsm" onclick="loadEpBookings()" style="font-size:10px;">↻</button></div>
+        <div class="pb" id="ep-bookings-body">
+          <div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div>
         </div>
       </div>
     </div>
