@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Intersect · Freelancer Portal</title>
+<title>Intersect · Expert Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js">
 // ── VOICE SYSTEM ──
@@ -494,7 +494,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
   <!-- HERO -->
   <div class="hero">
     <div class="hero-top">
-      <div><div class="brand">INTERSECT</div><div style="font-size:10px;color:var(--ink3);">Freelancer Portal</div></div>
+      <div><div class="brand">INTERSECT</div><div style="font-size:10px;color:var(--ink3);">Expert Portal</div></div>
       <div style="display:flex;gap:8px;align-items:center;">
         <button id="checkin-btn" onclick="checkIn()" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">✅ Check In</button>
         <button class="logout-btn" onclick="doLogout()">→ Logout</button>
@@ -514,7 +514,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
     <div class="tabs" style="padding:10px 16px 0;">
       <button class="tab on" onclick="showTab('ep-tasks',this)">📌 My Tasks</button>
       <button class="tab" onclick="showTab('ep-inbox',this)">📥 Inbox</button>
-      <button class="tab" onclick="showTab('ep-deliverables',this)">📦 Deliverables</button>
+      <button class="tab" onclick="showTab('ep-requests',this)">📋 Requests</button>
       <button class="tab" onclick="showTab('ep-marketplace',this)">🛒 Marketplace</button>
       <button class="tab" onclick="showTab('ep-updates',this)">🔄 Updates</button>
       <button class="tab" onclick="showTab('ep-profile',this)">👤 My Profile</button>
@@ -546,16 +546,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--ink);mi
       </div>
     </div>
 
-    <!-- DELIVERABLES -->
-    <div class="tp" id="tp-ep-deliverables">
+    <!-- REQUESTS (Expert requests from marketplace) -->
+    <div class="tp" id="tp-ep-requests">
       <div class="panel">
-        <div class="ph"><div class="pt">📦 Submit Deliverable</div></div>
-        <div class="pb">
-          <div class="fg"><label class="fl">Task / Project *</label><select class="fs" id="del-task"><option value="">— Select —</option></select></div>
-          <div class="fg"><label class="fl">Description *</label><textarea class="fta" id="del-desc" placeholder="Describe what you're delivering..."></textarea></div>
-          <div class="fg"><label class="fl">Drive Link (files)</label><input class="fi" id="del-link" dir="ltr" placeholder="https://drive.google.com/..."></div>
-          <button class="btn bbg bw" onclick="submitDeliverable()">📦 Submit</button>
-        </div>
+        <div class="ph"><div class="pt">📋 Open Expert Requests</div><button class="btn bbo bsm" onclick="loadExpertRequests()">↻</button></div>
+        <div class="pb" id="ep-reqs-list"><div style="text-align:center;color:var(--ink3);padding:20px;">Loading...</div></div>
       </div>
     </div>
 
@@ -675,7 +670,7 @@ function showTab(n,el){
   if(el)el.classList.add('on');
   if(n==='ep-tasks')loadMyTasks();
   if(n==='ep-inbox'){loadInbox();loadSent();}
-  if(n==='ep-deliverables'){}
+  if(n==='ep-requests')loadExpertRequests();
   if(n==='ep-marketplace')loadMarketplace();
   if(n==='ep-attendance')loadAttendance();
   if(n==='ep-news')loadNews();
@@ -718,17 +713,17 @@ function render(){
     var _gl=localStorage.getItem('ix_lang')||'en';
     _voiceLang=_gl;
     setTimeout(function(){
-      voiceGreet(memberData&&memberData.name||'Freelancer',0,_gl);
+      voiceGreet(memberData&&memberData.name||'Expert',0,_gl);
     },1000);
   }catch(_ve){}
 
   var init=(m.name||'EX').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
   document.getElementById('ep-av').textContent=init;
   document.getElementById('ep-name').textContent=m.name;
-  document.getElementById('ep-role').textContent=m.role||m.person_type||'Freelancer';
+  document.getElementById('ep-role').textContent=m.role||m.person_type||'Expert';
   // Profile
   var pInfo=document.getElementById('ep-profile-info');
-  if(pInfo)pInfo.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><div class="av" style="width:50px;height:50px;font-size:18px;">'+init+'</div><div><div style="font-size:16px;font-weight:700;">'+m.name+'</div><div style="font-size:12px;color:var(--ink3);">'+(m.role||'Freelancer')+'</div>'+(m.specializations?'<div style="font-size:11px;color:var(--teal);">'+m.specializations+'</div>':'')+'</div></div>';
+  if(pInfo)pInfo.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><div class="av" style="width:50px;height:50px;font-size:18px;">'+init+'</div><div><div style="font-size:16px;font-weight:700;">'+m.name+'</div><div style="font-size:12px;color:var(--ink3);">'+(m.role||'Expert')+'</div>'+(m.specializations?'<div style="font-size:11px;color:var(--teal);">'+m.specializations+'</div>':'')+'</div></div>';
   // Rates
   var ratesEl=document.getElementById('ep-rates');
   if(ratesEl){
@@ -1068,19 +1063,6 @@ async function saveTelegram(){
     await fetch('https://api.telegram.org/bot'+TG_TOKEN+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:'✅ *INTERSECT PartnerOS*\n\nYour Telegram is linked!',parse_mode:'Markdown'})});
     document.getElementById('ep-tg-status').innerHTML='<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:8px;font-size:12px;color:#22c55e;text-align:center;">✅ Linked!</div>';
     toast('✅ Telegram linked!','ts');
-  }catch(e){toast('Error','te');}
-}
-
-async function submitDeliverable(){
-  var desc=document.getElementById('del-desc').value.trim();
-  if(!desc){toast('Describe your deliverable','te');return;}
-  var taskSel=document.getElementById('del-task').value;
-  var link=document.getElementById('del-link').value.trim();
-  try{
-    await sbInsert('ix_requests',{title:'[Deliverable] '+memberData.name,description:desc+(link?'\nFiles: '+link:''),requested_by:memberData.name,context_type:'deliverable',context_value:taskSel||null,status:'Pending',priority:'high',show_to_client:false});
-    document.getElementById('del-desc').value='';document.getElementById('del-link').value='';
-    sendTG('📦 *Deliverable Submitted*\n\nFrom: '+memberData.name+'\n\n'+desc.slice(0,100));
-    toast('✅ Deliverable submitted!','ts');
   }catch(e){toast('Error','te');}
 }
 
