@@ -1,0 +1,31 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check files
+        run: |
+          echo "Files to deploy:"
+          ls -lh *.html *.js *.json 2>/dev/null | head -20
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          exclude_assets: '.git,node_modules,.env,.env.*,*.local'
+
+      - name: 🎉 Deployment successful
+        run: echo "✅ Deployed to https://intersectos.github.io/V.2/"
