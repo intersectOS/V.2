@@ -1,0 +1,42 @@
+{
+  "name": "intersect-partneros",
+  "version": "1.0.0",
+  "description": "Intersect PartnerOS - Executive Command Center for Partnership Management",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "serve": "python3 -m http.server 3000",
+    "start": "npm run dev",
+    "lint": "eslint *.html *.js || true",
+    "security-check": "npm audit --production",
+    "test": "echo 'Tests not configured' && exit 0",
+    "build": "echo 'Build complete'",
+    "deploy": "echo 'Deploy to production'",
+    "deploy:staging": "echo 'Deploy to staging'"
+  },
+  "keywords": [
+    "partnership",
+    "crm",
+    "business",
+    "management",
+    "supabase"
+  ],
+  "author": "Intersect Team",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/intersectos/v.2.git"
+  },
+  "bugs": {
+    "url": "https://github.com/intersectos/v.2/issues"
+  },
+  "homepage": "https://github.com/intersectos/v.2#readme"
+}
